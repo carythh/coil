@@ -29,7 +29,6 @@ import coil.transform.Transformation
 import coil.util.Logger
 import coil.util.SystemCallbacks
 import coil.util.allowInexactSize
-import coil.util.closeQuietly
 import coil.util.fetcher
 import coil.util.foldIndices
 import coil.util.invoke
@@ -129,7 +128,7 @@ internal class EngineInterceptor(
         fetcher: Fetcher<Any>,
         size: Size
     ): MemoryCache.Key? {
-        val base = fetcher.key(data) ?: return null
+        val base = fetcher.cacheKey(data) ?: return null
         return if (request.transformations.isEmpty()) {
             MemoryCache.Key(base, request.parameters)
         } else {
@@ -137,7 +136,7 @@ internal class EngineInterceptor(
         }
     }
 
-    /** Return true if [cacheValue] satisfies the [request]. */
+    /** Return 'true' if [cacheValue] satisfies the [request]. */
     @VisibleForTesting
     internal fun isCachedValueValid(
         cacheKey: MemoryCache.Key?,
@@ -162,7 +161,7 @@ internal class EngineInterceptor(
         return true
     }
 
-    /** Return true if [cacheValue]'s size satisfies the [request]. */
+    /** Return 'true' if [cacheValue]'s size satisfies the [request]. */
     private fun isSizeValid(
         cacheKey: MemoryCache.Key?,
         cacheValue: RealMemoryCache.Value,
@@ -317,7 +316,7 @@ internal class EngineInterceptor(
         return result.copy(drawable = output.toDrawable(request.context))
     }
 
-    /** Write [drawable] to the memory cache. Return true if it was added to the cache. */
+    /** Write [drawable] to the memory cache. Return 'true' if it was added to the cache. */
     private fun writeToMemoryCache(
         request: ImageRequest,
         key: MemoryCache.Key?,
