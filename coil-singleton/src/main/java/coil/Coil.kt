@@ -5,18 +5,24 @@ package coil
 import android.app.Application
 import android.content.Context
 import androidx.annotation.VisibleForTesting
+import coil.Coil.imageLoader
 import coil.Coil.setImageLoader
 
 /**
  * A class that holds the singleton [ImageLoader] instance.
  *
- * - To get the singleton [ImageLoader] use [Context.imageLoader].
+ * - To get the singleton [ImageLoader] use [imageLoader] or [Context.imageLoader].
  * - To set the singleton [ImageLoader] use [setImageLoader] or see [ImageLoaderFactory].
  */
 object Coil {
 
     private var imageLoader: ImageLoader? = null
     private var imageLoaderFactory: ImageLoaderFactory? = null
+
+    /**
+     * Get the singleton [ImageLoader].
+     */
+    fun imageLoader(context: Context) = imageLoader ?: newImageLoader(context)
 
     /**
      * Set the singleton [ImageLoader].
@@ -41,9 +47,6 @@ object Coil {
         imageLoaderFactory = factory
         imageLoader = null
     }
-
-    /** Get the singleton [ImageLoader]. Use [Context.imageLoader] for a public API. */
-    internal fun imageLoader(context: Context) = imageLoader ?: newImageLoader(context)
 
     /** Create and set the new singleton [ImageLoader]. */
     @Synchronized

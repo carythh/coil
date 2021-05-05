@@ -1,8 +1,9 @@
-@file:JvmName("ImageViews")
-@file:Suppress("unused")
+@file:JvmName("-Extensions")
+@file:Suppress("NOTHING_TO_INLINE", "unused")
 
 package coil
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import android.net.Uri
@@ -15,66 +16,14 @@ import coil.util.CoilUtils
 import okhttp3.HttpUrl
 import java.io.File
 
-/** @see ImageView.loadAny */
-@JvmSynthetic
-inline fun ImageView.load(
-    uri: String?,
-    imageLoader: ImageLoader = context.imageLoader,
-    builder: ImageRequest.Builder.() -> Unit = {}
-): Disposable = loadAny(uri, imageLoader, builder)
-
-/** @see ImageView.loadAny */
-@JvmSynthetic
-inline fun ImageView.load(
-    url: HttpUrl?,
-    imageLoader: ImageLoader = context.imageLoader,
-    builder: ImageRequest.Builder.() -> Unit = {}
-): Disposable = loadAny(url, imageLoader, builder)
-
-/** @see ImageView.loadAny */
-@JvmSynthetic
-inline fun ImageView.load(
-    uri: Uri?,
-    imageLoader: ImageLoader = context.imageLoader,
-    builder: ImageRequest.Builder.() -> Unit = {}
-): Disposable = loadAny(uri, imageLoader, builder)
-
-/** @see ImageView.loadAny */
-@JvmSynthetic
-inline fun ImageView.load(
-    file: File?,
-    imageLoader: ImageLoader = context.imageLoader,
-    builder: ImageRequest.Builder.() -> Unit = {}
-): Disposable = loadAny(file, imageLoader, builder)
-
-/** @see ImageView.loadAny */
-@JvmSynthetic
-inline fun ImageView.load(
-    @DrawableRes drawableResId: Int,
-    imageLoader: ImageLoader = context.imageLoader,
-    builder: ImageRequest.Builder.() -> Unit = {}
-): Disposable = loadAny(drawableResId, imageLoader, builder)
-
-/** @see ImageView.loadAny */
-@JvmSynthetic
-inline fun ImageView.load(
-    drawable: Drawable?,
-    imageLoader: ImageLoader = context.imageLoader,
-    builder: ImageRequest.Builder.() -> Unit = {}
-): Disposable = loadAny(drawable, imageLoader, builder)
-
-/** @see ImageView.loadAny */
-@JvmSynthetic
-inline fun ImageView.load(
-    bitmap: Bitmap?,
-    imageLoader: ImageLoader = context.imageLoader,
-    builder: ImageRequest.Builder.() -> Unit = {}
-): Disposable = loadAny(bitmap, imageLoader, builder)
+/**
+ * Get the singleton [ImageLoader].
+ */
+inline val Context.imageLoader: ImageLoader
+    @JvmName("imageLoader") get() = Coil.imageLoader(this)
 
 /**
  * Load the image referenced by [data] and set it on this [ImageView].
- *
- * [ImageView.loadAny] is the type-unsafe version of [ImageView.load].
  *
  * Example:
  * ```
@@ -84,12 +33,22 @@ inline fun ImageView.load(
  * }
  * ```
  *
+ * The default supported [data] types  are:
+ *
+ * - [String] (treated as a [Uri])
+ * - [Uri] (`android.resource`, `content`, `file`, `http`, and `https` schemes only)
+ * - [HttpUrl]
+ * - [File]
+ * - [DrawableRes] [Int]
+ * - [Drawable]
+ * - [Bitmap]
+ *
  * @param data The data to load.
  * @param imageLoader The [ImageLoader] that will be used to enqueue the [ImageRequest].
- * @param builder An optional lambda to configure the request before it is enqueued.
+ *  By default, the singleton [ImageLoader] will be used.
+ * @param builder An optional lambda to configure the [ImageRequest].
  */
-@JvmSynthetic
-inline fun ImageView.loadAny(
+inline fun ImageView.load(
     data: Any?,
     imageLoader: ImageLoader = context.imageLoader,
     builder: ImageRequest.Builder.() -> Unit = {}
@@ -105,12 +64,12 @@ inline fun ImageView.loadAny(
 /**
  * Cancel any in progress requests and clear all resources associated with this [ImageView].
  */
-fun ImageView.clear() {
+inline fun ImageView.clear() {
     CoilUtils.clear(this)
 }
 
 /**
  * Get the metadata of the successful request attached to this view.
  */
-val ImageView.metadata: ImageResult.Metadata?
+inline val ImageView.metadata: ImageResult.Metadata?
     @JvmName("metadata") get() = CoilUtils.metadata(this)
