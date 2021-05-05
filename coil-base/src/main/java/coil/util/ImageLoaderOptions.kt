@@ -9,6 +9,5 @@ import coil.RealImageLoader
  * @see ImageLoader.Builder
  */
 internal data class ImageLoaderOptions(
-    val addLastModifiedToFileCacheKey: Boolean = true,
-    val launchInterceptorChainOnMainThread: Boolean = true
+    val addLastModifiedToFileCacheKey: Boolean = true
 )

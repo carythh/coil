@@ -1,5 +1,6 @@
 package coil.intercept
 
+import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.util.Log
@@ -7,10 +8,12 @@ import androidx.annotation.VisibleForTesting
 import coil.ComponentRegistry
 import coil.EventListener
 import coil.decode.DataSource
+import coil.decode.DecodeResult
 import coil.decode.DecodeUtils
-import coil.decode.DrawableDecoderService
+import coil.decode.DrawableUtils
 import coil.decode.Options
 import coil.fetch.DrawableResult
+import coil.fetch.FetchResult
 import coil.fetch.Fetcher
 import coil.fetch.SourceResult
 import coil.memory.MemoryCache
@@ -39,19 +42,18 @@ import coil.util.requireFetcher
 import coil.util.safeConfig
 import coil.util.toDrawable
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
-import kotlin.coroutines.coroutineContext
 import kotlin.math.abs
 
 /** The last interceptor in the chain which executes the [ImageRequest]. */
 internal class EngineInterceptor(
-    private val registry: ComponentRegistry,
+    private val components: ComponentRegistry,
     private val strongMemoryCache: StrongMemoryCache,
     private val memoryCacheService: MemoryCacheService,
     private val requestService: RequestService,
     private val systemCallbacks: SystemCallbacks,
-    private val drawableDecoder: DrawableDecoderService,
     private val logger: Logger?
 ) : Interceptor {
 
@@ -68,11 +70,11 @@ internal class EngineInterceptor(
 
             // Perform any data mapping.
             eventListener.mapStart(request, data)
-            val mappedData = registry.mapData(data)
+            val mappedData = components.mapData(data)
             eventListener.mapEnd(request, mappedData)
 
             // Check the memory cache.
-            val fetcher = request.fetcher(mappedData) ?: registry.requireFetcher(mappedData)
+            val fetcher = request.fetcher(mappedData) ?: components.requireFetcher(mappedData)
             val memoryCacheKey = request.memoryCacheKey ?: computeMemoryCacheKey(request, mappedData, fetcher, size)
             val value = if (request.memoryCachePolicy.readEnabled) memoryCacheService[memoryCacheKey] else null
 
@@ -90,11 +92,10 @@ internal class EngineInterceptor(
                 )
             }
 
-            // Fetch, decode, transform, and cache the image on a background dispatcher.
-            return withContext(request.dispatcher) {
+            // Fetch, decode, transform, and cache the image.
+            return withContext(Dispatchers.Unconfined) {
                 // Fetch and decode the image.
-                val (drawable, isSampled, dataSource) =
-                    execute(mappedData, fetcher, request, chain.requestType, size, eventListener)
+                val (drawable, isSampled, dataSource) = execute(mappedData, fetcher, request, size, eventListener)
 
                 // Cache the result in the memory cache.
                 val isCached = writeToMemoryCache(request, memoryCacheKey, drawable, isSampled)
@@ -208,15 +209,15 @@ internal class EngineInterceptor(
                 )
                 if (multiple != 1.0 && !request.allowInexactSize) {
                     logger?.log(TAG, Log.DEBUG) {
-                        "${request.data}: Cached image's request size ($cachedWidth, $cachedHeight) " +
-                            "does not exactly match the requested size (${size.width}, ${size.height}, ${request.scale})."
+                        "${request.data}: Cached image's request size ($cachedWidth, $cachedHeight) does not " +
+                            "exactly match the requested size (${size.width}, ${size.height}, ${request.scale})."
                     }
                     return false
                 }
                 if (multiple > 1.0 && cacheValue.isSampled) {
                     logger?.log(TAG, Log.DEBUG) {
-                        "${request.data}: Cached image's request size ($cachedWidth, $cachedHeight) " +
-                            "is smaller than the requested size (${size.width}, ${size.height}, ${request.scale})."
+                        "${request.data}: Cached image's request size ($cachedWidth, $cachedHeight) is smaller " +
+                            "than the requested size (${size.width}, ${size.height}, ${request.scale})."
                     }
                     return false
                 }
@@ -231,33 +232,28 @@ internal class EngineInterceptor(
         data: Any,
         fetcher: Fetcher<Any>,
         request: ImageRequest,
-        type: Int,
         size: Size,
         eventListener: EventListener
     ): DrawableResult {
-        val options = requestService.options(request, size, systemCallbacks.isOnline)
-
-        eventListener.fetchStart(request, fetcher, options)
-        val fetchResult = fetcher.fetch(data, options)
-        eventListener.fetchEnd(request, fetcher, options, fetchResult)
+        // Fetch the data.
+        val options: Options
+        val fetchResult: FetchResult
+        withContext(request.fetcherDispatcher) {
+            options = requestService.options(request, size, systemCallbacks.isOnline)
+            eventListener.fetchStart(request, fetcher, options)
+            fetchResult = fetcher.fetch(data, options)
+            eventListener.fetchEnd(request, fetcher, options, fetchResult)
+        }
 
         val baseResult = when (fetchResult) {
             is SourceResult -> {
-                val decodeResult = try {
-                    // Check if we're cancelled.
-                    coroutineContext.ensureActive()
-
-                    // Decode the stream.
-                    val decoder = request.decoder ?: registry.requireDecoder(request.data, fetchResult.source, fetchResult.mimeType)
+                // Decode the data.
+                val decodeResult: DecodeResult
+                withContext(request.decoderDispatcher) {
+                    val decoder = request.decoder ?: components.requireDecoder(request.data, fetchResult.source, fetchResult.mimeType)
                     eventListener.decodeStart(request, decoder, options)
-                    val decodeResult = decoder.decode(fetchResult.source, options)
+                    decodeResult = decoder.decode(fetchResult.source, options)
                     eventListener.decodeEnd(request, decoder, options, decodeResult)
-                    decodeResult
-                } catch (throwable: Throwable) {
-                    // Only close the stream automatically if there is an uncaught exception.
-                    // This allows custom decoders to continue to read the source after returning a drawable.
-                    fetchResult.source.closeQuietly()
-                    throw throwable
                 }
 
                 // Combine the fetch and decode operations' results.
@@ -270,11 +266,8 @@ internal class EngineInterceptor(
             is DrawableResult -> fetchResult
         }
 
-        // Check if we're cancelled.
-        coroutineContext.ensureActive()
-
         // Apply any transformations and prepare to draw.
-        val finalResult = applyTransformations(baseResult, request, size, options, eventListener)
+        val finalResult = applyTransformations(baseResult, request, options, eventListener)
         (finalResult.drawable as? BitmapDrawable)?.bitmap?.prepareToDraw()
         return finalResult
     }
@@ -284,7 +277,6 @@ internal class EngineInterceptor(
     internal suspend inline fun applyTransformations(
         result: DrawableResult,
         request: ImageRequest,
-        size: Size,
         options: Options,
         eventListener: EventListener
     ): DrawableResult {
@@ -292,28 +284,15 @@ internal class EngineInterceptor(
         if (transformations.isEmpty()) return result
 
         // Convert the drawable into a bitmap with a valid config.
-        val input = if (result.drawable is BitmapDrawable) {
-            val resultBitmap = result.drawable.bitmap
-            if (resultBitmap.safeConfig in RequestService.VALID_TRANSFORMATION_CONFIGS) {
-                resultBitmap
-            } else {
-                logger?.log(TAG, Log.INFO) {
-                    "Converting bitmap with config ${resultBitmap.safeConfig} to apply transformations: $transformations"
-                }
-                drawableDecoder.convert(result.drawable, options.config, size, options.scale, options.allowInexactSize)
+        return withContext(request.transformationDispatcher) {
+            val input = convertDrawableToBitmap(result.drawable, options, transformations)
+            eventListener.transformStart(request, input)
+            val output = transformations.foldIndices(input) { bitmap, transformation ->
+                transformation.transform(bitmap, options.size).also { coroutineContext.ensureActive() }
             }
-        } else {
-            logger?.log(TAG, Log.INFO) {
-                "Converting drawable of type ${result.drawable::class.java.canonicalName} to apply transformations: $transformations"
-            }
-            drawableDecoder.convert(result.drawable, options.config, size, options.scale, options.allowInexactSize)
+            eventListener.transformEnd(request, output)
+            result.copy(drawable = output.toDrawable(request.context))
         }
-        eventListener.transformStart(request, input)
-        val output = transformations.foldIndices(input) { bitmap, transformation ->
-            transformation.transform(bitmap, size).also { coroutineContext.ensureActive() }
-        }
-        eventListener.transformEnd(request, output)
-        return result.copy(drawable = output.toDrawable(request.context))
     }
 
     /** Write [drawable] to the memory cache. Return 'true' if it was added to the cache. */
@@ -335,6 +314,33 @@ internal class EngineInterceptor(
             }
         }
         return false
+    }
+
+    /** Convert [drawable] to a [Bitmap]. */
+    private fun convertDrawableToBitmap(
+        drawable: Drawable,
+        options: Options,
+        transformations: List<Transformation>
+    ): Bitmap {
+        if (drawable is BitmapDrawable) {
+            var bitmap = drawable.bitmap
+            val config = bitmap.safeConfig
+            if (config !in RequestService.VALID_TRANSFORMATION_CONFIGS) {
+                logger?.log(TAG, Log.INFO) {
+                    "Converting bitmap with config $config to apply transformations: $transformations"
+                }
+                bitmap = DrawableUtils.convertToBitmap(drawable,
+                    options.config, options.size, options.scale, options.allowInexactSize)
+            }
+            return bitmap
+        }
+
+        logger?.log(TAG, Log.INFO) {
+            val type = drawable::class.java.canonicalName
+            "Converting drawable of type $type to apply transformations: $transformations"
+        }
+        return DrawableUtils.convertToBitmap(drawable,
+            options.config, options.size, options.scale, options.allowInexactSize)
     }
 
     companion object {

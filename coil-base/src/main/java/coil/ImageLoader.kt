@@ -7,11 +7,10 @@ import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import androidx.annotation.DrawableRes
 import androidx.annotation.FloatRange
-import coil.annotation.ExperimentalCoilApi
+import coil.decode.Decoder
 import coil.drawable.CrossfadeDrawable
 import coil.fetch.Fetcher
 import coil.intercept.Interceptor
-import coil.map.Mapper
 import coil.memory.EmptyWeakMemoryCache
 import coil.memory.MemoryCache
 import coil.memory.RealMemoryCache
@@ -26,9 +25,11 @@ import coil.request.ImageResult
 import coil.request.SuccessResult
 import coil.size.Precision
 import coil.target.ViewTarget
+import coil.transform.Transformation
 import coil.transition.CrossfadeTransition
 import coil.transition.Transition
 import coil.util.CoilUtils
+import coil.util.DEFAULT_REQUEST_OPTIONS
 import coil.util.ImageLoaderOptions
 import coil.util.Logger
 import coil.util.Utils
@@ -36,15 +37,13 @@ import coil.util.getDrawableCompat
 import coil.util.lazyCallFactory
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.MainCoroutineDispatcher
-import kotlinx.coroutines.withContext
 import okhttp3.Call
 import okhttp3.OkHttpClient
 import java.io.File
 
 /**
  * A service class that loads images by executing [ImageRequest]s. Image loaders handle caching, data fetching,
- * image decoding, request management, bitmap pooling, memory management, and more.
+ * image decoding, request management, memory management, and more.
  *
  * Image loaders are designed to be shareable and work best when you create a single instance and
  * share it throughout your app.
@@ -55,6 +54,11 @@ interface ImageLoader {
      * The default options that are used to fill in unset [ImageRequest] values.
      */
     val defaults: DefaultRequestOptions
+
+    /**
+     * The components used to fulfil image requests.
+     */
+    val components: ComponentRegistry
 
     /**
      * An in-memory cache of recently loaded images.
@@ -112,7 +116,7 @@ interface ImageLoader {
 
         constructor(context: Context) {
             applicationContext = context.applicationContext
-            defaults = DefaultRequestOptions.INSTANCE
+            defaults = DEFAULT_REQUEST_OPTIONS
             callFactory = null
             eventListenerFactory = null
             componentRegistry = null
@@ -228,15 +232,6 @@ interface ImageLoader {
         }
 
         /**
-         * The default [CoroutineDispatcher] to run image requests on.
-         *
-         * Default: [Dispatchers.IO]
-         */
-        fun dispatcher(dispatcher: CoroutineDispatcher) = apply {
-            this.defaults = this.defaults.copy(dispatcher = dispatcher)
-        }
-
-        /**
          * Allow the use of [Bitmap.Config.HARDWARE].
          *
          * If false, any use of [Bitmap.Config.HARDWARE] will be treated as [Bitmap.Config.ARGB_8888].
@@ -266,8 +261,8 @@ interface ImageLoader {
          * Enables adding [File.lastModified] to the memory cache key when loading an image from a [File].
          *
          * This allows subsequent requests that load the same file to miss the memory cache if the file has been updated.
-         * However, if the memory cache check occurs on the main thread (see [launchInterceptorChainOnMainThread])
-         * calling [File.lastModified] will cause a strict mode violation.
+         * However, if the memory cache check occurs on the main thread (see [interceptorDispatcher]) calling
+         * [File.lastModified] will cause a strict mode violation.
          *
          * Default: true
          */
@@ -288,31 +283,6 @@ interface ImageLoader {
         fun trackWeakReferences(enable: Boolean) = apply {
             this.trackWeakReferences = enable
             this.memoryCache = null
-        }
-
-        /**
-         * Enables launching the [Interceptor] chain on the main thread.
-         *
-         * If true, the [Interceptor] chain will be launched from [MainCoroutineDispatcher.immediate]. This allows
-         * the [ImageLoader] to check its memory cache and return a cached value synchronously if the request is
-         * started from the main thread. However, [Mapper.map] and [Fetcher.cacheKey] operations will be executed on the
-         * main thread as well, which has a performance cost.
-         *
-         * If false, the [Interceptor] chain will be launched from the request's [ImageRequest.dispatcher].
-         * This will result in better UI performance, but values from the memory cache will not be resolved
-         * synchronously.
-         *
-         * The actual fetch + decode process always occurs on [ImageRequest.dispatcher] and is unaffected by this flag.
-         *
-         * It's worth noting that [Interceptor]s can also control which [CoroutineDispatcher] the
-         * memory cache is checked on by calling [Interceptor.Chain.proceed] inside a [withContext] block.
-         * Therefore if you set [launchInterceptorChainOnMainThread] to true, you can control which [ImageRequest]s
-         * check the memory cache synchronously at runtime.
-         *
-         * Default: true
-         */
-        fun launchInterceptorChainOnMainThread(enable: Boolean) = apply {
-            this.options = this.options.copy(launchInterceptorChainOnMainThread = enable)
         }
 
         /**
@@ -348,7 +318,6 @@ interface ImageLoader {
         /**
          * Set the default [Transition] for each request.
          */
-        @ExperimentalCoilApi
         fun transition(transition: Transition) = apply {
             this.defaults = this.defaults.copy(transition = transition)
         }
@@ -372,6 +341,42 @@ interface ImageLoader {
          */
         fun bitmapConfig(bitmapConfig: Bitmap.Config) = apply {
             this.defaults = this.defaults.copy(bitmapConfig = bitmapConfig)
+        }
+
+        /**
+         * The [CoroutineDispatcher] that the [Interceptor] chain will be executed on.
+         *
+         * Default: `Dispatchers.Main.immediate`
+         */
+        fun interceptorDispatcher(dispatcher: CoroutineDispatcher) = apply {
+            this.defaults = this.defaults.copy(interceptorDispatcher = dispatcher)
+        }
+
+        /**
+         * The [CoroutineDispatcher] that [Fetcher.fetch] will be executed on.
+         *
+         * Default: [Dispatchers.IO]
+         */
+        fun fetcherDispatcher(dispatcher: CoroutineDispatcher) = apply {
+            this.defaults = this.defaults.copy(fetcherDispatcher = dispatcher)
+        }
+
+        /**
+         * The [CoroutineDispatcher] that [Decoder.decode] will be executed on.
+         *
+         * Default: [Dispatchers.Default]
+         */
+        fun decoderDispatcher(dispatcher: CoroutineDispatcher) = apply {
+            this.defaults = this.defaults.copy(decoderDispatcher = dispatcher)
+        }
+
+        /**
+         * The [CoroutineDispatcher] that [Transformation.transform] will be executed on.
+         *
+         * Default: [Dispatchers.Default]
+         */
+        fun transformationDispatcher(dispatcher: CoroutineDispatcher) = apply {
+            this.defaults = this.defaults.copy(transformationDispatcher = dispatcher)
         }
 
         /**

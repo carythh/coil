@@ -13,6 +13,7 @@ import androidx.exifinterface.media.ExifInterface
 import coil.size.PixelSize
 import coil.util.toDrawable
 import coil.util.toSoftware
+import kotlinx.coroutines.runInterruptible
 import okio.Buffer
 import okio.BufferedSource
 import okio.ForwardingSource
@@ -31,9 +32,7 @@ internal class BitmapFactoryDecoder(private val context: Context) : Decoder {
     override suspend fun decode(
         source: BufferedSource,
         options: Options
-    ) = withInterruptibleSource(source) { interruptibleSource ->
-        decodeInterruptible(interruptibleSource, options)
-    }
+    ) = runInterruptible { decodeInterruptible(source, options) }
 
     private fun decodeInterruptible(
         source: Source,

@@ -30,7 +30,6 @@ class CircleCropTransformation : Transformation {
             paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_IN)
             drawBitmap(input, radius - input.width / 2f, radius - input.height / 2f, paint)
         }
-        input.recycle()
 
         return output
     }

@@ -9,7 +9,7 @@ import androidx.core.net.toUri
 import androidx.test.core.app.ApplicationProvider
 import coil.base.test.R
 import coil.bitmap.BitmapPool
-import coil.decode.DrawableDecoderService
+import coil.decode.DrawableUtils
 import coil.decode.Options
 import coil.map.ResourceIntMapper
 import coil.map.ResourceUriMapper
@@ -30,14 +30,14 @@ class ResourceUriFetcherTest {
 
     private lateinit var context: Context
     private lateinit var pool: BitmapPool
-    private lateinit var drawableDecoder: DrawableDecoderService
+    private lateinit var drawableDecoder: DrawableUtils
     private lateinit var fetcher: ResourceUriFetcher
 
     @Before
     fun before() {
         context = ApplicationProvider.getApplicationContext()
         pool = BitmapPool(0)
-        drawableDecoder = DrawableDecoderService(pool)
+        drawableDecoder = DrawableUtils(pool)
         fetcher = ResourceUriFetcher(context, drawableDecoder)
     }
 

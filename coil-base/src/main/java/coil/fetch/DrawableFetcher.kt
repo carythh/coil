@@ -2,12 +2,12 @@ package coil.fetch
 
 import android.graphics.drawable.Drawable
 import coil.decode.DataSource
-import coil.decode.DrawableDecoderService
+import coil.decode.DrawableUtils
 import coil.decode.Options
 import coil.util.isVector
 import coil.util.toDrawable
 
-internal class DrawableFetcher(private val drawableDecoder: DrawableDecoderService) : Fetcher<Drawable> {
+internal class DrawableFetcher : Fetcher<Drawable> {
 
     override fun cacheKey(data: Drawable): String? = null
 
@@ -15,7 +15,7 @@ internal class DrawableFetcher(private val drawableDecoder: DrawableDecoderServi
         val isVector = data.isVector
         return DrawableResult(
             drawable = if (isVector) {
-                drawableDecoder.convert(
+                DrawableUtils.convertToBitmap(
                     drawable = data,
                     config = options.config,
                     size = options.size,

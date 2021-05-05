@@ -1,10 +1,9 @@
 package coil.request
 
 import android.view.View
-import coil.annotation.ExperimentalCoilApi
 import coil.target.ViewTarget
 import coil.util.requestManager
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.Deferred
 import java.util.UUID
 
 /**
@@ -18,34 +17,29 @@ interface Disposable {
     val isDisposed: Boolean
 
     /**
+     *
+     */
+    val currentJob: Deferred<ImageResult>
+
+    /**
      * Cancels any in progress work and frees any resources associated with this request. This method is idempotent.
      */
     fun dispose()
-
-    /**
-     * Suspends until any in progress work completes.
-     */
-    @ExperimentalCoilApi
-    suspend fun await()
 }
 
 /**
  * A disposable for one-shot image requests.
  */
-internal class BaseTargetDisposable(private val job: Job) : Disposable {
+internal class OneShotDisposable(
+    override val currentJob: Deferred<ImageResult>
+) : Disposable {
 
     override val isDisposed
-        get() = !job.isActive
+        get() = !currentJob.isActive
 
     override fun dispose() {
         if (isDisposed) return
-        job.cancel()
-    }
-
-    @ExperimentalCoilApi
-    override suspend fun await() {
-        if (isDisposed) return
-        job.join()
+        currentJob.cancel()
     }
 }
 
@@ -64,14 +58,11 @@ internal class ViewTargetDisposable(
     override val isDisposed
         get() = target.view.requestManager.currentRequestId != requestId
 
+    override val currentJob: Deferred<ImageResult>
+        get() = TODO()
+
     override fun dispose() {
         if (isDisposed) return
         target.view.requestManager.clearCurrentRequest()
-    }
-
-    @ExperimentalCoilApi
-    override suspend fun await() {
-        if (isDisposed) return
-        target.view.requestManager.currentRequestJob?.join()
     }
 }

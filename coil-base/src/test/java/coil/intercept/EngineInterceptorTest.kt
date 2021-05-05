@@ -13,7 +13,6 @@ import coil.RealImageLoader
 import coil.bitmap.BitmapPool
 import coil.bitmap.RealBitmapReferenceCounter
 import coil.decode.DataSource
-import coil.decode.DrawableDecoderService
 import coil.decode.Options
 import coil.fetch.DrawableResult
 import coil.fetch.Fetcher
@@ -71,7 +70,7 @@ class EngineInterceptorTest {
             memoryCacheService = MemoryCacheService(referenceCounter, strongMemoryCache, weakMemoryCache),
             requestService = RequestService(null),
             systemCallbacks = SystemCallbacks(ImageLoader(context) as RealImageLoader, context),
-            drawableDecoder = DrawableDecoderService(bitmapPool),
+            drawableDecoder = DrawableUtils(bitmapPool),
             logger = null
         )
     }

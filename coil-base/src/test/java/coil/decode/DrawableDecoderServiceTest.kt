@@ -15,11 +15,11 @@ import kotlin.test.assertEquals
 @RunWith(RobolectricTestRunner::class)
 class DrawableDecoderServiceTest {
 
-    private lateinit var service: DrawableDecoderService
+    private lateinit var service: DrawableUtils
 
     @Before
     fun before() {
-        service = DrawableDecoderService(BitmapPool(0))
+        service = DrawableUtils(BitmapPool(0))
     }
 
     @Test
@@ -29,7 +29,7 @@ class DrawableDecoderServiceTest {
             override fun getIntrinsicWidth() = 100
             override fun getIntrinsicHeight() = 100
         }
-        val output = service.convert(
+        val output = service.convertToBitmap(
             drawable = input,
             config = Bitmap.Config.HARDWARE,
             size = size,
@@ -48,7 +48,7 @@ class DrawableDecoderServiceTest {
             override fun getIntrinsicWidth() = -1
             override fun getIntrinsicHeight() = -1
         }
-        val output = service.convert(
+        val output = service.convertToBitmap(
             drawable = input,
             size = size,
             config = Bitmap.Config.HARDWARE,
@@ -66,7 +66,7 @@ class DrawableDecoderServiceTest {
             override fun getIntrinsicWidth() = 125
             override fun getIntrinsicHeight() = 250
         }
-        val output = service.convert(
+        val output = service.convertToBitmap(
             drawable = input,
             size = PixelSize(200, 200),
             config = Bitmap.Config.ARGB_8888,

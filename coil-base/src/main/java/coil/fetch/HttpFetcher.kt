@@ -9,8 +9,8 @@ import coil.decode.Options
 import coil.map.Mapper
 import coil.network.HttpException
 import coil.util.await
+import coil.util.dispatcher
 import coil.util.getMimeTypeFromUrl
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.MainCoroutineDispatcher
 import okhttp3.CacheControl
 import okhttp3.Call
@@ -44,7 +44,6 @@ internal abstract class HttpFetcher<T : Any>(private val callFactory: Call.Facto
      */
     abstract fun T.toHttpUrl(): HttpUrl
 
-    @OptIn(ExperimentalStdlibApi::class)
     override suspend fun fetch(data: T, options: Options): FetchResult {
         val url = data.toHttpUrl()
         val request = Request.Builder().url(url).headers(options.headers)
@@ -66,7 +65,7 @@ internal abstract class HttpFetcher<T : Any>(private val callFactory: Call.Facto
             }
         }
 
-        val response = if (coroutineContext[CoroutineDispatcher] is MainCoroutineDispatcher) {
+        val response = if (coroutineContext.dispatcher is MainCoroutineDispatcher) {
             if (networkRead) {
                 // Prevent executing requests on the main thread that could block due to a networking operation.
                 throw NetworkOnMainThreadException()

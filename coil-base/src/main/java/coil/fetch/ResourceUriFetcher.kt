@@ -6,7 +6,7 @@ import android.net.Uri
 import android.util.TypedValue
 import android.webkit.MimeTypeMap
 import coil.decode.DataSource
-import coil.decode.DrawableDecoderService
+import coil.decode.DrawableUtils
 import coil.decode.Options
 import coil.util.getDrawableCompat
 import coil.util.getMimeTypeFromUrl
@@ -17,10 +17,7 @@ import coil.util.toDrawable
 import okio.buffer
 import okio.source
 
-internal class ResourceUriFetcher(
-    private val context: Context,
-    private val drawableDecoder: DrawableDecoderService
-) : Fetcher<Uri> {
+internal class ResourceUriFetcher(private val context: Context) : Fetcher<Uri> {
 
     override fun handles(data: Uri) = data.scheme == ContentResolver.SCHEME_ANDROID_RESOURCE
 
@@ -48,7 +45,7 @@ internal class ResourceUriFetcher(
             val isVector = drawable.isVector
             DrawableResult(
                 drawable = if (isVector) {
-                    drawableDecoder.convert(
+                    DrawableUtils.convertToBitmap(
                         drawable = drawable,
                         config = options.config,
                         size = options.size,

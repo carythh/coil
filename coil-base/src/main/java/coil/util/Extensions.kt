@@ -25,17 +25,18 @@ import coil.decode.DataSource
 import coil.memory.MemoryCache
 import coil.memory.TargetDelegate
 import coil.memory.ViewTargetRequestManager
+import coil.request.DefaultRequestOptions
 import coil.request.ImageResult
 import coil.request.Parameters
 import coil.size.Scale
 import coil.size.Size
 import coil.target.ViewTarget
 import coil.transform.Transformation
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Job
 import okhttp3.Call
 import okhttp3.Headers
 import java.io.Closeable
-import java.util.concurrent.atomic.AtomicInteger
 import kotlin.coroutines.CoroutineContext
 
 internal val View.requestManager: ViewTargetRequestManager
@@ -120,6 +121,8 @@ internal val Uri.firstPathSegment: String?
 internal val Configuration.nightMode: Int
     get() = uiMode and Configuration.UI_MODE_NIGHT_MASK
 
+internal val DEFAULT_REQUEST_OPTIONS = DefaultRequestOptions()
+
 /** Required for compatibility with API 25 and below. */
 internal val NULL_COLOR_SPACE: ColorSpace? = null
 
@@ -134,11 +137,10 @@ internal fun isMainThread() = Looper.myLooper() == Looper.getMainLooper()
 internal inline val Any.identityHashCode: Int
     get() = System.identityHashCode(this)
 
-internal inline fun AtomicInteger.loop(action: (Int) -> Unit) {
-    while (true) action(get())
-}
-
 internal inline val CoroutineContext.job: Job get() = get(Job)!!
+
+@OptIn(ExperimentalStdlibApi::class)
+internal inline val CoroutineContext.dispatcher: CoroutineDispatcher get() = get(CoroutineDispatcher)!!
 
 internal var TargetDelegate.metadata: ImageResult.Metadata?
     get() = (target as? ViewTarget<*>)?.view?.requestManager?.metadata

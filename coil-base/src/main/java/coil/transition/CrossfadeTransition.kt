@@ -1,5 +1,3 @@
-@file:Suppress("NEWER_VERSION_IN_SINCE_KOTLIN", "unused")
-
 package coil.transition
 
 import android.graphics.drawable.Drawable
