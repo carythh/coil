@@ -185,6 +185,7 @@ The base data types that are supported by all `ImageLoader` instances are:
 * @DrawableRes Int
 * Drawable
 * Bitmap
+* ByteBuffer
 
 ## Supported Image Formats
 

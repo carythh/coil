@@ -15,6 +15,7 @@ import coil.request.ImageResult
 import coil.util.CoilUtils
 import okhttp3.HttpUrl
 import java.io.File
+import java.nio.ByteBuffer
 
 /**
  * Get the singleton [ImageLoader].
@@ -42,6 +43,7 @@ inline val Context.imageLoader: ImageLoader
  * - [DrawableRes] [Int]
  * - [Drawable]
  * - [Bitmap]
+ * - [ByteBuffer]
  *
  * @param data The data to load.
  * @param imageLoader The [ImageLoader] that will be used to enqueue the [ImageRequest].
