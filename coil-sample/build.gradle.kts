@@ -10,7 +10,6 @@ plugins {
 setupAppModule {
     defaultConfig {
         applicationId = "coil.sample"
-        multiDexEnabled = true
     }
     buildTypes {
         getByName("release") {
@@ -38,7 +37,6 @@ dependencies {
     implementation(Library.ANDROIDX_CONSTRAINT_LAYOUT)
     implementation(Library.ANDROIDX_CORE)
     implementation(Library.ANDROIDX_LIFECYCLE_VIEW_MODEL)
-    implementation(Library.ANDROIDX_MULTIDEX)
     implementation(Library.ANDROIDX_RECYCLER_VIEW)
 
     implementation(Library.MATERIAL)

@@ -2,9 +2,9 @@
 
 package coil.sample
 
+import android.app.Application
 import android.os.Build.VERSION.SDK_INT
 import android.util.Log
-import androidx.multidex.MultiDexApplication
 import coil.ImageLoader
 import coil.ImageLoaderFactory
 import coil.decode.GifDecoder
@@ -19,7 +19,7 @@ import okhttp3.Dispatcher
 import okhttp3.OkHttpClient
 import java.io.File
 
-class Application : MultiDexApplication(), ImageLoaderFactory {
+class Application : Application(), ImageLoaderFactory {
 
     override fun newImageLoader(): ImageLoader {
         return ImageLoader.Builder(this)
