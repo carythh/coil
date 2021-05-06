@@ -24,7 +24,6 @@ import coil.drawable.CrossfadeDrawable
 import coil.fetch.Fetcher
 import coil.memory.MemoryCache
 import coil.request.ImageRequest.Builder
-import coil.size.DisplaySizeResolver
 import coil.size.OriginalSize
 import coil.size.PixelSize
 import coil.size.Precision
@@ -823,16 +822,13 @@ class ImageRequest private constructor(
 
         private fun resolveSizeResolver(): SizeResolver {
             val target = target
-            return if (target is ViewTarget<*>) {
+            if (target is ViewTarget<*>) {
                 val view = target.view
-                if (view is ImageView && view.scaleType.let { it == CENTER || it == MATRIX }) {
-                    SizeResolver(OriginalSize)
-                } else {
-                    ViewSizeResolver(view)
+                if (view !is ImageView || view.scaleType.let { it != CENTER && it != MATRIX }) {
+                    return ViewSizeResolver(view)
                 }
-            } else {
-                DisplaySizeResolver(context)
             }
+            return SizeResolver(OriginalSize)
         }
 
         private fun resolveScale(): Scale {
