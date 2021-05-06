@@ -16,7 +16,6 @@ import coil.transform.Transformation
 import coil.util.CoilUtils
 import coil.util.TestActivity
 import coil.util.activity
-import coil.util.isAttachedToWindowCompat
 import coil.util.requestManager
 import coil.util.runBlockingTest
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -203,7 +202,7 @@ class DisposableTest {
     fun viewTargetDisposable_detachedViewIsImmediatelyCancelled() = runBlockingTest {
         val imageView = ImageView(context)
 
-        assertFalse(imageView.isAttachedToWindowCompat)
+        assertFalse(imageView.isAttachedToWindow)
 
         val request = ImageRequest.Builder(context)
             .data("$SCHEME_FILE:///$ASSET_FILE_PATH_ROOT/normal.jpg")

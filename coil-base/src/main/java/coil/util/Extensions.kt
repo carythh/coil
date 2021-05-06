@@ -9,7 +9,6 @@ import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.VectorDrawable
 import android.net.Uri
-import android.os.Build.VERSION.SDK_INT
 import android.os.Looper
 import android.view.View
 import android.webkit.MimeTypeMap
@@ -18,7 +17,6 @@ import android.widget.ImageView.ScaleType.CENTER_INSIDE
 import android.widget.ImageView.ScaleType.FIT_CENTER
 import android.widget.ImageView.ScaleType.FIT_END
 import android.widget.ImageView.ScaleType.FIT_START
-import androidx.core.view.ViewCompat
 import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat
 import coil.base.R
 import coil.decode.DataSource
@@ -57,9 +55,6 @@ internal val View.requestManager: ViewTargetRequestManager
         return manager
     }
 
-internal inline val View.isAttachedToWindowCompat: Boolean
-    get() = ViewCompat.isAttachedToWindow(this)
-
 internal val DataSource.emoji: String
     get() = when (this) {
         DataSource.MEMORY_CACHE,
@@ -75,7 +70,7 @@ internal val Drawable.height: Int
     get() = (this as? BitmapDrawable)?.bitmap?.height ?: intrinsicHeight
 
 internal val Drawable.isVector: Boolean
-    get() = (this is VectorDrawableCompat) || (SDK_INT >= 21 && this is VectorDrawable)
+    get() = this is VectorDrawable || this is VectorDrawableCompat
 
 internal fun Closeable.closeQuietly() {
     try {
@@ -142,10 +137,10 @@ internal inline val CoroutineContext.job: Job get() = get(Job)!!
 @OptIn(ExperimentalStdlibApi::class)
 internal inline val CoroutineContext.dispatcher: CoroutineDispatcher get() = get(CoroutineDispatcher)!!
 
-internal var TargetDelegate.metadata: ImageResult.Metadata?
-    get() = (target as? ViewTarget<*>)?.view?.requestManager?.metadata
+internal var TargetDelegate.result: ImageResult?
+    get() = (target as? ViewTarget<*>)?.view?.requestManager?.result
     set(value) {
-        (target as? ViewTarget<*>)?.view?.requestManager?.metadata = value
+        (target as? ViewTarget<*>)?.view?.requestManager?.result = value
     }
 
 internal inline operator fun MemoryCache.Key.Companion.invoke(

@@ -6,6 +6,7 @@ import androidx.annotation.MainThread
 import coil.decode.BitmapFactoryDecoder
 import coil.fetch.AssetUriFetcher
 import coil.fetch.BitmapFetcher
+import coil.fetch.ByteBufferFetcher
 import coil.fetch.ContentUriFetcher
 import coil.fetch.DrawableFetcher
 import coil.fetch.FileFetcher
@@ -23,7 +24,6 @@ import coil.memory.MemoryCacheService
 import coil.memory.RealMemoryCache
 import coil.memory.RequestService
 import coil.memory.TargetDelegate
-import coil.request.BaseTargetDisposable
 import coil.request.DefaultRequestOptions
 import coil.request.Disposable
 import coil.request.ErrorResult
@@ -31,6 +31,7 @@ import coil.request.ImageRequest
 import coil.request.ImageResult
 import coil.request.NullRequestData
 import coil.request.NullRequestDataException
+import coil.request.OneShotDisposable
 import coil.request.SuccessResult
 import coil.request.ViewTargetDisposable
 import coil.target.ViewTarget
@@ -44,16 +45,16 @@ import coil.util.awaitStarted
 import coil.util.emoji
 import coil.util.job
 import coil.util.log
-import coil.util.metadata
 import coil.util.requestManager
+import coil.util.result
 import coil.util.toDrawable
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.Call
 import java.util.concurrent.atomic.AtomicBoolean
@@ -91,6 +92,7 @@ internal class RealImageLoader(
         .add(ResourceUriFetcher(context))
         .add(DrawableFetcher())
         .add(BitmapFetcher())
+        .add(ByteBufferFetcher())
         // Decoders
         .add(BitmapFactoryDecoder(context))
         .build()
@@ -100,17 +102,17 @@ internal class RealImageLoader(
 
     override fun enqueue(request: ImageRequest): Disposable {
         // Start executing the request on the main thread.
-        val job = scope.launch {
-            val result = executeMain(request, REQUEST_TYPE_ENQUEUE)
-            if (result is ErrorResult) throw result.throwable
+        val deferred = scope.async {
+            executeMain(request, REQUEST_TYPE_ENQUEUE)
+                .also { if (it is ErrorResult) logger?.log(TAG, it.throwable) }
         }
 
         // Update the current request attached to the view and return a new disposable.
         return if (request.target is ViewTarget<*>) {
-            val requestId = request.target.view.requestManager.setCurrentRequestJob(job)
+            val requestId = request.target.view.requestManager.setCurrentRequestJob(deferred)
             ViewTargetDisposable(requestId, request.target)
         } else {
-            BaseTargetDisposable(job)
+            OneShotDisposable(deferred)
         }
     }
 
@@ -152,7 +154,7 @@ internal class RealImageLoader(
 
             // Set the placeholder on the target.
             val cached = memoryCacheService[request.placeholderMemoryCacheKey]?.bitmap
-            targetDelegate.metadata = null
+            targetDelegate.result = null
             targetDelegate.start(cached?.toDrawable(request.context) ?: request.placeholder, cached)
             eventListener.onStart(request)
             request.listener?.onStart(request)
@@ -168,6 +170,7 @@ internal class RealImageLoader(
             }
 
             // Set the result on the target.
+            targetDelegate.result = result
             when (result) {
                 is SuccessResult -> onSuccess(result, targetDelegate, eventListener)
                 is ErrorResult -> onError(result, targetDelegate, eventListener)
@@ -211,13 +214,11 @@ internal class RealImageLoader(
         eventListener: EventListener
     ) {
         val request = result.request
-        val metadata = result.metadata
-        val dataSource = metadata.dataSource
+        val dataSource = result.dataSource
         logger?.log(TAG, Log.INFO) { "${dataSource.emoji} Successful (${dataSource.name}) - ${request.data}" }
-        targetDelegate.metadata = metadata
         targetDelegate.success(result)
-        eventListener.onSuccess(request, metadata)
-        request.listener?.onSuccess(request, metadata)
+        eventListener.onSuccess(request, result)
+        request.listener?.onSuccess(request, result)
     }
 
     private suspend inline fun onError(
@@ -227,10 +228,9 @@ internal class RealImageLoader(
     ) {
         val request = result.request
         logger?.log(TAG, Log.INFO) { "${Emoji.SIREN} Failed - ${request.data} - ${result.throwable}" }
-        targetDelegate.metadata = null
         targetDelegate.error(result)
-        eventListener.onError(request, result.throwable)
-        request.listener?.onError(request, result.throwable)
+        eventListener.onError(request, result)
+        request.listener?.onError(request, result)
     }
 
     private fun onCancel(request: ImageRequest, eventListener: EventListener) {

@@ -9,7 +9,9 @@ import okhttp3.Cache
 /** Public utility methods for Coil. */
 object CoilUtils {
 
-    /** Create an OkHttp disk cache with a reasonable default size and location. */
+    /**
+     * Create an OkHttp disk cache with a reasonable default size and location.
+     */
     @JvmStatic
     fun createDefaultCache(context: Context): Cache {
         val cacheDirectory = Utils.getDefaultCacheDirectory(context)
@@ -28,9 +30,11 @@ object CoilUtils {
         view.requestManager.clearCurrentRequest()
     }
 
-    /** Get the metadata of the successful request attached to this view. */
+    /**
+     * Get the metadata of the successful request attached to this view.
+     */
     @JvmStatic
-    fun metadata(view: View): ImageResult.Metadata? {
-        return view.requestManager.metadata
+    fun result(view: View): ImageResult? {
+        return view.requestManager.result
     }
 }

@@ -11,7 +11,6 @@ import coil.target.ViewTarget
 import coil.util.Logger
 import coil.util.Utils.REQUEST_TYPE_ENQUEUE
 import coil.util.Utils.REQUEST_TYPE_EXECUTE
-import coil.util.isAttachedToWindowCompat
 import coil.util.requestManager
 import kotlinx.coroutines.Job
 
@@ -63,7 +62,7 @@ internal class DelegateService(
                 target.view.requestManager.setCurrentRequest(delegate)
 
                 // Call onViewDetachedFromWindow immediately if the view is already detached.
-                if (!target.view.isAttachedToWindowCompat) {
+                if (!target.view.isAttachedToWindow) {
                     target.view.requestManager.onViewDetachedFromWindow(target.view)
                 }
             }

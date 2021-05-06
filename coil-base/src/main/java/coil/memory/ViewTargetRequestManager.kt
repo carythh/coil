@@ -31,8 +31,8 @@ internal class ViewTargetRequestManager : View.OnAttachStateChangeListener {
     @Volatile var currentRequestJob: Job? = null
         private set
 
-    // Metadata of the successful request attached to this view.
-    @Volatile var metadata: ImageResult.Metadata? = null
+    // The result of the latest request attached to this view.
+    @Volatile var result: ImageResult? = null
 
     // A pending operation that is posting to the main thread to clear the current request.
     @Volatile private var pendingClear: Job? = null

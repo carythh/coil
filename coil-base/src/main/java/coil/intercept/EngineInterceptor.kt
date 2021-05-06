@@ -23,7 +23,6 @@ import coil.memory.RequestService
 import coil.memory.StrongMemoryCache
 import coil.request.ImageRequest
 import coil.request.ImageResult
-import coil.request.ImageResult.Metadata
 import coil.request.SuccessResult
 import coil.size.OriginalSize
 import coil.size.PixelSize
@@ -83,12 +82,10 @@ internal class EngineInterceptor(
                 return SuccessResult(
                     drawable = value.bitmap.toDrawable(context),
                     request = request,
-                    metadata = Metadata(
-                        memoryCacheKey = memoryCacheKey,
-                        isSampled = value.isSampled,
-                        dataSource = DataSource.MEMORY_CACHE,
-                        isPlaceholderMemoryCacheKeyPresent = chain.cached != null
-                    )
+                    memoryCacheKey = memoryCacheKey,
+                    isSampled = value.isSampled,
+                    dataSource = DataSource.MEMORY_CACHE,
+                    isPlaceholderMemoryCacheKeyPresent = chain.cached != null
                 )
             }
 
@@ -104,12 +101,10 @@ internal class EngineInterceptor(
                 SuccessResult(
                     drawable = drawable,
                     request = request,
-                    metadata = Metadata(
-                        memoryCacheKey = memoryCacheKey.takeIf { isCached },
-                        isSampled = isSampled,
-                        dataSource = dataSource,
-                        isPlaceholderMemoryCacheKeyPresent = chain.cached != null
-                    )
+                    memoryCacheKey = memoryCacheKey.takeIf { isCached },
+                    isSampled = isSampled,
+                    dataSource = dataSource,
+                    isPlaceholderMemoryCacheKeyPresent = chain.cached != null
                 )
             }
         } catch (throwable: Throwable) {

@@ -12,8 +12,9 @@ import coil.fetch.FetchResult
 import coil.fetch.Fetcher
 import coil.fetch.SourceResult
 import coil.map.Mapper
+import coil.request.ErrorResult
 import coil.request.ImageRequest
-import coil.request.ImageResult
+import coil.request.SuccessResult
 import coil.size.Size
 import coil.size.SizeResolver
 import coil.transform.Transformation
@@ -79,8 +80,7 @@ interface EventListener : ImageRequest.Listener {
      *
      * @param fetcher The [Fetcher] that was used to handle the request.
      * @param options The [Options] that were passed to [Fetcher.fetch].
-     * @param result The result of [Fetcher.fetch]. **Do not** keep a reference to [result] or its data
-     *  outside the scope of this method.
+     * @param result The result of [Fetcher.fetch].
      */
     @WorkerThread
     fun fetchEnd(request: ImageRequest, fetcher: Fetcher<*>, options: Options, result: FetchResult) {}
@@ -103,8 +103,7 @@ interface EventListener : ImageRequest.Listener {
      *
      * @param decoder The [Decoder] that was used to handle the request.
      * @param options The [Options] that were passed to [Decoder.decode].
-     * @param result The result of [Decoder.decode]. **Do not** keep a reference to [result] or its data
-     *  outside the scope of this method.
+     * @param result The result of [Decoder.decode].
      */
     @WorkerThread
     fun decodeEnd(request: ImageRequest, decoder: Decoder, options: Options, result: DecodeResult) {}
@@ -114,8 +113,7 @@ interface EventListener : ImageRequest.Listener {
      *
      * This is skipped if [ImageRequest.transformations] is empty.
      *
-     * @param input The [Bitmap] that will be transformed. **Do not** keep a reference to [input] outside
-     *  the scope of this method.
+     * @param input The [Bitmap] that will be transformed.
      */
     @WorkerThread
     fun transformStart(request: ImageRequest, input: Bitmap) {}
@@ -125,8 +123,7 @@ interface EventListener : ImageRequest.Listener {
      *
      * This is skipped if [ImageRequest.transformations] is empty.
      *
-     * @param output The [Bitmap] that was transformed. **Do not** keep a reference to [output] outside
-     *  the scope of this method.
+     * @param output The [Bitmap] that was transformed.
      */
     @WorkerThread
     fun transformEnd(request: ImageRequest, output: Bitmap) {}
@@ -159,13 +156,13 @@ interface EventListener : ImageRequest.Listener {
      * @see ImageRequest.Listener.onError
      */
     @MainThread
-    override fun onError(request: ImageRequest, throwable: Throwable) {}
+    override fun onError(request: ImageRequest, result: ErrorResult) {}
 
     /**
      * @see ImageRequest.Listener.onSuccess
      */
     @MainThread
-    override fun onSuccess(request: ImageRequest, metadata: ImageResult.Metadata) {}
+    override fun onSuccess(request: ImageRequest, result: SuccessResult) {}
 
     /** A factory that creates new [EventListener] instances. */
     fun interface Factory {

@@ -14,7 +14,6 @@ import coil.target.ViewTarget
 import coil.transform.Transformation
 import coil.util.Logger
 import coil.util.allowInexactSize
-import coil.util.isAttachedToWindowCompat
 import coil.util.isHardware
 
 /** Handles operations that act on [ImageRequest]s. */
@@ -74,7 +73,7 @@ internal class RequestService(private val logger: Logger?) {
 
         // Prevent hardware bitmaps for non-hardware accelerated targets.
         val target = request.target
-        if (target is ViewTarget<*> && target.view.run { isAttachedToWindowCompat && !isHardwareAccelerated }) return false
+        if (target is ViewTarget<*> && target.view.run { isAttachedToWindow && !isHardwareAccelerated }) return false
 
         return true
     }

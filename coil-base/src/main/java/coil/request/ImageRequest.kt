@@ -186,13 +186,13 @@ class ImageRequest private constructor(
          * Called if an error occurs while executing the request.
          */
         @MainThread
-        fun onError(request: ImageRequest, throwable: Throwable) {}
+        fun onError(request: ImageRequest, result: ErrorResult) {}
 
         /**
          * Called if the request completes successfully.
          */
         @MainThread
-        fun onSuccess(request: ImageRequest, metadata: ImageResult.Metadata) {}
+        fun onSuccess(request: ImageRequest, result: SuccessResult) {}
     }
 
     class Builder {
@@ -372,13 +372,13 @@ class ImageRequest private constructor(
         inline fun listener(
             crossinline onStart: (request: ImageRequest) -> Unit = {},
             crossinline onCancel: (request: ImageRequest) -> Unit = {},
-            crossinline onError: (request: ImageRequest, throwable: Throwable) -> Unit = { _, _ -> },
-            crossinline onSuccess: (request: ImageRequest, metadata: ImageResult.Metadata) -> Unit = { _, _ -> }
+            crossinline onError: (request: ImageRequest, result: ErrorResult) -> Unit = { _, _ -> },
+            crossinline onSuccess: (request: ImageRequest, result: SuccessResult) -> Unit = { _, _ -> }
         ) = listener(object : Listener {
             override fun onStart(request: ImageRequest) = onStart(request)
             override fun onCancel(request: ImageRequest) = onCancel(request)
-            override fun onError(request: ImageRequest, throwable: Throwable) = onError(request, throwable)
-            override fun onSuccess(request: ImageRequest, metadata: ImageResult.Metadata) = onSuccess(request, metadata)
+            override fun onError(request: ImageRequest, result: ErrorResult) = onError(request, result)
+            override fun onSuccess(request: ImageRequest, result: SuccessResult) = onSuccess(request, result)
         })
 
         /**

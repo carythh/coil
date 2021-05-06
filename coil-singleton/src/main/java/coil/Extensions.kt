@@ -73,5 +73,5 @@ inline fun ImageView.clear() {
 /**
  * Get the metadata of the successful request attached to this view.
  */
-inline val ImageView.metadata: ImageResult.Metadata?
-    get() = CoilUtils.metadata(this)
+inline val ImageView.result: ImageResult?
+    get() = CoilUtils.result(this)

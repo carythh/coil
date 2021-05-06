@@ -6,31 +6,13 @@ import coil.decode.DataSource
 import coil.memory.MemoryCache
 
 /**
- * Represents the result of an image request.
+ * Represents the result of an executed [ImageRequest].
  *
  * @see ImageLoader.execute
  */
 sealed class ImageResult {
-
     abstract val drawable: Drawable?
     abstract val request: ImageRequest
-
-    /**
-     * Supplemental information about a successful image request.
-     *
-     * @param memoryCacheKey The cache key for the image in the memory cache.
-     *  It is null if the image was not written to the memory cache.
-     * @param isSampled 'true' if the image is sampled (i.e. loaded into memory at less than its original size).
-     * @param dataSource The data source that the image was loaded from.
-     * @param isPlaceholderMemoryCacheKeyPresent 'true' if the request's [ImageRequest.placeholderMemoryCacheKey] was
-     *  present in the memory cache and was set as the placeholder.
-     */
-    data class Metadata(
-        val memoryCacheKey: MemoryCache.Key?,
-        val isSampled: Boolean,
-        val dataSource: DataSource,
-        val isPlaceholderMemoryCacheKeyPresent: Boolean
-    )
 }
 
 /**
@@ -38,12 +20,20 @@ sealed class ImageResult {
  *
  * @param drawable The success drawable.
  * @param request The request that was executed to create this result.
- * @param metadata Metadata about the request that created this result.
+ * @param dataSource The data source that the image was loaded from.
+ * @param memoryCacheKey The cache key for the image in the memory cache.
+ *  It is null if the image was not written to the memory cache.
+ * @param isSampled 'true' if the image is sampled (i.e. loaded into memory at less than its original size).
+ * @param isPlaceholderMemoryCacheKeyPresent 'true' if the request's [ImageRequest.placeholderMemoryCacheKey]
+ *  was present in the memory cache and was set as the placeholder.
  */
 data class SuccessResult(
     override val drawable: Drawable,
     override val request: ImageRequest,
-    val metadata: Metadata
+    val dataSource: DataSource,
+    val memoryCacheKey: MemoryCache.Key?,
+    val isSampled: Boolean,
+    val isPlaceholderMemoryCacheKeyPresent: Boolean
 ) : ImageResult()
 
 /**

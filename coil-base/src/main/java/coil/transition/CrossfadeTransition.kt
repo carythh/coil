@@ -39,7 +39,7 @@ class CrossfadeTransition @JvmOverloads constructor(
                     end = result.drawable,
                     scale = (target.view as? ImageView)?.scale ?: Scale.FILL,
                     durationMillis = durationMillis,
-                    fadeStart = result !is SuccessResult || !result.metadata.isPlaceholderMemoryCacheKeyPresent,
+                    fadeStart = result !is SuccessResult || !result.isPlaceholderMemoryCacheKeyPresent,
                     preferExactIntrinsicSize = preferExactIntrinsicSize
                 )
                 outerCrossfade = crossfade
@@ -80,7 +80,7 @@ class CrossfadeTransition @JvmOverloads constructor(
             }
 
             // Don't animate if the request was fulfilled by the memory cache.
-            if (result.metadata.dataSource == DataSource.MEMORY_CACHE) {
+            if (result.dataSource == DataSource.MEMORY_CACHE) {
                 return Transition.NONE
             }
 
