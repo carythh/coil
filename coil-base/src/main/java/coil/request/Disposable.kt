@@ -12,14 +12,14 @@ import java.util.UUID
 interface Disposable {
 
     /**
+     * The most recent job for this work.
+     */
+    val currentJob: Deferred<ImageResult>
+
+    /**
      * Returns 'true' if the request is complete or cancelling.
      */
     val isDisposed: Boolean
-
-    /**
-     *
-     */
-    val currentJob: Deferred<ImageResult>
 
     /**
      * Cancels any in progress work and frees any resources associated with this request. This method is idempotent.
