@@ -1,4 +1,4 @@
-@file:JvmName("-Extensions")
+@file:JvmName("-SingletonExtensions")
 @file:Suppress("NOTHING_TO_INLINE", "unused")
 
 package coil
@@ -20,7 +20,7 @@ import java.io.File
  * Get the singleton [ImageLoader].
  */
 inline val Context.imageLoader: ImageLoader
-    @JvmName("imageLoader") get() = Coil.imageLoader(this)
+    get() = Coil.imageLoader(this)
 
 /**
  * Load the image referenced by [data] and set it on this [ImageView].
@@ -72,4 +72,4 @@ inline fun ImageView.clear() {
  * Get the metadata of the successful request attached to this view.
  */
 inline val ImageView.metadata: ImageResult.Metadata?
-    @JvmName("metadata") get() = CoilUtils.metadata(this)
+    get() = CoilUtils.metadata(this)

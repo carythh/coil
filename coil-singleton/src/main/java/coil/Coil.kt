@@ -1,5 +1,3 @@
-@file:Suppress("NOTHING_TO_INLINE", "unused")
-
 package coil
 
 import android.app.Application
