@@ -1,4 +1,4 @@
-package coil.decode
+package coil.fetch
 
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -10,6 +10,7 @@ import androidx.core.graphics.component2
 import androidx.core.graphics.component3
 import androidx.core.graphics.component4
 import androidx.core.graphics.createBitmap
+import coil.decode.DecodeUtils
 import coil.size.OriginalSize
 import coil.size.Scale
 import coil.size.Size

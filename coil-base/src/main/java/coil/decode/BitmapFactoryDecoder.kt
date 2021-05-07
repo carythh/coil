@@ -15,30 +15,27 @@ import coil.util.toDrawable
 import coil.util.toSoftware
 import kotlinx.coroutines.runInterruptible
 import okio.Buffer
-import okio.BufferedSource
 import okio.ForwardingSource
 import okio.Source
 import okio.buffer
 import java.io.InputStream
 import kotlin.math.roundToInt
 
-/** The base [Decoder] that uses [BitmapFactory] to decode a given [BufferedSource]. */
+/** The base [Decoder] that uses [BitmapFactory] to decode a given [ImageSource]. */
 internal class BitmapFactoryDecoder(private val context: Context) : Decoder {
 
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
 
-    override fun handles(source: BufferedSource, mimeType: String?) = true
-
     override suspend fun decode(
-        source: BufferedSource,
+        source: ImageSource,
         options: Options
     ) = runInterruptible { decodeInterruptible(source, options) }
 
     private fun decodeInterruptible(
-        source: Source,
+        source: ImageSource,
         options: Options
     ): DecodeResult = BitmapFactory.Options().run {
-        val safeSource = ExceptionCatchingSource(source)
+        val safeSource = ExceptionCatchingSource(source.source)
         val safeBufferedSource = safeSource.buffer()
 
         // Read the image's dimensions.

@@ -9,7 +9,6 @@ import androidx.core.net.toUri
 import androidx.test.core.app.ApplicationProvider
 import coil.base.test.R
 import coil.bitmap.BitmapPool
-import coil.decode.DrawableUtils
 import coil.decode.Options
 import coil.map.ResourceIntMapper
 import coil.map.ResourceUriMapper

@@ -10,7 +10,7 @@ import coil.fetch.Fetcher
 fun interface Mapper<T : Any, V : Any> {
 
     /**
-     * Convert [data] into [V]. Return 'null' if this mapper is not applicable for [data].
+     * Convert [data] into [V]. Return 'null' if this mapper cannot convert [data].
      */
     fun map(data: T): V?
 }

@@ -3,6 +3,7 @@
 package coil.fetch
 
 import android.graphics.drawable.Drawable
+import coil.ImageLoader
 import coil.decode.ImageSource
 import coil.decode.Options
 import coil.memory.MemoryCache
@@ -24,7 +25,7 @@ interface Fetcher<T : Any> {
      *
      * Items with the same cache key will be treated as equivalent by the [MemoryCache].
      *
-     * Returning null will prevent the result of [fetch] from being added to the memory cache.
+     * Return 'null' if the result of [fetch] cannot be added to the memory cache.
      */
     fun cacheKey(data: T): String?
 
@@ -38,6 +39,6 @@ interface Fetcher<T : Any> {
 
     fun interface Factory<T : Any> {
 
-        fun create(data: T, options: Options): Fetcher<T>
+        fun create(data: T, options: Options, imageLoader: ImageLoader): Fetcher<T>?
     }
 }

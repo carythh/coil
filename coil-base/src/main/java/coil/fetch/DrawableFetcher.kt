@@ -2,7 +2,6 @@ package coil.fetch
 
 import android.graphics.drawable.Drawable
 import coil.decode.DataSource
-import coil.decode.DrawableUtils
 import coil.decode.Options
 import coil.util.isVector
 import coil.util.toDrawable

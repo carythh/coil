@@ -20,6 +20,8 @@ import android.widget.ImageView.ScaleType.FIT_START
 import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat
 import coil.base.R
 import coil.decode.DataSource
+import coil.decode.Decoder
+import coil.fetch.Fetcher
 import coil.memory.MemoryCache
 import coil.memory.TargetDelegate
 import coil.memory.ViewTargetRequestManager
@@ -142,6 +144,10 @@ internal var TargetDelegate.result: ImageResult?
     set(value) {
         (target as? ViewTarget<*>)?.view?.requestManager?.result = value
     }
+
+internal fun <T : Any> Fetcher<T>.asFactory() = Fetcher.Factory<T> { _, _, _ -> this }
+
+internal fun Decoder.asFactory() = Decoder.Factory { _, _, _, _ -> this }
 
 internal inline operator fun MemoryCache.Key.Companion.invoke(
     base: String,

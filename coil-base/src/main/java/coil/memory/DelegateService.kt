@@ -9,8 +9,6 @@ import coil.request.ImageRequest
 import coil.target.Target
 import coil.target.ViewTarget
 import coil.util.Logger
-import coil.util.Utils.REQUEST_TYPE_ENQUEUE
-import coil.util.Utils.REQUEST_TYPE_EXECUTE
 import coil.util.requestManager
 import kotlinx.coroutines.Job
 
@@ -24,19 +22,11 @@ internal class DelegateService(
     @MainThread
     fun createTargetDelegate(
         target: Target?,
-        type: Int,
         eventListener: EventListener
     ): TargetDelegate {
-        return when (type) {
-            REQUEST_TYPE_EXECUTE -> when (target) {
-                null -> EmptyTargetDelegate
-                else -> InvalidatableTargetDelegate(target, eventListener, logger)
-            }
-            REQUEST_TYPE_ENQUEUE -> when (target) {
-                null -> EmptyTargetDelegate
-                else -> InvalidatableTargetDelegate(target, eventListener, logger)
-            }
-            else -> error("Invalid type.")
+        return when (target) {
+            null -> EmptyTargetDelegate()
+            else -> InvalidatableTargetDelegate(target, eventListener, logger)
         }
     }
 

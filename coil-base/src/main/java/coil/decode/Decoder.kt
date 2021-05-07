@@ -1,6 +1,7 @@
 package coil.decode
 
 import android.graphics.drawable.Drawable
+import coil.ImageLoader
 import okio.BufferedSource
 
 /**
@@ -21,8 +22,8 @@ fun interface Decoder {
     fun interface Factory {
 
         /**
-         * Return a [Decoder] that can decode [source].
-         * If this factory cannot create a [Decoder] for this [ImageSource], return null.
+         * Return a [Decoder] that can decode [source] or 'null' if this factory
+         * cannot create a decoder for the source.
          *
          * Implementations **must not** consume the source, as this can cause calls to subsequent decoders to fail.
          *
@@ -33,7 +34,8 @@ fun interface Decoder {
          * @param source The [ImageSource] to read from.
          * @param options A set of configuration options for this request.
          * @param mimeType An optional MIME type for the [source].
+         * @param imageLoader The [ImageLoader] that's creating this [Decoder].
          */
-        fun create(source: ImageSource, options: Options, mimeType: String?): Decoder?
+        fun create(source: ImageSource, options: Options, mimeType: String?, imageLoader: ImageLoader): Decoder?
     }
 }

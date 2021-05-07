@@ -10,7 +10,7 @@ import okio.BufferedSource
 sealed class FetchResult
 
 /**
- * A raw [BufferedSource] result, which will be consumed by the relevant [Decoder].
+ * An [ImageSource] result, which will be consumed by the relevant [Decoder].
  *
  * @param mimeType An optional MIME type for the [source].
  * @param dataSource Where [source] was loaded from.

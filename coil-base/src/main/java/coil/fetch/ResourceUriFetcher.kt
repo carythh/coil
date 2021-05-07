@@ -6,7 +6,6 @@ import android.net.Uri
 import android.util.TypedValue
 import android.webkit.MimeTypeMap
 import coil.decode.DataSource
-import coil.decode.DrawableUtils
 import coil.decode.Options
 import coil.util.getDrawableCompat
 import coil.util.getMimeTypeFromUrl

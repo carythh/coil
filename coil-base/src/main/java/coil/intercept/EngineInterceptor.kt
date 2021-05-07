@@ -10,9 +10,9 @@ import coil.EventListener
 import coil.decode.DataSource
 import coil.decode.DecodeResult
 import coil.decode.DecodeUtils
-import coil.decode.DrawableUtils
 import coil.decode.Options
 import coil.fetch.DrawableResult
+import coil.fetch.DrawableUtils
 import coil.fetch.FetchResult
 import coil.fetch.Fetcher
 import coil.fetch.SourceResult

@@ -9,7 +9,6 @@ import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import android.util.Log
 import androidx.annotation.MainThread
-import androidx.annotation.RequiresApi
 import androidx.core.content.getSystemService
 import coil.network.NetworkObserver.Listener
 import coil.util.Logger
@@ -32,14 +31,14 @@ internal interface NetworkObserver {
             val connectivityManager: ConnectivityManager? = context.getSystemService()
             if (connectivityManager == null || !context.isPermissionGranted(ACCESS_NETWORK_STATE)) {
                 logger?.log(TAG, Log.WARN) { "Unable to register network observer." }
-                return EmptyNetworkObserver
+                return EmptyNetworkObserver()
             }
 
             return try {
                 RealNetworkObserver(connectivityManager, listener)
             } catch (e: Exception) {
                 logger?.log(TAG, RuntimeException("Failed to register network observer.", e))
-                EmptyNetworkObserver
+                EmptyNetworkObserver()
             }
         }
     }
@@ -58,14 +57,13 @@ internal interface NetworkObserver {
     }
 }
 
-private object EmptyNetworkObserver : NetworkObserver {
+private class EmptyNetworkObserver : NetworkObserver {
 
     override val isOnline get() = true
 
     override fun shutdown() {}
 }
 
-@RequiresApi(21)
 @SuppressLint("MissingPermission")
 private class RealNetworkObserver(
     private val connectivityManager: ConnectivityManager,

@@ -40,7 +40,7 @@ internal sealed class TargetDelegate {
 /**
  * An empty target delegate. Used if the request has no target and does not need to invalidate bitmaps.
  */
-internal object EmptyTargetDelegate : TargetDelegate()
+internal class EmptyTargetDelegate : TargetDelegate()
 
 /**
  * Invalidate the cached bitmap and the success bitmap.

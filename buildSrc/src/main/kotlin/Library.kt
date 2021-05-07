@@ -1,4 +1,4 @@
-@file:Suppress("unused", "SpellCheckingInspection")
+@file:Suppress("SpellCheckingInspection", "unused")
 
 package coil
 
