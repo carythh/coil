@@ -5,6 +5,7 @@ import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.util.Log
 import androidx.annotation.VisibleForTesting
+import androidx.collection.arrayMapOf
 import coil.ComponentRegistry
 import coil.EventListener
 import coil.decode.DataSource
@@ -17,7 +18,6 @@ import coil.fetch.FetchResult
 import coil.fetch.Fetcher
 import coil.fetch.SourceResult
 import coil.memory.MemoryCache
-import coil.memory.RealMemoryCache
 import coil.memory.RequestService
 import coil.request.ImageRequest
 import coil.request.ImageResult
@@ -31,8 +31,8 @@ import coil.util.Utils
 import coil.util.allowInexactSize
 import coil.util.fetcher
 import coil.util.foldIndices
+import coil.util.forEachIndices
 import coil.util.get
-import coil.util.invoke
 import coil.util.log
 import coil.util.mapData
 import coil.util.requireDecoder
@@ -43,6 +43,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
+import java.io.File
 import kotlin.math.abs
 
 /** The last interceptor in the chain which executes the [ImageRequest]. */
@@ -71,7 +72,7 @@ internal class EngineInterceptor(
 
             // Check the memory cache.
             val fetcher = request.fetcher(mappedData) ?: components.requireFetcher(mappedData)
-            val memoryCacheKey = request.memoryCacheKey ?: computeMemoryCacheKey(request, mappedData, fetcher, size)
+            val memoryCacheKey = request.memoryCacheKey ?: createMemoryCacheKey(request, mappedData, fetcher, size)
             val value = if (request.memoryCachePolicy.readEnabled) memoryCache[memoryCacheKey] else null
 
             // Short circuit if the cached bitmap is valid.
@@ -80,6 +81,7 @@ internal class EngineInterceptor(
                     drawable = value.bitmap.toDrawable(context),
                     request = request,
                     memoryCacheKey = memoryCacheKey,
+                    diskCacheFile = null,
                     isSampled = value.isSampled,
                     dataSource = DataSource.MEMORY_CACHE,
                     isPlaceholderMemoryCacheKeyPresent = chain.cached != null
@@ -99,6 +101,7 @@ internal class EngineInterceptor(
                     drawable = drawable,
                     request = request,
                     memoryCacheKey = memoryCacheKey.takeIf { isCached },
+                    diskCacheFile = File(""), // TODO
                     isSampled = isSampled,
                     dataSource = dataSource,
                     isPlaceholderMemoryCacheKeyPresent = chain.cached != null
@@ -113,27 +116,40 @@ internal class EngineInterceptor(
         }
     }
 
-    /** Compute the complex cache key for this request. */
+    /** Create the memory cache key for this request. */
     @VisibleForTesting
-    internal fun computeMemoryCacheKey(
+    internal fun createMemoryCacheKey(
         request: ImageRequest,
         data: Any,
         fetcher: Fetcher<Any>,
         size: Size
     ): MemoryCache.Key? {
-        val base = fetcher.cacheKey(data) ?: return null
-        return if (request.transformations.isEmpty()) {
-            MemoryCache.Key(base, request.parameters)
-        } else {
-            MemoryCache.Key(base, request.transformations, size, request.parameters)
+        val value = fetcher.cacheKey(data) ?: return null
+
+        val extras = arrayMapOf<String, String>()
+        extras.putAll(request.parameters.cacheKeys())
+
+        if (request.transformations.isNotEmpty()) {
+            val transformations = StringBuilder()
+            request.transformations.forEachIndices {
+                transformations.append(it.cacheKey).append('~')
+            }
+            extras[MEMORY_CACHE_KEY_TRANSFORMATIONS] = transformations.toString()
+
+            if (size is PixelSize) {
+                extras[MEMORY_CACHE_KEY_WIDTH] = size.width.toString()
+                extras[MEMORY_CACHE_KEY_HEIGHT] = size.height.toString()
+            }
         }
+
+        return MemoryCache.Key(value, extras)
     }
 
     /** Return 'true' if [cacheValue] satisfies the [request]. */
     @VisibleForTesting
     internal fun isCachedValueValid(
         cacheKey: MemoryCache.Key?,
-        cacheValue: RealMemoryCache.Value,
+        cacheValue: MemoryCache.Value,
         request: ImageRequest,
         size: Size
     ): Boolean {
@@ -157,7 +173,7 @@ internal class EngineInterceptor(
     /** Return 'true' if [cacheValue]'s size satisfies the [request]. */
     private fun isSizeValid(
         cacheKey: MemoryCache.Key?,
-        cacheValue: RealMemoryCache.Value,
+        cacheValue: MemoryCache.Value,
         request: ImageRequest,
         size: Size
     ): Boolean {
@@ -171,18 +187,12 @@ internal class EngineInterceptor(
                 }
             }
             is PixelSize -> {
-                val cachedWidth: Int
-                val cachedHeight: Int
-                when (val cachedSize = (cacheKey as? MemoryCache.Key.Complex)?.size) {
-                    is PixelSize -> {
-                        cachedWidth = cachedSize.width
-                        cachedHeight = cachedSize.height
-                    }
-                    OriginalSize, null -> {
-                        val bitmap = cacheValue.bitmap
-                        cachedWidth = bitmap.width
-                        cachedHeight = bitmap.height
-                    }
+                var cachedWidth = cacheKey?.extras?.get(MEMORY_CACHE_KEY_WIDTH)?.toInt()
+                var cachedHeight = cacheKey?.extras?.get(MEMORY_CACHE_KEY_HEIGHT)?.toInt()
+                if (cachedWidth == null || cachedHeight == null) {
+                    val bitmap = cacheValue.bitmap
+                    cachedWidth = bitmap.width
+                    cachedHeight = bitmap.height
                 }
 
                 // Short circuit the size check if the size is at most 1 pixel off in either dimension.
@@ -301,7 +311,7 @@ internal class EngineInterceptor(
         if (key != null) {
             val bitmap = (drawable as? BitmapDrawable)?.bitmap
             if (bitmap != null) {
-                memoryCache.set(key, bitmap, isSampled)
+                memoryCache[key] = MemoryCache.Value(bitmap, isSampled)
                 return true
             }
         }
@@ -337,5 +347,8 @@ internal class EngineInterceptor(
 
     companion object {
         private const val TAG = "EngineInterceptor"
+        private const val MEMORY_CACHE_KEY_WIDTH = "coil#width"
+        private const val MEMORY_CACHE_KEY_HEIGHT = "coil#height"
+        private const val MEMORY_CACHE_KEY_TRANSFORMATIONS = "coil#transformations"
     }
 }

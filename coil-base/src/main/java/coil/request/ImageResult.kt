@@ -24,7 +24,8 @@ sealed class ImageResult {
  * @param dataSource The data source that the image was loaded from.
  * @param memoryCacheKey The cache key for the image in the memory cache.
  *  It is 'null' if the image was not written to the memory cache.
- * @param diskCacheFile The cache file on disk or 'null' if the image is not stored in the disk cache.
+ * @param diskCacheFile The cache file for the image on disk.
+ *  It is 'null' if the image is not stored in the disk cache or if [dataSource] is [DataSource.MEMORY_CACHE].
  * @param isSampled 'true' if the image is sampled (i.e. loaded into memory at less than its original size).
  * @param isPlaceholderMemoryCacheKeyPresent 'true' if the request's [ImageRequest.placeholderMemoryCacheKey]
  *  was present in the memory cache and was set as the placeholder.

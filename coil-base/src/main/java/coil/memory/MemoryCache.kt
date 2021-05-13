@@ -7,10 +7,6 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.os.Parcelable
 import androidx.annotation.FloatRange
-import coil.ImageLoader
-import coil.request.ImageRequest
-import coil.request.SuccessResult
-import coil.size.Size
 import coil.util.Utils
 import kotlinx.parcelize.Parcelize
 
@@ -45,41 +41,16 @@ interface MemoryCache {
     fun trimMemory(level: Int)
 
     /** The cache key for an image in the memory cache. */
-    sealed class Key : Parcelable {
-
-        companion object {
-            /** Create a simple memory cache key. */
-            @JvmStatic
-            @JvmName("create")
-            operator fun invoke(value: String): Key = Simple(value)
-        }
-
-        /** A simple memory cache key that wraps a [String]. Create new instances using [invoke]. */
-        @Parcelize
-        internal data class Simple(val value: String) : Key()
-
-        /**
-         * A complex memory cache key. Instances can only be created by an [ImageLoader]'s
-         * image pipeline and cannot be created directly.
-         *
-         * This class is an implementation detail and its fields may change in future releases.
-         *
-         * @see ImageRequest.Listener.onSuccess
-         * @see SuccessResult
-         */
-        @Parcelize
-        internal data class Complex(
-            val base: String,
-            val transformations: List<String>,
-            val size: Size?,
-            val parameters: Map<String, String>
-        ) : Key()
-    }
+    @Parcelize
+    data class Key(
+        val value: String,
+        val extras: Map<String, String> = emptyMap()
+    ) : Parcelable
 
     /** The value for an image in the memory cache. */
     data class Value(
         val bitmap: Bitmap,
-        val isSampled: Boolean
+        val isSampled: Boolean = false
     )
 
     class Builder(private val context: Context) {

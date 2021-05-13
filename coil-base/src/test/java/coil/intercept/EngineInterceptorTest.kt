@@ -34,7 +34,6 @@ import coil.transform.Transformation
 import coil.util.SystemCallbacks
 import coil.util.createBitmap
 import coil.util.createRequest
-import coil.util.invoke
 import coil.util.size
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
@@ -81,7 +80,7 @@ class EngineInterceptorTest {
         val fetcher = createFakeFetcher(key = null)
         val size = OriginalSize
         val key = runBlocking {
-            interceptor.computeMemoryCacheKey(request, Unit, fetcher, size)
+            interceptor.createMemoryCacheKey(request, Unit, fetcher, size)
         }
 
         assertNull(key)
@@ -93,7 +92,7 @@ class EngineInterceptorTest {
         val fetcher = createFakeFetcher()
         val size = OriginalSize
         val result = runBlocking {
-            interceptor.computeMemoryCacheKey(request, Unit, fetcher, size)
+            interceptor.createMemoryCacheKey(request, Unit, fetcher, size)
         }
 
         assertEquals(Key("base_key", Parameters.EMPTY), result)
@@ -108,7 +107,7 @@ class EngineInterceptorTest {
         val fetcher = createFakeFetcher()
         val size = OriginalSize
         val result = runBlocking {
-            interceptor.computeMemoryCacheKey(request, Unit, fetcher, size)
+            interceptor.createMemoryCacheKey(request, Unit, fetcher, size)
         }
 
         assertEquals(Key("base_key", parameters), result)
@@ -123,7 +122,7 @@ class EngineInterceptorTest {
         val fetcher = createFakeFetcher()
         val size = PixelSize(123, 332)
         val result = runBlocking {
-            interceptor.computeMemoryCacheKey(request, Unit, fetcher, size)
+            interceptor.createMemoryCacheKey(request, Unit, fetcher, size)
         }
 
         assertEquals(Key("base_key", transformations, size, Parameters.EMPTY), result)
@@ -140,7 +139,7 @@ class EngineInterceptorTest {
         val fetcher = createFakeFetcher()
         val size = OriginalSize
         val result = runBlocking {
-            interceptor.computeMemoryCacheKey(request, Unit, fetcher, size)
+            interceptor.createMemoryCacheKey(request, Unit, fetcher, size)
         }
 
         assertEquals(Key("base_key", transformations, size, parameters), result)

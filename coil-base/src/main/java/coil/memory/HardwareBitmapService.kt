@@ -69,9 +69,8 @@ private object FileDescriptorCounter {
     private const val FILE_DESCRIPTOR_CHECK_INTERVAL = 50
 
     private val fileDescriptorList = File("/proc/self/fd")
-
-    @Volatile private var decodesSinceLastFileDescriptorCheck = 0
-    @Volatile private var hasAvailableFileDescriptors = true
+    private var decodesSinceLastFileDescriptorCheck = 0
+    private var hasAvailableFileDescriptors = true
 
     @Synchronized
     @WorkerThread
