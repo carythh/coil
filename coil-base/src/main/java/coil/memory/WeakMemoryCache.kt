@@ -5,22 +5,19 @@ import android.content.ComponentCallbacks2.TRIM_MEMORY_RUNNING_LOW
 import android.content.ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN
 import android.graphics.Bitmap
 import android.os.Build.VERSION.SDK_INT
-import android.util.Log
 import androidx.annotation.VisibleForTesting
 import coil.memory.MemoryCache.Key
-import coil.memory.RealMemoryCache.Value
-import coil.util.Logger
+import coil.memory.MemoryCache.Value
 import coil.util.firstNotNullIndices
 import coil.util.identityHashCode
-import coil.util.log
 import coil.util.removeIfIndices
 import java.lang.ref.WeakReference
 
 /**
  * An in-memory cache that holds weak references to [Bitmap]s.
  *
- * This is used as a secondary caching layer for [StrongMemoryCache]. [StrongMemoryCache] holds strong references
- * to its bitmaps. Bitmaps are added to this cache when they're removed from [StrongMemoryCache].
+ * This is used as a secondary caching layer for [StrongMemoryCache]. [StrongMemoryCache] holds
+ * strong references to its bitmaps. Bitmaps are added to this cache when they're removed from [StrongMemoryCache].
  */
 internal interface WeakMemoryCache {
 
@@ -60,22 +57,22 @@ internal class EmptyWeakMemoryCache : WeakMemoryCache {
 }
 
 /** A [WeakMemoryCache] implementation backed by a [HashMap]. */
-internal class RealWeakMemoryCache(private val logger: Logger?) : WeakMemoryCache {
+internal class RealWeakMemoryCache : WeakMemoryCache {
 
-    @VisibleForTesting internal val cache = hashMapOf<Key, ArrayList<WeakValue>>()
-    @VisibleForTesting internal var operationsSinceCleanUp = 0
+    private val cache = hashMapOf<Key, ArrayList<InternalValue>>()
+    private var operationsSinceCleanUp = 0
 
     @Synchronized
     override fun get(key: Key): Value? {
         val values = cache[key] ?: return null
 
         // Find the first bitmap that hasn't been collected.
-        val strongValue = values.firstNotNullIndices { value ->
-            value.bitmap.get()?.let { StrongValue(it, value.isSampled) }
+        val value = values.firstNotNullIndices { value ->
+            value.bitmap.get()?.let { Value(it, value.isSampled) }
         }
 
         cleanUpIfNecessary()
-        return strongValue
+        return value
     }
 
     @Synchronized
@@ -85,7 +82,7 @@ internal class RealWeakMemoryCache(private val logger: Logger?) : WeakMemoryCach
         // Insert the value into the list sorted descending by size.
         run {
             val identityHashCode = bitmap.identityHashCode
-            val newValue = WeakValue(identityHashCode, WeakReference(bitmap), isSampled, size)
+            val newValue = InternalValue(identityHashCode, WeakReference(bitmap), isSampled, size)
             for (index in values.indices) {
                 val value = values[index]
                 if (size >= value.size) {
@@ -132,7 +129,6 @@ internal class RealWeakMemoryCache(private val logger: Logger?) : WeakMemoryCach
     /** Remove all values from this cache. */
     @Synchronized
     override fun clearMemory() {
-        logger?.log(TAG, Log.VERBOSE) { "clearMemory" }
         operationsSinceCleanUp = 0
         cache.clear()
     }
@@ -140,7 +136,6 @@ internal class RealWeakMemoryCache(private val logger: Logger?) : WeakMemoryCach
     /** @see ComponentCallbacks2.onTrimMemory */
     @Synchronized
     override fun trimMemory(level: Int) {
-        logger?.log(TAG, Log.VERBOSE) { "trimMemory, level=$level" }
         if (level >= TRIM_MEMORY_RUNNING_LOW && level != TRIM_MEMORY_UI_HIDDEN) {
             cleanUp()
         }
@@ -182,21 +177,14 @@ internal class RealWeakMemoryCache(private val logger: Logger?) : WeakMemoryCach
         }
     }
 
-    @VisibleForTesting
-    internal class WeakValue(
+    private class InternalValue(
         val identityHashCode: Int,
         val bitmap: WeakReference<Bitmap>,
         val isSampled: Boolean,
         val size: Int
     )
 
-    private class StrongValue(
-        override val bitmap: Bitmap,
-        override val isSampled: Boolean
-    ) : Value
-
     companion object {
-        private const val TAG = "RealWeakMemoryCache"
         private const val CLEAN_UP_INTERVAL = 10
     }
 }

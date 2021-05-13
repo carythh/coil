@@ -20,8 +20,7 @@ import coil.map.ResourceIntMapper
 import coil.map.ResourceUriMapper
 import coil.map.StringMapper
 import coil.memory.DelegateService
-import coil.memory.MemoryCacheService
-import coil.memory.RealMemoryCache
+import coil.memory.MemoryCache
 import coil.memory.RequestService
 import coil.memory.TargetDelegate
 import coil.request.DefaultRequestOptions
@@ -43,6 +42,7 @@ import coil.util.Utils.REQUEST_TYPE_ENQUEUE
 import coil.util.Utils.REQUEST_TYPE_EXECUTE
 import coil.util.awaitStarted
 import coil.util.emoji
+import coil.util.get
 import coil.util.job
 import coil.util.log
 import coil.util.requestManager
@@ -63,7 +63,7 @@ import kotlin.coroutines.coroutineContext
 internal class RealImageLoader(
     val context: Context,
     override val defaults: DefaultRequestOptions,
-    override val memoryCache: RealMemoryCache,
+    override val memoryCache: MemoryCache,
     val callFactory: Call.Factory,
     val eventListenerFactory: EventListener.Factory,
     val componentRegistry: ComponentRegistry,
@@ -73,10 +73,9 @@ internal class RealImageLoader(
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate +
         CoroutineExceptionHandler { _, throwable -> logger?.log(TAG, throwable) })
-    private val delegateService = DelegateService(this, logger)
-    private val memoryCacheService = MemoryCacheService(memoryCache.strongMemoryCache, memoryCache.weakMemoryCache)
-    private val requestService = RequestService(logger)
     private val systemCallbacks = SystemCallbacks(this, context)
+    private val delegateService = DelegateService(this, logger)
+    private val requestService = RequestService(systemCallbacks, logger)
     override val components = componentRegistry.newBuilder()
         // Mappers
         .add(StringMapper())
@@ -96,15 +95,13 @@ internal class RealImageLoader(
         // Decoders
         .add(BitmapFactoryDecoder(context))
         .build()
-    private val interceptors = components.interceptors + EngineInterceptor(components, memoryCache.strongMemoryCache,
-        memoryCacheService, requestService, systemCallbacks, logger)
+    private val interceptors = components.interceptors + EngineInterceptor(components, memoryCache, requestService, logger)
     private val isShutdown = AtomicBoolean(false)
 
     override fun enqueue(request: ImageRequest): Disposable {
         // Start executing the request on the main thread.
         val deferred = scope.async {
-            executeMain(request, REQUEST_TYPE_ENQUEUE)
-                .also { if (it is ErrorResult) logger?.log(TAG, it.throwable) }
+            executeMain(request, REQUEST_TYPE_ENQUEUE).also { if (it is ErrorResult) logger?.log(TAG, it.throwable) }
         }
 
         // Update the current request attached to the view and return a new disposable.
@@ -140,7 +137,7 @@ internal class RealImageLoader(
         val eventListener = eventListenerFactory.create(request)
 
         // Wrap the target to support bitmap pooling.
-        val targetDelegate = delegateService.createTargetDelegate(request.target, type, eventListener)
+        val targetDelegate = delegateService.createTargetDelegate(request.target, eventListener)
 
         // Wrap the request to manage its lifecycle.
         val requestDelegate = delegateService.createRequestDelegate(request, targetDelegate, coroutineContext.job)
@@ -153,7 +150,7 @@ internal class RealImageLoader(
             if (type == REQUEST_TYPE_ENQUEUE) request.lifecycle.awaitStarted()
 
             // Set the placeholder on the target.
-            val cached = memoryCacheService[request.placeholderMemoryCacheKey]?.bitmap
+            val cached = memoryCache[request.placeholderMemoryCacheKey]?.bitmap
             targetDelegate.result = null
             targetDelegate.start(cached?.toDrawable(request.context) ?: request.placeholder, cached)
             eventListener.onStart(request)
@@ -193,8 +190,7 @@ internal class RealImageLoader(
 
     /** Called by [SystemCallbacks.onTrimMemory]. */
     internal fun onTrimMemory(level: Int) {
-        memoryCache.strongMemoryCache.trimMemory(level)
-        memoryCache.weakMemoryCache.trimMemory(level)
+        memoryCache.trimMemory(level)
     }
 
     override fun shutdown() {

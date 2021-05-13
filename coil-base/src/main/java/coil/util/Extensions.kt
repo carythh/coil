@@ -174,3 +174,9 @@ internal inline operator fun MemoryCache.Key.Companion.invoke(
         parameters = parameters.cacheKeys()
     )
 }
+
+internal inline operator fun MemoryCache.get(key: MemoryCache.Key?) = key?.let(::get)
+
+inline fun synchronized(lock: Any, block: () -> R) {
+    synchronized(lock, block)
+}

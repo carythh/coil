@@ -1,7 +1,6 @@
 package coil.memory
 
 import android.graphics.Bitmap
-import android.os.Build.VERSION.SDK_INT
 import androidx.annotation.WorkerThread
 import coil.decode.Options
 import coil.request.CachePolicy
@@ -13,13 +12,18 @@ import coil.target.Target
 import coil.target.ViewTarget
 import coil.transform.Transformation
 import coil.util.Logger
+import coil.util.SystemCallbacks
+import coil.util.Utils
 import coil.util.allowInexactSize
 import coil.util.isHardware
 
 /** Handles operations that act on [ImageRequest]s. */
-internal class RequestService(private val logger: Logger?) {
+internal class RequestService(
+    private val systemCallbacks: SystemCallbacks,
+    logger: Logger?
+) {
 
-    private val hardwareBitmapService = HardwareBitmapService()
+    private val hardwareBitmapService = HardwareBitmapService(logger)
 
     fun errorResult(request: ImageRequest, throwable: Throwable): ErrorResult {
         return ErrorResult(
@@ -30,20 +34,17 @@ internal class RequestService(private val logger: Logger?) {
     }
 
     @WorkerThread
-    fun options(
-        request: ImageRequest,
-        size: Size,
-        isOnline: Boolean
-    ): Options {
+    fun options(request: ImageRequest, size: Size): Options {
         // Fall back to ARGB_8888 if the requested bitmap config does not pass the checks.
         val isValidConfig = isConfigValidForTransformations(request) && isConfigValidForHardwareAllocation(request, size)
         val config = if (isValidConfig) request.bitmapConfig else Bitmap.Config.ARGB_8888
 
         // Disable fetching from the network if we know we're offline.
-        val networkCachePolicy = if (isOnline) request.networkCachePolicy else CachePolicy.DISABLED
+        val networkCachePolicy = if (systemCallbacks.isOnline) request.networkCachePolicy else CachePolicy.DISABLED
 
         // Disable allowRgb565 if there are transformations or the requested config is ALPHA_8.
-        // ALPHA_8 is a mask config where each pixel is 1 byte so it wouldn't make sense to use RGB_565 as an optimization in that case.
+        // ALPHA_8 is a mask config where each pixel is 1 byte so it wouldn't make sense to use
+        // RGB_565 as an optimization in that case.
         val allowRgb565 = request.allowRgb565 && request.transformations.isEmpty() && config != Bitmap.Config.ALPHA_8
 
         return Options(
@@ -86,21 +87,11 @@ internal class RequestService(private val logger: Logger?) {
      */
     @WorkerThread
     private fun isConfigValidForHardwareAllocation(request: ImageRequest, size: Size): Boolean {
-        return isConfigValidForHardware(request, request.bitmapConfig) &&
-            hardwareBitmapService.allowHardware(size, logger)
+        return isConfigValidForHardware(request, request.bitmapConfig) && hardwareBitmapService.allowHardware(size)
     }
 
     /** Return 'true' if [ImageRequest.bitmapConfig] is valid given its [Transformation]s. */
     private fun isConfigValidForTransformations(request: ImageRequest): Boolean {
-        return request.transformations.isEmpty() || request.bitmapConfig in VALID_TRANSFORMATION_CONFIGS
-    }
-
-    companion object {
-        /** An allowlist of valid bitmap configs for the input and output bitmaps of [Transformation.transform]. */
-        @JvmField val VALID_TRANSFORMATION_CONFIGS = if (SDK_INT >= 26) {
-            arrayOf(Bitmap.Config.ARGB_8888, Bitmap.Config.RGBA_F16)
-        } else {
-            arrayOf(Bitmap.Config.ARGB_8888)
-        }
+        return request.transformations.isEmpty() || request.bitmapConfig in Utils.VALID_TRANSFORMATION_CONFIGS
     }
 }

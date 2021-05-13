@@ -15,21 +15,37 @@ import java.io.File
 internal sealed class HardwareBitmapService {
 
     companion object {
-        operator fun invoke() = when {
+        operator fun invoke(logger: Logger?) = when {
             SDK_INT < 26 || IS_DEVICE_BLOCKED -> ImmutableHardwareBitmapService(false)
-            SDK_INT == 26 || SDK_INT == 27 -> LimitedFileDescriptorHardwareBitmapService
+            SDK_INT == 26 || SDK_INT == 27 -> LimitedFileDescriptorHardwareBitmapService(logger)
             else -> ImmutableHardwareBitmapService(true)
         }
     }
 
     /** Return 'true' if we can currently use [Bitmap.Config.HARDWARE]. */
-    abstract fun allowHardware(size: Size, logger: Logger?): Boolean
+    abstract fun allowHardware(size: Size): Boolean
 }
 
 /** Returns a fixed value for [allowHardware]. */
 private class ImmutableHardwareBitmapService(private val allowHardware: Boolean) : HardwareBitmapService() {
 
-    override fun allowHardware(size: Size, logger: Logger?) = allowHardware
+    override fun allowHardware(size: Size) = allowHardware
+}
+
+private class LimitedFileDescriptorHardwareBitmapService(private val logger: Logger?) : HardwareBitmapService() {
+
+    override fun allowHardware(size: Size): Boolean {
+        // Don't use up file descriptors on small bitmaps.
+        if (size is PixelSize && (size.width < MIN_SIZE_DIMENSION || size.height < MIN_SIZE_DIMENSION)) {
+            return false
+        }
+
+        return FileDescriptorCounter.hasAvailableFileDescriptors(logger)
+    }
+
+    companion object {
+        private const val MIN_SIZE_DIMENSION = 75
+    }
 }
 
 /**
@@ -45,11 +61,10 @@ private class ImmutableHardwareBitmapService(private val allowHardware: Boolean)
  * Adapted from [Glide](https://github.com/bumptech/glide)'s HardwareConfigState.
  * Glide's license information is available [here](https://github.com/bumptech/glide/blob/master/LICENSE).
  */
-private object LimitedFileDescriptorHardwareBitmapService : HardwareBitmapService() {
+private object FileDescriptorCounter {
 
-    private const val TAG = "LimitedFileDescriptorHardwareBitmapService"
+    private const val TAG = "FileDescriptorCounter"
 
-    private const val MIN_SIZE_DIMENSION = 75
     private const val FILE_DESCRIPTOR_LIMIT = 750
     private const val FILE_DESCRIPTOR_CHECK_INTERVAL = 50
 
@@ -58,18 +73,9 @@ private object LimitedFileDescriptorHardwareBitmapService : HardwareBitmapServic
     @Volatile private var decodesSinceLastFileDescriptorCheck = 0
     @Volatile private var hasAvailableFileDescriptors = true
 
-    override fun allowHardware(size: Size, logger: Logger?): Boolean {
-        // Don't use up file descriptors on small bitmaps.
-        if (size is PixelSize && (size.width < MIN_SIZE_DIMENSION || size.height < MIN_SIZE_DIMENSION)) {
-            return false
-        }
-
-        return hasAvailableFileDescriptors(logger)
-    }
-
     @Synchronized
     @WorkerThread
-    private fun hasAvailableFileDescriptors(logger: Logger?): Boolean {
+    fun hasAvailableFileDescriptors(logger: Logger?): Boolean {
         // Only check if we have available file descriptors after a
         // set amount of decodes since it's expensive (1-2 milliseconds).
         if (decodesSinceLastFileDescriptorCheck++ >= FILE_DESCRIPTOR_CHECK_INTERVAL) {

@@ -17,10 +17,8 @@ import coil.fetch.FetchResult
 import coil.fetch.Fetcher
 import coil.fetch.SourceResult
 import coil.memory.MemoryCache
-import coil.memory.MemoryCacheService
 import coil.memory.RealMemoryCache
 import coil.memory.RequestService
-import coil.memory.StrongMemoryCache
 import coil.request.ImageRequest
 import coil.request.ImageResult
 import coil.request.SuccessResult
@@ -29,10 +27,11 @@ import coil.size.PixelSize
 import coil.size.Size
 import coil.transform.Transformation
 import coil.util.Logger
-import coil.util.SystemCallbacks
+import coil.util.Utils
 import coil.util.allowInexactSize
 import coil.util.fetcher
 import coil.util.foldIndices
+import coil.util.get
 import coil.util.invoke
 import coil.util.log
 import coil.util.mapData
@@ -49,10 +48,8 @@ import kotlin.math.abs
 /** The last interceptor in the chain which executes the [ImageRequest]. */
 internal class EngineInterceptor(
     private val components: ComponentRegistry,
-    private val strongMemoryCache: StrongMemoryCache,
-    private val memoryCacheService: MemoryCacheService,
+    private val memoryCache: MemoryCache,
     private val requestService: RequestService,
-    private val systemCallbacks: SystemCallbacks,
     private val logger: Logger?
 ) : Interceptor {
 
@@ -75,7 +72,7 @@ internal class EngineInterceptor(
             // Check the memory cache.
             val fetcher = request.fetcher(mappedData) ?: components.requireFetcher(mappedData)
             val memoryCacheKey = request.memoryCacheKey ?: computeMemoryCacheKey(request, mappedData, fetcher, size)
-            val value = if (request.memoryCachePolicy.readEnabled) memoryCacheService[memoryCacheKey] else null
+            val value = if (request.memoryCachePolicy.readEnabled) memoryCache[memoryCacheKey] else null
 
             // Short circuit if the cached bitmap is valid.
             if (value != null && isCachedValueValid(memoryCacheKey, value, request, size)) {
@@ -234,7 +231,7 @@ internal class EngineInterceptor(
         val options: Options
         val fetchResult: FetchResult
         withContext(request.fetcherDispatcher) {
-            options = requestService.options(request, size, systemCallbacks.isOnline)
+            options = requestService.options(request, size)
             eventListener.fetchStart(request, fetcher, options)
             fetchResult = fetcher.fetch(data, options)
             eventListener.fetchEnd(request, fetcher, options, fetchResult)
@@ -304,7 +301,7 @@ internal class EngineInterceptor(
         if (key != null) {
             val bitmap = (drawable as? BitmapDrawable)?.bitmap
             if (bitmap != null) {
-                strongMemoryCache.set(key, bitmap, isSampled)
+                memoryCache.set(key, bitmap, isSampled)
                 return true
             }
         }
@@ -320,12 +317,12 @@ internal class EngineInterceptor(
         if (drawable is BitmapDrawable) {
             var bitmap = drawable.bitmap
             val config = bitmap.safeConfig
-            if (config !in RequestService.VALID_TRANSFORMATION_CONFIGS) {
+            if (config !in Utils.VALID_TRANSFORMATION_CONFIGS) {
                 logger?.log(TAG, Log.INFO) {
                     "Converting bitmap with config $config to apply transformations: $transformations"
                 }
-                bitmap = DrawableUtils.convertToBitmap(drawable,
-                    options.config, options.size, options.scale, options.allowInexactSize)
+                bitmap = DrawableUtils.convertToBitmap(drawable, options.config, options.size,
+                    options.scale, options.allowInexactSize)
             }
             return bitmap
         }
@@ -334,8 +331,8 @@ internal class EngineInterceptor(
             val type = drawable::class.java.canonicalName
             "Converting drawable of type $type to apply transformations: $transformations"
         }
-        return DrawableUtils.convertToBitmap(drawable,
-            options.config, options.size, options.scale, options.allowInexactSize)
+        return DrawableUtils.convertToBitmap(drawable, options.config, options.size,
+            options.scale, options.allowInexactSize)
     }
 
     companion object {

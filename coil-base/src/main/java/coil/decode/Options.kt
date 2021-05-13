@@ -16,18 +16,18 @@ import coil.util.NULL_COLOR_SPACE
 import okhttp3.Headers
 
 /**
- * A set of configuration options for fetching and decoding an image.
- * [Fetcher]s and [Decoder]s should respect these options as best as possible.
+ * A set of configuration options for fetching and decoding an image. [Fetcher]s and [Decoder]s
+ * should respect these options as best as possible.
  *
  * @param context The [Context] used to execute this request.
  * @param config The requested config for any [Bitmap]s.
  * @param colorSpace The preferred color space for any [Bitmap]s.
- *  If null, components should typically default to [ColorSpace.Rgb].
+ *  If 'null', components should typically default to [ColorSpace.Rgb].
  * @param size The requested output size for the image request.
  * @param scale The scaling algorithm for how to fit the source image's dimensions into the target's dimensions.
  * @param allowInexactSize 'true' if the output image does not need to fit/fill the target's dimensions exactly. For
- *  instance, if true [BitmapFactoryDecoder] will not decode an image at a larger size than its source dimensions as an
- *  optimization.
+ *  instance, if 'true' [BitmapFactoryDecoder] will not decode an image at a larger size than its source dimensions as
+ *  an optimization.
  * @param allowRgb565 'true' if a component is allowed to use [Bitmap.Config.RGB_565] as an optimization. As RGB_565
  *  does not have an alpha channel, components should only use RGB_565 if the image is guaranteed to not use alpha.
  * @param premultipliedAlpha 'true' if the color (RGB) channels of the decoded image should be pre-multiplied by the

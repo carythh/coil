@@ -7,6 +7,7 @@ import android.graphics.Bitmap
 import android.os.Build.VERSION.SDK_INT
 import android.os.StatFs
 import androidx.annotation.Px
+import coil.transform.Transformation
 import java.io.File
 
 /** Private utility methods for Coil. */
@@ -27,8 +28,15 @@ internal object Utils {
     const val REQUEST_TYPE_ENQUEUE = 0
     const val REQUEST_TYPE_EXECUTE = 1
 
+    /** An allowlist of valid bitmap configs for the input and output bitmaps of [Transformation.transform]. */
+    @JvmField val VALID_TRANSFORMATION_CONFIGS = if (SDK_INT >= 26) {
+        arrayOf(Bitmap.Config.ARGB_8888, Bitmap.Config.RGBA_F16)
+    } else {
+        arrayOf(Bitmap.Config.ARGB_8888)
+    }
+
     /** Prefer hardware bitmaps on API 26 and above since they are optimized for drawing without transformations. */
-    val DEFAULT_BITMAP_CONFIG = if (SDK_INT >= 26) Bitmap.Config.HARDWARE else Bitmap.Config.ARGB_8888
+    @JvmField val DEFAULT_BITMAP_CONFIG = if (SDK_INT >= 26) Bitmap.Config.HARDWARE else Bitmap.Config.ARGB_8888
 
     /** Return the in memory size of a [Bitmap] with the given width, height, and [Bitmap.Config]. */
     fun calculateAllocationByteCount(@Px width: Int, @Px height: Int, config: Bitmap.Config?): Int {

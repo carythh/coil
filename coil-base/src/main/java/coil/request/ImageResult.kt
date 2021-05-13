@@ -4,6 +4,7 @@ import android.graphics.drawable.Drawable
 import coil.ImageLoader
 import coil.decode.DataSource
 import coil.memory.MemoryCache
+import java.io.File
 
 /**
  * Represents the result of an executed [ImageRequest].
@@ -23,6 +24,7 @@ sealed class ImageResult {
  * @param dataSource The data source that the image was loaded from.
  * @param memoryCacheKey The cache key for the image in the memory cache.
  *  It is 'null' if the image was not written to the memory cache.
+ * @param diskCacheFile The cache file on disk or 'null' if the image is not stored in the disk cache.
  * @param isSampled 'true' if the image is sampled (i.e. loaded into memory at less than its original size).
  * @param isPlaceholderMemoryCacheKeyPresent 'true' if the request's [ImageRequest.placeholderMemoryCacheKey]
  *  was present in the memory cache and was set as the placeholder.
@@ -32,6 +34,7 @@ data class SuccessResult(
     override val request: ImageRequest,
     val dataSource: DataSource,
     val memoryCacheKey: MemoryCache.Key?,
+    val diskCacheFile: File?,
     val isSampled: Boolean,
     val isPlaceholderMemoryCacheKeyPresent: Boolean
 ) : ImageResult()
