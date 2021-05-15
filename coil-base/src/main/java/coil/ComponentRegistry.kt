@@ -1,4 +1,4 @@
-@file:Suppress("unused")
+@file:Suppress("UNCHECKED_CAST", "unused")
 
 package coil
 
@@ -8,6 +8,7 @@ import coil.intercept.Interceptor
 import coil.map.Mapper
 import coil.util.MultiList
 import coil.util.MultiMutableList
+import coil.util.forEachIndices
 
 /**
  * Registry for all the components that an [ImageLoader] uses to fulfil image requests.
@@ -22,6 +23,16 @@ class ComponentRegistry private constructor(
 ) {
 
     constructor() : this(emptyList(), emptyList(), emptyList(), emptyList())
+
+    fun mapData(data: Any): Any {
+        var mappedData = data
+        mappers.forEachIndices { (mapper, type) ->
+            if (type.isAssignableFrom(mappedData::class.java)) {
+                (mapper as Mapper<Any, *>).map(mappedData)?.let { mappedData = it }
+            }
+        }
+        return mappedData
+    }
 
     fun newBuilder() = Builder(this)
 

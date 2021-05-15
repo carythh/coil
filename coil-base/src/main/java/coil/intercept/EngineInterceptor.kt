@@ -9,7 +9,6 @@ import androidx.collection.arrayMapOf
 import coil.ComponentRegistry
 import coil.EventListener
 import coil.decode.DataSource
-import coil.decode.DecodeResult
 import coil.decode.DecodeUtils
 import coil.decode.Options
 import coil.fetch.DrawableResult
@@ -29,13 +28,12 @@ import coil.transform.Transformation
 import coil.util.Logger
 import coil.util.Utils
 import coil.util.allowInexactSize
+import coil.util.closeQuietly
 import coil.util.fetcher
 import coil.util.foldIndices
 import coil.util.forEachIndices
 import coil.util.get
 import coil.util.log
-import coil.util.mapData
-import coil.util.requireDecoder
 import coil.util.requireFetcher
 import coil.util.safeConfig
 import coil.util.toDrawable
@@ -71,6 +69,7 @@ internal class EngineInterceptor(
             eventListener.mapEnd(request, mappedData)
 
             // Check the memory cache.
+            val options = requestService.options(request, size)
             val fetcher = request.fetcher(mappedData) ?: components.requireFetcher(mappedData)
             val memoryCacheKey = request.memoryCacheKey ?: createMemoryCacheKey(request, mappedData, fetcher, size)
             val value = if (request.memoryCachePolicy.readEnabled) memoryCache[memoryCacheKey] else null
@@ -91,16 +90,16 @@ internal class EngineInterceptor(
             // Fetch, decode, transform, and cache the image.
             return withContext(Dispatchers.Unconfined) {
                 // Fetch and decode the image.
-                val (drawable, isSampled, dataSource) = execute(mappedData, fetcher, request, size, eventListener)
+                val (drawable, isSampled, dataSource) = execute(mappedData, fetcher, request, options, eventListener)
 
                 // Cache the result in the memory cache.
-                val isCached = writeToMemoryCache(request, memoryCacheKey, drawable, isSampled)
+                val isMemoryCached = writeToMemoryCache(request, memoryCacheKey, drawable, isSampled)
 
                 // Return the result.
                 SuccessResult(
                     drawable = drawable,
                     request = request,
-                    memoryCacheKey = memoryCacheKey.takeIf { isCached },
+                    memoryCacheKey = memoryCacheKey.takeIf { isMemoryCached },
                     diskCacheFile = File(""), // TODO
                     isSampled = isSampled,
                     dataSource = dataSource,
@@ -124,11 +123,9 @@ internal class EngineInterceptor(
         fetcher: Fetcher<Any>,
         size: Size
     ): MemoryCache.Key? {
-        val value = fetcher.cacheKey(data) ?: return null
-
+        val base = fetcher.cacheKey(data) ?: return null
         val extras = arrayMapOf<String, String>()
         extras.putAll(request.parameters.cacheKeys())
-
         if (request.transformations.isNotEmpty()) {
             val transformations = StringBuilder()
             request.transformations.forEachIndices {
@@ -141,8 +138,7 @@ internal class EngineInterceptor(
                 extras[MEMORY_CACHE_KEY_HEIGHT] = size.height.toString()
             }
         }
-
-        return MemoryCache.Key(value, extras)
+        return MemoryCache.Key(base, extras)
     }
 
     /** Return 'true' if [cacheValue] satisfies the [request]. */
@@ -234,42 +230,44 @@ internal class EngineInterceptor(
         data: Any,
         fetcher: Fetcher<Any>,
         request: ImageRequest,
-        size: Size,
+        options: Options,
         eventListener: EventListener
     ): DrawableResult {
-        // Fetch the data.
-        val options: Options
-        val fetchResult: FetchResult
-        withContext(request.fetcherDispatcher) {
-            options = requestService.options(request, size)
-            eventListener.fetchStart(request, fetcher, options)
-            fetchResult = fetcher.fetch(data, options)
-            eventListener.fetchEnd(request, fetcher, options, fetchResult)
-        }
-
-        val baseResult = when (fetchResult) {
-            is SourceResult -> {
-                // Decode the data.
-                val decodeResult: DecodeResult
-                withContext(request.decoderDispatcher) {
-                    val decoder = request.decoder ?: components.requireDecoder(request.data, fetchResult.source, fetchResult.mimeType)
-                    eventListener.decodeStart(request, decoder, options)
-                    decodeResult = decoder.decode(fetchResult.source, options)
-                    eventListener.decodeEnd(request, decoder, options, decodeResult)
-                }
-
-                // Combine the fetch and decode operations' results.
-                DrawableResult(
-                    drawable = decodeResult.drawable,
-                    isSampled = decodeResult.isSampled,
-                    dataSource = fetchResult.dataSource
-                )
+        var fetchResultOrNull: FetchResult? = null
+        val drawableResult = try {
+            // Fetch the data.
+            val fetchResult: FetchResult
+            withContext(request.fetcherDispatcher) {
+                eventListener.fetchStart(request, fetcher, options)
+                fetchResult = fetcher.fetch(data, options)
+                fetchResultOrNull = fetchResult
+                eventListener.fetchEnd(request, fetcher, options, fetchResult)
             }
-            is DrawableResult -> fetchResult
+
+            // Decode the data.
+            when (fetchResult) {
+                is SourceResult -> withContext(request.decoderDispatcher) {
+                    val decoder = request.decoder ?: TODO("Resolve the decoder.")
+                    eventListener.decodeStart(request, decoder, options)
+                    val decodeResult = decoder.decode(fetchResult.source, options)
+                    eventListener.decodeEnd(request, decoder, options, decodeResult)
+
+                    // Combine the fetch and decode operations' results.
+                    DrawableResult(
+                        drawable = decodeResult.drawable,
+                        isSampled = decodeResult.isSampled,
+                        dataSource = fetchResult.dataSource
+                    )
+                }
+                is DrawableResult -> fetchResult
+            }
+        } finally {
+            // Ensure the fetch result's source is always closed.
+            (fetchResultOrNull as? SourceResult)?.source?.closeQuietly()
         }
 
         // Apply any transformations and prepare to draw.
-        val finalResult = applyTransformations(baseResult, request, options, eventListener)
+        val finalResult = applyTransformations(drawableResult, request, options, eventListener)
         (finalResult.drawable as? BitmapDrawable)?.bitmap?.prepareToDraw()
         return finalResult
     }
@@ -285,12 +283,12 @@ internal class EngineInterceptor(
         val transformations = request.transformations
         if (transformations.isEmpty()) return result
 
-        // Convert the drawable into a bitmap with a valid config.
+        // Apply the transformations.
         return withContext(request.transformationDispatcher) {
             val input = convertDrawableToBitmap(result.drawable, options, transformations)
             eventListener.transformStart(request, input)
             val output = transformations.foldIndices(input) { bitmap, transformation ->
-                transformation.transform(bitmap, options.size).also { coroutineContext.ensureActive() }
+                transformation.transform(bitmap, options.size).also { ensureActive() }
             }
             eventListener.transformEnd(request, output)
             result.copy(drawable = output.toDrawable(request.context))
@@ -318,7 +316,7 @@ internal class EngineInterceptor(
         return false
     }
 
-    /** Convert [drawable] to a [Bitmap]. */
+    /** Convert [drawable] to a [Bitmap] if necessary. */
     private fun convertDrawableToBitmap(
         drawable: Drawable,
         options: Options,

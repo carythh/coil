@@ -4,9 +4,13 @@ import okio.BufferedSource
 import java.io.Closeable
 import java.io.File
 
-class ImageSource(
-    val source: BufferedSource,
-    val file: File
-): Closeable {
+sealed class ImageSource : Closeable {
 
+    abstract val source: BufferedSource
+
+    abstract val file: File
+
+    abstract fun sourceOrNull(): BufferedSource?
+
+    abstract fun fileOrNull(): File?
 }

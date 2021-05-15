@@ -101,7 +101,9 @@ internal class RealImageLoader(
     override fun enqueue(request: ImageRequest): Disposable {
         // Start executing the request on the main thread.
         val deferred = scope.async {
-            executeMain(request, REQUEST_TYPE_ENQUEUE).also { if (it is ErrorResult) logger?.log(TAG, it.throwable) }
+            executeMain(request, REQUEST_TYPE_ENQUEUE).also { result ->
+                if (result is ErrorResult) logger?.log(TAG, result.throwable)
+            }
         }
 
         // Update the current request attached to the view and return a new disposable.

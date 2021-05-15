@@ -43,7 +43,7 @@ interface MemoryCache {
     /** The cache key for an image in the memory cache. */
     @Parcelize
     data class Key(
-        val value: String,
+        val base: String,
         val extras: Map<String, String> = emptyMap()
     ) : Parcelable
 
