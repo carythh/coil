@@ -1,16 +1,16 @@
 package coil.memory
 
-import android.graphics.Bitmap
 import android.view.View
 import androidx.annotation.AnyThread
 import androidx.annotation.MainThread
-import androidx.collection.SimpleArrayMap
 import coil.request.ImageRequest
 import coil.request.ImageResult
 import coil.util.isMainThread
 import coil.util.requestManager
-import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import java.util.UUID
@@ -28,7 +28,7 @@ internal class ViewTargetRequestManager : View.OnAttachStateChangeListener {
     // Metadata about the current request (that may have not been dispatched yet).
     @Volatile var currentRequestId: UUID? = null
         private set
-    @Volatile var currentRequestJob: Job? = null
+    @Volatile var currentRequestJob: Deferred<ImageResult>? = null
         private set
 
     // The result of the latest request attached to this view.
@@ -40,19 +40,6 @@ internal class ViewTargetRequestManager : View.OnAttachStateChangeListener {
     // Only accessed from the main thread.
     private var isRestart = false
     private var skipAttach = true
-
-    // Only accessed from the main thread. Temporary storage for bitmap pooling.
-    private val bitmaps = SimpleArrayMap<Any, Bitmap>()
-
-    /** Associate [bitmap] with [tag] and cache it on this view. Return the previous bitmap associated with [tag]. */
-    @MainThread
-    fun put(tag: Any, bitmap: Bitmap?): Bitmap? {
-        return if (bitmap != null) {
-            bitmaps.put(tag, bitmap)
-        } else {
-            bitmaps.remove(tag)
-        }
-    }
 
     /** Attach [request] to this view and dispose the old request. */
     @MainThread
@@ -70,9 +57,9 @@ internal class ViewTargetRequestManager : View.OnAttachStateChangeListener {
         skipAttach = true
     }
 
-    /** Set the current [job] attached to this view and assign it an ID. */
+    /** Set the current [Deferred] attached to this view and assign it an ID. */
     @AnyThread
-    fun setCurrentRequestJob(job: Job): UUID {
+    fun setCurrentRequestJob(job: Deferred<ImageResult>): UUID {
         val requestId = newRequestId()
         currentRequestId = requestId
         currentRequestJob = job
@@ -81,12 +68,13 @@ internal class ViewTargetRequestManager : View.OnAttachStateChangeListener {
 
     /** Detach the current request from this view. */
     @AnyThread
+    @OptIn(DelicateCoroutinesApi::class)
     fun clearCurrentRequest() {
         currentRequestId = null
         currentRequestJob = null
 
         pendingClear?.cancel()
-        pendingClear = CoroutineScope(Dispatchers.Main.immediate).launch { setCurrentRequest(null) }
+        pendingClear = GlobalScope.launch(Dispatchers.Main.immediate) { setCurrentRequest(null) }
     }
 
     @MainThread

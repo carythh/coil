@@ -82,12 +82,10 @@ interface ImageLoader {
     /**
      * Shutdown this image loader.
      *
-     * All associated resources will be freed and new requests will fail before starting.
+     * All associated resources will be freed, new requests will fail before starting,
+     * and in progress requests will be cancelled immediately.
      *
      * Shutting down an image loader is optional. It will be cleaned up automatically if dereferenced.
-     *
-     * In progress [enqueue] requests will be cancelled immediately.
-     * In progress [execute] requests will continue until complete.
      */
     fun shutdown()
 

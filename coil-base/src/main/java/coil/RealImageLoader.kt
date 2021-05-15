@@ -116,15 +116,18 @@ internal class RealImageLoader(
     }
 
     override suspend fun execute(request: ImageRequest): ImageResult {
-        // Update the current request attached to the view synchronously.
-        if (request.target is ViewTarget<*>) {
-            request.target.view.requestManager.setCurrentRequestJob(coroutineContext.job)
+        // Start executing the request on the main thread.
+        val deferred = scope.async {
+            executeMain(request, REQUEST_TYPE_EXECUTE).also { result ->
+                if (result is ErrorResult) throw result.throwable
+            }
         }
 
-        // Start executing the request on the main thread.
-        return withContext(Dispatchers.Main.immediate) {
-            executeMain(request, REQUEST_TYPE_EXECUTE)
+        // Update the current request attached to the view and await the result.
+        if (request.target is ViewTarget<*>) {
+            request.target.view.requestManager.setCurrentRequestJob(deferred)
         }
+        return deferred.await()
     }
 
     @MainThread

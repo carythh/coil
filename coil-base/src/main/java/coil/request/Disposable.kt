@@ -59,7 +59,7 @@ internal class ViewTargetDisposable(
         get() = target.view.requestManager.currentRequestId != requestId
 
     override val currentJob: Deferred<ImageResult>
-        get() = TODO()
+        get() = if (isDisposed) null else target.view.requestManager.currentRequestJob
 
     override fun dispose() {
         if (isDisposed) return
