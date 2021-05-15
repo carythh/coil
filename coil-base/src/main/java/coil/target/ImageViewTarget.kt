@@ -11,4 +11,12 @@ open class ImageViewTarget(override val view: ImageView) : GenericViewTarget<Ima
     override var drawable: Drawable?
         get() = view.drawable
         set(value) = view.setImageDrawable(value)
+
+    override fun equals(other: Any?): Boolean {
+        return (this === other) || (other is ImageViewTarget && view == other.view)
+    }
+
+    override fun hashCode() = view.hashCode()
+
+    override fun toString() = "ImageViewTarget(view=$view)"
 }
