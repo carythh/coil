@@ -39,14 +39,14 @@ abstract class GenericViewTarget<T : View> : ViewTarget<T>, TransitionTarget, De
     }
 
     /** Replace the [ImageView]'s current drawable with [drawable]. */
-    protected fun updateDrawable(drawable: Drawable?) {
+    private fun updateDrawable(drawable: Drawable?) {
         (this.drawable as? Animatable)?.stop()
         this.drawable = drawable
         updateAnimation()
     }
 
     /** Start/stop the current [Drawable]'s animation based on the current lifecycle state. */
-    protected fun updateAnimation() {
+    private fun updateAnimation() {
         val animatable = drawable as? Animatable ?: return
         if (isStarted) animatable.start() else animatable.stop()
     }
