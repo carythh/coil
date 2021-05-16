@@ -7,12 +7,22 @@ import coil.request.SuccessResult
 /**
  * A transition that applies the [ImageResult] on the [TransitionTarget] without animating.
  */
-internal class NoneTransition : Transition {
+internal class NoneTransition(
+    private val target: TransitionTarget,
+    private val result: ImageResult
+) : Transition {
 
-    override suspend fun transition(target: TransitionTarget, result: ImageResult) {
+    override suspend fun transition() {
         when (result) {
             is SuccessResult -> target.onSuccess(result.drawable)
             is ErrorResult -> target.onError(result.drawable)
+        }
+    }
+
+    class Factory : Transition.Factory {
+
+        override fun create(target: TransitionTarget, result: ImageResult): Transition {
+            return NoneTransition(target, result)
         }
     }
 }

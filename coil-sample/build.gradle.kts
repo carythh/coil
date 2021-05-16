@@ -12,9 +12,9 @@ setupAppModule {
         applicationId = "coil.sample"
     }
     buildTypes {
-        release {
+        getByName("release") {
             isMinifyEnabled = true
-            //isShrinkResources = true
+            isShrinkResources = true
             proguardFiles("shrinker-rules.pro", "shrinker-rules-android.pro")
             signingConfig = signingConfigs.getByName("debug")
         }

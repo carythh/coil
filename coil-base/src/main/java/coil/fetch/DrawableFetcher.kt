@@ -1,16 +1,20 @@
 package coil.fetch
 
 import android.graphics.drawable.Drawable
+import coil.ImageLoader
 import coil.decode.DataSource
 import coil.decode.Options
 import coil.util.isVector
 import coil.util.toDrawable
 
-internal class DrawableFetcher : Fetcher<Drawable> {
+internal class DrawableFetcher(
+    private val data: Drawable,
+    private val options: Options
+) : Fetcher {
 
-    override fun cacheKey(data: Drawable): String? = null
+    override val cacheKey: String? get() = null
 
-    override suspend fun fetch(data: Drawable, options: Options): FetchResult {
+    override suspend fun fetch(): FetchResult {
         val isVector = data.isVector
         return DrawableResult(
             drawable = if (isVector) {
@@ -27,5 +31,12 @@ internal class DrawableFetcher : Fetcher<Drawable> {
             isSampled = isVector,
             dataSource = DataSource.MEMORY
         )
+    }
+
+    class Factory: Fetcher.Factory<Drawable> {
+
+        override fun create(data: Drawable, options: Options, imageLoader: ImageLoader): Fetcher {
+            return DrawableFetcher(data, options)
+        }
     }
 }

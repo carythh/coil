@@ -2,7 +2,6 @@
 
 package coil.decode
 
-import android.content.Context
 import android.graphics.ImageDecoder
 import android.graphics.drawable.AnimatedImageDrawable
 import android.os.Build.VERSION.SDK_INT
@@ -10,7 +9,9 @@ import androidx.annotation.RequiresApi
 import androidx.core.graphics.decodeDrawable
 import androidx.core.util.component1
 import androidx.core.util.component2
+import coil.ImageLoader
 import coil.drawable.ScaleDrawable
+import coil.fetch.SourceResult
 import coil.request.animatedTransformation
 import coil.request.animationEndCallback
 import coil.request.animationStartCallback
@@ -20,9 +21,9 @@ import coil.util.animatable2CallbackOf
 import coil.util.asPostProcessor
 import coil.util.isHardware
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runInterruptible
 import kotlinx.coroutines.withContext
 import okio.BufferedSource
-import okio.buffer
 import okio.sink
 import java.io.File
 import java.nio.ByteBuffer
@@ -34,26 +35,23 @@ import kotlin.math.roundToInt
  * NOTE: Animated HEIF files are only supported on API 30 and above.
  */
 @RequiresApi(28)
-class ImageDecoderDecoder(private val context: Context) : Decoder {
+class ImageDecoderDecoder(
+    private val source: ImageSource,
+    private val options: Options
+) : Decoder {
 
-    override fun handles(source: BufferedSource, mimeType: String?): Boolean {
-        return DecodeUtils.isGif(source) ||
-            DecodeUtils.isAnimatedWebP(source) ||
-            (SDK_INT >= 30 && DecodeUtils.isAnimatedHeif(source))
-    }
-
-    override suspend fun decode(source: BufferedSource, options: Options): DecodeResult {
+    override suspend fun decode(): DecodeResult {
         var isSampled = false
-        val baseDrawable = withInterruptibleSource(source) { interruptibleSource ->
+        val baseDrawable = runInterruptible {
             var tempFile: File? = null
             try {
-                val bufferedSource = interruptibleSource.buffer()
+                val bufferedSource = source.source
                 val decoderSource = if (SDK_INT >= 30) {
                     // Buffer the source into memory.
                     ImageDecoder.createSource(ByteBuffer.wrap(bufferedSource.use { it.readByteArray() }))
                 } else {
                     // Work around https://issuetracker.google.com/issues/139371066 by copying the source to a temp file.
-                    tempFile = File.createTempFile("tmp", null, context.cacheDir.apply { mkdirs() })
+                    tempFile = File.createTempFile("tmp", null, options.context.cacheDir.apply { mkdirs() })
                     bufferedSource.use { tempFile.sink().use(it::readAll) }
                     ImageDecoder.createSource(tempFile)
                 }
@@ -131,6 +129,20 @@ class ImageDecoderDecoder(private val context: Context) : Decoder {
             drawable = drawable,
             isSampled = isSampled
         )
+    }
+
+    class Factory : Decoder.Factory {
+
+        override fun create(result: SourceResult, options: Options, imageLoader: ImageLoader): Decoder? {
+            if (!isApplicable(result.source.source)) return null
+            return ImageDecoderDecoder(result.source, options)
+        }
+
+        private fun isApplicable(source: BufferedSource): Boolean {
+            return DecodeUtils.isGif(source) ||
+                DecodeUtils.isAnimatedWebP(source) ||
+                (SDK_INT >= 30 && DecodeUtils.isAnimatedHeif(source))
+        }
     }
 
     companion object {

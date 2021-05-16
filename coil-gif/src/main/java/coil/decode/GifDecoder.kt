@@ -4,30 +4,29 @@ package coil.decode
 
 import android.graphics.Bitmap
 import android.graphics.Movie
+import coil.ImageLoader
 import coil.drawable.MovieDrawable
+import coil.fetch.SourceResult
 import coil.request.animatedTransformation
 import coil.request.animationEndCallback
 import coil.request.animationStartCallback
 import coil.request.repeatCount
 import coil.util.animatable2CompatCallbackOf
 import coil.util.isHardware
-import okio.BufferedSource
-import okio.buffer
+import kotlinx.coroutines.runInterruptible
 
 /**
  * A [Decoder] that uses [Movie] to decode GIFs.
  *
  * NOTE: Prefer using [ImageDecoderDecoder] on API 28 and above.
  */
-class GifDecoder : Decoder {
+class GifDecoder(
+    private val source: ImageSource,
+    private val options: Options
+) : Decoder {
 
-    override fun handles(source: BufferedSource, mimeType: String?) = DecodeUtils.isGif(source)
-
-    override suspend fun decode(
-        source: BufferedSource,
-        options: Options
-    ): DecodeResult = withInterruptibleSource(source) { interruptibleSource ->
-        val bufferedSource = interruptibleSource.buffer()
+    override suspend fun decode() = runInterruptible {
+        val bufferedSource = source.source
         val movie: Movie? = bufferedSource.use { Movie.decodeStream(it.inputStream()) }
 
         check(movie != null && movie.width() > 0 && movie.height() > 0) { "Failed to decode GIF." }
@@ -58,6 +57,14 @@ class GifDecoder : Decoder {
             drawable = drawable,
             isSampled = false
         )
+    }
+
+    class Factory : Decoder.Factory {
+
+        override fun create(result: SourceResult, options: Options, imageLoader: ImageLoader): Decoder? {
+            if (!DecodeUtils.isGif(result.source.source)) return null
+            return GifDecoder(result.source, options)
+        }
     }
 
     companion object {

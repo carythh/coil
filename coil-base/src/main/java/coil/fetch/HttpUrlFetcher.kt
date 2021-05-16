@@ -4,9 +4,9 @@ import android.net.Uri
 import android.os.NetworkOnMainThreadException
 import android.webkit.MimeTypeMap
 import androidx.annotation.VisibleForTesting
+import coil.ImageLoader
 import coil.decode.DataSource
 import coil.decode.Options
-import coil.map.Mapper
 import coil.network.HttpException
 import coil.util.await
 import coil.util.dispatcher
@@ -20,32 +20,22 @@ import okhttp3.Request
 import okhttp3.ResponseBody
 import kotlin.coroutines.coroutineContext
 
-internal class HttpUriFetcher(callFactory: Call.Factory) : HttpFetcher<Uri>(callFactory) {
+internal class HttpUrlFetcher(
+    private val data: Any,
+    private val options: Options,
+    private val callFactory: Call.Factory
+) : Fetcher {
 
-    override fun handles(data: Uri) = data.scheme == "http" || data.scheme == "https"
+    override val cacheKey get() = data.toString()
 
-    override fun cacheKey(data: Uri) = data.toString()
-
-    override fun Uri.toHttpUrl(): HttpUrl = toString().toHttpUrl()
-}
-
-internal class HttpUrlFetcher(callFactory: Call.Factory) : HttpFetcher<HttpUrl>(callFactory) {
-
-    override fun cacheKey(data: HttpUrl) = data.toString()
-
-    override fun HttpUrl.toHttpUrl(): HttpUrl = this
-}
-
-internal abstract class HttpFetcher<T : Any>(private val callFactory: Call.Factory) : Fetcher<T> {
-
-    /**
-     * Perform this conversion in a [Fetcher] instead of a [Mapper] so
-     * [HttpUriFetcher] can execute [HttpUrl.get] on a background thread.
-     */
-    abstract fun T.toHttpUrl(): HttpUrl
-
-    override suspend fun fetch(data: T, options: Options): FetchResult {
-        val url = data.toHttpUrl()
+    override suspend fun fetch(): FetchResult {
+        // Perform this conversion in a fetcher instead of a mapper so
+        // 'toHttpUrl' can be executed on a background thread.
+        val url = when (data) {
+            is Uri -> data.toString().toHttpUrl()
+            is HttpUrl -> data
+            else -> throw error("Invalid data: $data.")
+        }
         val request = Request.Builder().url(url).headers(options.headers)
 
         val networkRead = options.networkCachePolicy.readEnabled
@@ -104,6 +94,18 @@ internal abstract class HttpFetcher<T : Any>(private val callFactory: Call.Facto
             MimeTypeMap.getSingleton().getMimeTypeFromUrl(data.toString())?.let { return it }
         }
         return rawContentType?.substringBefore(';')
+    }
+
+    class Factory(private val callFactory: Call.Factory) : Fetcher.Factory<Any> {
+
+        override fun create(data: Any, options: Options, imageLoader: ImageLoader): Fetcher? {
+            if (!isApplicable(data)) return null
+            return HttpUrlFetcher(data, options, callFactory)
+        }
+
+        private fun isApplicable(data: Any): Boolean {
+            return (data is Uri && (data.scheme == "http" || data.scheme == "https")) || data is HttpUrl
+        }
     }
 
     companion object {

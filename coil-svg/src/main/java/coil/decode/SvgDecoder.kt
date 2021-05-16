@@ -8,14 +8,16 @@ import android.graphics.RectF
 import android.graphics.drawable.Drawable
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.drawable.toDrawable
+import coil.ImageLoader
+import coil.fetch.SourceResult
 import coil.size.OriginalSize
 import coil.size.PixelSize
 import coil.util.indexOf
 import coil.util.toSoftware
 import com.caverock.androidsvg.SVG
+import kotlinx.coroutines.runInterruptible
 import okio.BufferedSource
 import okio.ByteString.Companion.encodeUtf8
-import okio.buffer
 
 /**
  * A [Decoder] that uses [AndroidSVG](https://bigbadaboom.github.io/androidsvg/) to decode SVG files.
@@ -25,24 +27,13 @@ import okio.buffer
  *  If false, uses the SVG's width/height as the intrinsic size for the SVG.
  */
 class SvgDecoder @JvmOverloads constructor(
-    private val context: Context,
+    private val source: ImageSource,
+    private val options: Options,
     private val useViewBoundsAsIntrinsicSize: Boolean = true
 ) : Decoder {
 
-    override fun handles(source: BufferedSource, mimeType: String?): Boolean {
-        return mimeType == MIME_TYPE_SVG || containsSvgTag(source)
-    }
-
-    private fun containsSvgTag(source: BufferedSource): Boolean {
-        return source.rangeEquals(0, LEFT_ANGLE_BRACKET) &&
-            source.indexOf(SVG_TAG, 0, SVG_TAG_SEARCH_THRESHOLD_BYTES) != -1L
-    }
-
-    override suspend fun decode(
-        source: BufferedSource,
-        options: Options
-    ): DecodeResult = withInterruptibleSource(source) { interruptibleSource ->
-        val svg = interruptibleSource.buffer().use { SVG.getFromInputStream(it.inputStream()) }
+    override suspend fun decode() = runInterruptible {
+        val svg = source.source.use { SVG.getFromInputStream(it.inputStream()) }
 
         val svgWidth: Float
         val svgHeight: Float
@@ -103,9 +94,26 @@ class SvgDecoder @JvmOverloads constructor(
         svg.renderToCanvas(Canvas(bitmap))
 
         DecodeResult(
-            drawable = bitmap.toDrawable(context.resources),
+            drawable = bitmap.toDrawable(options.context.resources),
             isSampled = true // SVGs can always be re-decoded at a higher resolution.
         )
+    }
+
+    class Factory(private val useViewBoundsAsIntrinsicSize: Boolean = true) : Decoder.Factory {
+
+        override fun create(result: SourceResult, options: Options, imageLoader: ImageLoader): Decoder? {
+            if (!isApplicable(result)) return null
+            return SvgDecoder(result.source, options, useViewBoundsAsIntrinsicSize)
+        }
+
+        private fun isApplicable(result: SourceResult): Boolean {
+            return result.mimeType == MIME_TYPE_SVG || containsSvgTag(result.source.source)
+        }
+
+        private fun containsSvgTag(source: BufferedSource): Boolean {
+            return source.rangeEquals(0, LEFT_ANGLE_BRACKET) &&
+                source.indexOf(SVG_TAG, 0, SVG_TAG_SEARCH_THRESHOLD_BYTES) != -1L
+        }
     }
 
     private companion object {

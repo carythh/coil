@@ -17,21 +17,18 @@ fun interface Transition {
      *
      * Implementations are responsible for calling the correct [Target] lifecycle callback.
      * See [CrossfadeTransition] for an example.
-     *
-     * @param target The target to apply this transition to.
-     * @param result The result of the image request.
      */
     @MainThread
-    suspend fun transition(target: TransitionTarget, result: ImageResult)
+    suspend fun transition()
 
     /** A factory that creates new [Transition] instances. */
     fun interface Factory {
 
         /** Create a new [Transition]. */
         fun create(target: TransitionTarget, result: ImageResult): Transition
-    }
 
-    companion object {
-        @JvmField val NONE: Transition = NoneTransition()
+        companion object {
+            @JvmField val NONE: Factory = NoneTransition.Factory()
+        }
     }
 }

@@ -2,6 +2,7 @@ package coil.decode
 
 import android.graphics.drawable.Drawable
 import coil.ImageLoader
+import coil.fetch.SourceResult
 import okio.BufferedSource
 
 /**
@@ -17,7 +18,7 @@ fun interface Decoder {
      * @param source The [ImageSource] to read from.
      * @param options A set of configuration options for this request.
      */
-    suspend fun decode(source: ImageSource, options: Options): DecodeResult
+    suspend fun decode(): DecodeResult
 
     fun interface Factory {
 
@@ -36,6 +37,6 @@ fun interface Decoder {
          * @param mimeType An optional MIME type for the [source].
          * @param imageLoader The [ImageLoader] that's creating this [Decoder].
          */
-        fun create(source: ImageSource, options: Options, mimeType: String?, imageLoader: ImageLoader): Decoder?
+        fun create(result: SourceResult, options: Options, imageLoader: ImageLoader): Decoder?
     }
 }

@@ -1,10 +1,10 @@
 package coil.fetch
 
 import android.content.ContentResolver
-import android.content.Context
 import android.net.Uri
 import android.util.TypedValue
 import android.webkit.MimeTypeMap
+import coil.ImageLoader
 import coil.decode.DataSource
 import coil.decode.Options
 import coil.util.getDrawableCompat
@@ -16,13 +16,14 @@ import coil.util.toDrawable
 import okio.buffer
 import okio.source
 
-internal class ResourceUriFetcher(private val context: Context) : Fetcher<Uri> {
+internal class ResourceUriFetcher(
+    private val data: Uri,
+    private val options: Options
+) : Fetcher {
 
-    override fun handles(data: Uri) = data.scheme == ContentResolver.SCHEME_ANDROID_RESOURCE
+    override val cacheKey get() = "$data-${options.context.resources.configuration.nightMode}"
 
-    override fun cacheKey(data: Uri) = "$data-${context.resources.configuration.nightMode}"
-
-    override suspend fun fetch(data: Uri, options: Options): FetchResult {
+    override suspend fun fetch(): FetchResult {
         // Expected format: android.resource://example.package.name/12345678
         val packageName = data.authority?.takeIf { it.isNotBlank() } ?: throwInvalidUriException(data)
         val resId = data.pathSegments.lastOrNull()?.toIntOrNull() ?: throwInvalidUriException(data)
@@ -68,6 +69,18 @@ internal class ResourceUriFetcher(private val context: Context) : Fetcher<Uri> {
 
     private fun throwInvalidUriException(data: Uri): Nothing {
         throw IllegalStateException("Invalid ${ContentResolver.SCHEME_ANDROID_RESOURCE} URI: $data")
+    }
+
+    class Factory : Fetcher.Factory<Uri> {
+
+        override fun create(data: Uri, options: Options, imageLoader: ImageLoader): Fetcher? {
+            if (!isApplicable(data)) return null
+            return ResourceUriFetcher(data, options)
+        }
+
+        private fun isApplicable(data: Uri): Boolean {
+            return data.scheme == ContentResolver.SCHEME_ANDROID_RESOURCE
+        }
     }
 
     companion object {

@@ -21,6 +21,8 @@ import kotlin.coroutines.resume
  * @param preferExactIntrinsicSize See [CrossfadeDrawable.preferExactIntrinsicSize].
  */
 class CrossfadeTransition @JvmOverloads constructor(
+    private val target: TransitionTarget,
+    private val result: ImageResult,
     val durationMillis: Int = CrossfadeDrawable.DEFAULT_DURATION,
     val preferExactIntrinsicSize: Boolean = false
 ) : Transition {
@@ -29,7 +31,7 @@ class CrossfadeTransition @JvmOverloads constructor(
         require(durationMillis > 0) { "durationMillis must be > 0." }
     }
 
-    override suspend fun transition(target: TransitionTarget, result: ImageResult) {
+    override suspend fun transition() {
         // Animate the drawable and suspend until the animation completes.
         var outerCrossfade: CrossfadeDrawable? = null
         try {
@@ -70,27 +72,28 @@ class CrossfadeTransition @JvmOverloads constructor(
     override fun toString() = "CrossfadeTransition(durationMillis=$durationMillis)"
 
     class Factory @JvmOverloads constructor(
-        private val transition: CrossfadeTransition = CrossfadeTransition()
+        private val durationMillis: Int = CrossfadeDrawable.DEFAULT_DURATION,
+        private val preferExactIntrinsicSize: Boolean = false
     ) : Transition.Factory {
 
         override fun create(target: TransitionTarget, result: ImageResult): Transition {
             // Only animate successful requests.
             if (result !is SuccessResult) {
-                return Transition.NONE
+                return Transition.Factory.NONE.create(target, result)
             }
 
             // Don't animate if the request was fulfilled by the memory cache.
             if (result.dataSource == DataSource.MEMORY_CACHE) {
-                return Transition.NONE
+                return Transition.Factory.NONE.create(target, result)
             }
 
             // Don't animate if the view is not visible as 'CrossfadeDrawable.onDraw'
             // won't be called until the view becomes visible.
             if (!target.view.isVisible) {
-                return Transition.NONE
+                return Transition.Factory.NONE.create(target, result)
             }
 
-            return transition
+            return CrossfadeTransition(target, result, durationMillis, preferExactIntrinsicSize)
         }
     }
 }

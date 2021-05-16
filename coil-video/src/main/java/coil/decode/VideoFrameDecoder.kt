@@ -2,9 +2,9 @@
 
 package coil.decode
 
-import android.content.Context
 import android.media.MediaMetadataRetriever
-import okio.BufferedSource
+import coil.ImageLoader
+import coil.fetch.SourceResult
 import okio.sink
 import java.io.File
 
@@ -14,19 +14,18 @@ import java.io.File
  * NOTE: [VideoFrameDecoder] creates a temporary copy of the video on the file system. This may cause the decode
  * process to fail if the video being decoded is very large and/or the device is very low on disk space.
  */
-class VideoFrameDecoder(private val context: Context) : Decoder {
+class VideoFrameDecoder(
+    private val source: ImageSource,
+    private val options: Options
+) : Decoder {
 
-    private val delegate = VideoFrameDecoderDelegate(context)
+    private val delegate = VideoFrameDecoderDelegate(options.context)
 
-    override fun handles(source: BufferedSource, mimeType: String?): Boolean {
-        return mimeType != null && mimeType.startsWith("video/")
-    }
-
-    override suspend fun decode(source: BufferedSource, options: Options): DecodeResult {
-        val tempFile = File.createTempFile("tmp", null, context.cacheDir.apply { mkdirs() })
+    override suspend fun decode(): DecodeResult {
+        val tempFile = File.createTempFile("tmp", null, options.context.cacheDir.apply { mkdirs() })
         try {
             // Read the source into a temporary file.
-            source.use { tempFile.sink().use(it::readAll) }
+            source.source.use { tempFile.sink().use(it::readAll) }
 
             val retriever = MediaMetadataRetriever()
             try {
@@ -37,6 +36,18 @@ class VideoFrameDecoder(private val context: Context) : Decoder {
             }
         } finally {
             tempFile.delete()
+        }
+    }
+
+    class Factory : Decoder.Factory {
+
+        override fun create(result: SourceResult, options: Options, imageLoader: ImageLoader): Decoder? {
+            if (!isApplicable(result.mimeType)) return null
+            return VideoFrameDecoder(result.source, options)
+        }
+
+        private fun isApplicable(mimeType: String?): Boolean {
+            return mimeType != null && mimeType.startsWith("video/")
         }
     }
 

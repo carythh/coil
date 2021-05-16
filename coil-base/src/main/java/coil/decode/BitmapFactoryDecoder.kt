@@ -1,6 +1,5 @@
 package coil.decode
 
-import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
@@ -10,6 +9,8 @@ import android.os.Build.VERSION.SDK_INT
 import androidx.core.graphics.applyCanvas
 import androidx.core.graphics.createBitmap
 import androidx.exifinterface.media.ExifInterface
+import coil.ImageLoader
+import coil.fetch.SourceResult
 import coil.size.PixelSize
 import coil.util.toDrawable
 import coil.util.toSoftware
@@ -22,19 +23,16 @@ import java.io.InputStream
 import kotlin.math.roundToInt
 
 /** The base [Decoder] that uses [BitmapFactory] to decode a given [ImageSource]. */
-internal class BitmapFactoryDecoder(private val context: Context) : Decoder {
+class BitmapFactoryDecoder(
+    private val source: ImageSource,
+    private val options: Options
+) : Decoder {
 
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
 
-    override suspend fun decode(
-        source: ImageSource,
-        options: Options
-    ) = runInterruptible { decodeInterruptible(source, options) }
+    override suspend fun decode() = runInterruptible { decodeInterruptible() }
 
-    private fun decodeInterruptible(
-        source: ImageSource,
-        options: Options
-    ): DecodeResult = BitmapFactory.Options().run {
+    private fun decodeInterruptible() = BitmapFactory.Options().run {
         val safeSource = ExceptionCatchingSource(source.source)
         val safeBufferedSource = safeSource.buffer()
 
@@ -131,7 +129,7 @@ internal class BitmapFactoryDecoder(private val context: Context) : Decoder {
         bitmap.density = Bitmap.DENSITY_NONE
 
         DecodeResult(
-            drawable = bitmap.toDrawable(context),
+            drawable = bitmap.toDrawable(options.context),
             isSampled = inSampleSize > 1 || inScaled
         )
     }
@@ -248,6 +246,13 @@ internal class BitmapFactoryDecoder(private val context: Context) : Decoder {
         private fun interceptBytesRead(bytesRead: Int): Int {
             if (bytesRead == -1) availableBytes = 0
             return bytesRead
+        }
+    }
+
+    class Factory : Decoder.Factory {
+
+        override fun create(result: SourceResult, options: Options, imageLoader: ImageLoader): Decoder {
+            return BitmapFactoryDecoder(result.source, options)
         }
     }
 
