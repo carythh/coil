@@ -2,11 +2,11 @@ package coil.memory
 
 import android.graphics.Bitmap
 import androidx.annotation.WorkerThread
-import coil.decode.Options
 import coil.request.CachePolicy
 import coil.request.ErrorResult
 import coil.request.ImageRequest
 import coil.request.NullRequestDataException
+import coil.request.Options
 import coil.size.Size
 import coil.target.Target
 import coil.target.ViewTarget

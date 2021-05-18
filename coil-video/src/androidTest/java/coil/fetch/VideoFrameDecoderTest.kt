@@ -5,8 +5,8 @@ import android.graphics.drawable.BitmapDrawable
 import android.os.Build.VERSION.SDK_INT
 import androidx.test.core.app.ApplicationProvider
 import coil.bitmap.BitmapPool
-import coil.decode.Options
 import coil.decode.VideoFrameDecoder
+import coil.request.Options
 import coil.size.OriginalSize
 import coil.util.decodeBitmapAsset
 import coil.util.isSimilarTo

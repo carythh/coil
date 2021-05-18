@@ -1,13 +1,12 @@
 @file:Suppress("unused")
 
-package coil.decode
+package coil.request
 
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.ColorSpace
+import coil.decode.Decoder
 import coil.fetch.Fetcher
-import coil.request.CachePolicy
-import coil.request.Parameters
 import coil.size.OriginalSize
 import coil.size.Scale
 import coil.size.Size

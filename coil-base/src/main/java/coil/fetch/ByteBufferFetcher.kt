@@ -2,7 +2,7 @@ package coil.fetch
 
 import coil.ImageLoader
 import coil.decode.DataSource
-import coil.decode.Options
+import coil.request.Options
 import okio.Buffer
 import java.nio.ByteBuffer
 

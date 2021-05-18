@@ -2,7 +2,7 @@ package coil.map
 
 import android.net.Uri
 import androidx.core.net.toUri
-import coil.decode.Options
+import coil.request.Options
 
 internal class StringMapper : Mapper<String, Uri> {
 

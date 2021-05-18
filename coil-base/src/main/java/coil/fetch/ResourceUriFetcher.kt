@@ -6,7 +6,7 @@ import android.util.TypedValue
 import android.webkit.MimeTypeMap
 import coil.ImageLoader
 import coil.decode.DataSource
-import coil.decode.Options
+import coil.request.Options
 import coil.util.getDrawableCompat
 import coil.util.getMimeTypeFromUrl
 import coil.util.getXmlDrawableCompat

@@ -12,6 +12,7 @@ import androidx.core.util.component2
 import coil.ImageLoader
 import coil.drawable.ScaleDrawable
 import coil.fetch.SourceResult
+import coil.request.Options
 import coil.request.animatedTransformation
 import coil.request.animationEndCallback
 import coil.request.animationStartCallback

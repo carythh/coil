@@ -13,7 +13,6 @@ import coil.RealImageLoader
 import coil.bitmap.BitmapPool
 import coil.bitmap.RealBitmapReferenceCounter
 import coil.decode.DataSource
-import coil.decode.Options
 import coil.fetch.DrawableResult
 import coil.fetch.Fetcher
 import coil.memory.MemoryCache.Key
@@ -23,6 +22,7 @@ import coil.memory.RealWeakMemoryCache
 import coil.memory.RequestService
 import coil.memory.StrongMemoryCache
 import coil.request.ImageRequest
+import coil.request.Options
 import coil.request.Parameters
 import coil.size.OriginalSize
 import coil.size.PixelSize

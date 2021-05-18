@@ -5,6 +5,7 @@ package coil.decode
 import android.media.MediaMetadataRetriever
 import coil.ImageLoader
 import coil.fetch.SourceResult
+import coil.request.Options
 import okio.sink
 import java.io.File
 

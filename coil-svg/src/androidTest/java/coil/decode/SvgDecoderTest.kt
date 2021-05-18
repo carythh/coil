@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.drawable.BitmapDrawable
 import androidx.test.core.app.ApplicationProvider
 import coil.bitmap.BitmapPool
+import coil.request.Options
 import coil.size.PixelSize
 import coil.size.Scale
 import coil.util.decodeBitmapAsset

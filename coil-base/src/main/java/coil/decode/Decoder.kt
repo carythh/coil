@@ -3,6 +3,7 @@ package coil.decode
 import android.graphics.drawable.Drawable
 import coil.ImageLoader
 import coil.fetch.SourceResult
+import coil.request.Options
 import okio.BufferedSource
 
 /**

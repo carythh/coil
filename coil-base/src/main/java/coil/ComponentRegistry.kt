@@ -3,10 +3,10 @@
 package coil
 
 import coil.decode.Decoder
-import coil.decode.Options
 import coil.fetch.Fetcher
 import coil.intercept.Interceptor
 import coil.map.Mapper
+import coil.request.Options
 import coil.util.asImmutable
 import coil.util.forEachIndices
 

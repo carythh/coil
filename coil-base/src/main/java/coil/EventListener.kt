@@ -7,13 +7,13 @@ import androidx.annotation.WorkerThread
 import coil.EventListener.Factory
 import coil.decode.DecodeResult
 import coil.decode.Decoder
-import coil.decode.Options
 import coil.fetch.FetchResult
 import coil.fetch.Fetcher
 import coil.fetch.SourceResult
 import coil.map.Mapper
 import coil.request.ErrorResult
 import coil.request.ImageRequest
+import coil.request.Options
 import coil.request.SuccessResult
 import coil.size.Size
 import coil.size.SizeResolver

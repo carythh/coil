@@ -3,7 +3,7 @@ package coil.fetch
 import android.webkit.MimeTypeMap
 import coil.ImageLoader
 import coil.decode.DataSource
-import coil.decode.Options
+import coil.request.Options
 import okio.buffer
 import okio.source
 import java.io.File

@@ -1,7 +1,7 @@
 package coil.map
 
-import coil.decode.Options
 import coil.fetch.Fetcher
+import coil.request.Options
 
 /**
  * An interface to convert data of type [T] into [V].

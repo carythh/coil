@@ -22,7 +22,6 @@ import coil.bitmap.RealBitmapReferenceCounter
 import coil.decode.BitmapFactoryDecoder
 import coil.decode.DecodeResult
 import coil.decode.Decoder
-import coil.decode.Options
 import coil.fetch.AssetUriFetcher.Companion.ASSET_FILE_PATH_ROOT
 import coil.memory.MemoryCache
 import coil.memory.RealMemoryCache
@@ -33,6 +32,7 @@ import coil.request.DefaultRequestOptions
 import coil.request.ErrorResult
 import coil.request.ImageRequest
 import coil.request.NullRequestDataException
+import coil.request.Options
 import coil.request.SuccessResult
 import coil.size.PixelSize
 import coil.size.Precision

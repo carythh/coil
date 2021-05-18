@@ -7,9 +7,9 @@ import android.content.Context
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import coil.decode.DataSource
-import coil.decode.Options
 import coil.decode.VideoFrameDecoder
 import coil.decode.VideoFrameDecoderDelegate
+import coil.request.Options
 import java.io.File
 
 /**

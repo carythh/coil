@@ -5,8 +5,8 @@ package coil.fetch
 import android.graphics.drawable.Drawable
 import coil.ImageLoader
 import coil.decode.ImageSource
-import coil.decode.Options
 import coil.memory.MemoryCache
+import coil.request.Options
 import okio.BufferedSource
 
 /**

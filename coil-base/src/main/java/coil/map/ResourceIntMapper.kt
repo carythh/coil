@@ -6,7 +6,7 @@ import android.content.res.Resources
 import android.net.Uri
 import androidx.annotation.DrawableRes
 import androidx.core.net.toUri
-import coil.decode.Options
+import coil.request.Options
 
 internal class ResourceIntMapper : Mapper<@DrawableRes Int, Uri> {
 

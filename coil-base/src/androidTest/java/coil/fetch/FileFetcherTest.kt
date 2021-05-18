@@ -3,7 +3,7 @@ package coil.fetch
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import coil.bitmap.BitmapPool
-import coil.decode.Options
+import coil.request.Options
 import coil.size.PixelSize
 import coil.util.copyAssetToFile
 import kotlinx.coroutines.runBlocking

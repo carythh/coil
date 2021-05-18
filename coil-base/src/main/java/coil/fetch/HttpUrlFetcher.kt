@@ -6,8 +6,8 @@ import android.webkit.MimeTypeMap
 import androidx.annotation.VisibleForTesting
 import coil.ImageLoader
 import coil.decode.DataSource
-import coil.decode.Options
 import coil.network.HttpException
+import coil.request.Options
 import coil.util.await
 import coil.util.dispatcher
 import coil.util.getMimeTypeFromUrl

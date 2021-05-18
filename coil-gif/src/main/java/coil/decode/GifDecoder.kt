@@ -7,6 +7,7 @@ import android.graphics.Movie
 import coil.ImageLoader
 import coil.drawable.MovieDrawable
 import coil.fetch.SourceResult
+import coil.request.Options
 import coil.request.animatedTransformation
 import coil.request.animationEndCallback
 import coil.request.animationStartCallback

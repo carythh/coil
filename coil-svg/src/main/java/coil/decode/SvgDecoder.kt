@@ -10,6 +10,7 @@ import androidx.core.graphics.createBitmap
 import androidx.core.graphics.drawable.toDrawable
 import coil.ImageLoader
 import coil.fetch.SourceResult
+import coil.request.Options
 import coil.size.OriginalSize
 import coil.size.PixelSize
 import coil.util.indexOf

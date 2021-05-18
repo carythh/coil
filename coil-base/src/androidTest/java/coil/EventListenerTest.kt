@@ -10,12 +10,12 @@ import coil.base.test.R
 import coil.bitmap.BitmapPool
 import coil.decode.DecodeResult
 import coil.decode.Decoder
-import coil.decode.Options
 import coil.fetch.FetchResult
 import coil.fetch.Fetcher
 import coil.request.ErrorResult
 import coil.request.ImageRequest
 import coil.request.ImageResult
+import coil.request.Options
 import coil.request.SuccessResult
 import coil.size.Size
 import coil.transform.Transformation

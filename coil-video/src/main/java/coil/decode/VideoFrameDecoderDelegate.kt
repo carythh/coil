@@ -12,6 +12,7 @@ import android.os.Build.VERSION.SDK_INT
 import androidx.core.graphics.applyCanvas
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.drawable.toDrawable
+import coil.request.Options
 import coil.request.videoFrameMicros
 import coil.request.videoFrameOption
 import coil.size.OriginalSize

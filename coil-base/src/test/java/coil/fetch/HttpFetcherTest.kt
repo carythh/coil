@@ -7,9 +7,9 @@ import androidx.core.net.toUri
 import androidx.test.core.app.ApplicationProvider
 import coil.bitmap.BitmapPool
 import coil.decode.DataSource
-import coil.decode.Options
 import coil.network.HttpException
 import coil.request.CachePolicy
+import coil.request.Options
 import coil.size.PixelSize
 import coil.util.createMockWebServer
 import coil.util.createTestMainDispatcher

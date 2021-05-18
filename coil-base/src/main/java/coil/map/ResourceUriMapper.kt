@@ -3,7 +3,7 @@ package coil.map
 import android.content.ContentResolver
 import android.net.Uri
 import androidx.core.net.toUri
-import coil.decode.Options
+import coil.request.Options
 
 /**
  * Maps android.resource uris with resource names to uris containing their resources ID. i.e.:

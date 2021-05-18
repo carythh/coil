@@ -5,7 +5,7 @@ import android.net.Uri
 import android.webkit.MimeTypeMap
 import coil.ImageLoader
 import coil.decode.DataSource
-import coil.decode.Options
+import coil.request.Options
 import coil.util.firstPathSegment
 import coil.util.getMimeTypeFromUrl
 import okio.buffer

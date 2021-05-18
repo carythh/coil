@@ -3,7 +3,7 @@ package coil.fetch
 import android.graphics.Bitmap
 import coil.ImageLoader
 import coil.decode.DataSource
-import coil.decode.Options
+import coil.request.Options
 import coil.util.toDrawable
 
 internal class BitmapFetcher(

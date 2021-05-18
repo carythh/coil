@@ -10,7 +10,6 @@ import coil.ComponentRegistry
 import coil.EventListener
 import coil.decode.DataSource
 import coil.decode.DecodeUtils
-import coil.decode.Options
 import coil.fetch.DrawableResult
 import coil.fetch.DrawableUtils
 import coil.fetch.FetchResult
@@ -20,6 +19,7 @@ import coil.memory.MemoryCache
 import coil.memory.RequestService
 import coil.request.ImageRequest
 import coil.request.ImageResult
+import coil.request.Options
 import coil.request.SuccessResult
 import coil.size.OriginalSize
 import coil.size.PixelSize

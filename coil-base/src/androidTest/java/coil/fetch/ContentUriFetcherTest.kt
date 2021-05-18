@@ -19,7 +19,7 @@ import androidx.core.net.toUri
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.rule.GrantPermissionRule
 import coil.bitmap.BitmapPool
-import coil.decode.Options
+import coil.request.Options
 import coil.size.PixelSize
 import kotlinx.coroutines.runBlocking
 import okio.buffer

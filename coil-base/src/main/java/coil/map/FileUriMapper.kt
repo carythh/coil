@@ -3,8 +3,8 @@ package coil.map
 import android.content.ContentResolver
 import android.net.Uri
 import androidx.core.net.toFile
-import coil.decode.Options
 import coil.fetch.AssetUriFetcher
+import coil.request.Options
 import coil.util.firstPathSegment
 import java.io.File
 

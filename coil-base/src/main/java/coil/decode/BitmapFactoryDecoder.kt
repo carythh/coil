@@ -11,6 +11,7 @@ import androidx.core.graphics.createBitmap
 import androidx.exifinterface.media.ExifInterface
 import coil.ImageLoader
 import coil.fetch.SourceResult
+import coil.request.Options
 import coil.size.PixelSize
 import coil.util.toDrawable
 import coil.util.toSoftware

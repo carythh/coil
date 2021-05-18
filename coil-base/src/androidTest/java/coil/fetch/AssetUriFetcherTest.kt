@@ -6,8 +6,8 @@ import android.net.Uri
 import androidx.core.net.toUri
 import androidx.test.core.app.ApplicationProvider
 import coil.bitmap.BitmapPool
-import coil.decode.Options
 import coil.fetch.AssetUriFetcher.Companion.ASSET_FILE_PATH_ROOT
+import coil.request.Options
 import coil.size.PixelSize
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
