@@ -10,7 +10,6 @@ import coil.fetch.ByteBufferFetcher
 import coil.fetch.ContentUriFetcher
 import coil.fetch.DrawableFetcher
 import coil.fetch.FileFetcher
-import coil.fetch.HttpUriFetcher
 import coil.fetch.HttpUrlFetcher
 import coil.fetch.ResourceUriFetcher
 import coil.intercept.EngineInterceptor
@@ -80,20 +79,19 @@ internal class RealImageLoader(
         // Mappers
         .add(StringMapper())
         .add(FileUriMapper())
-        .add(ResourceUriMapper(context))
-        .add(ResourceIntMapper(context))
+        .add(ResourceUriMapper())
+        .add(ResourceIntMapper())
         // Fetchers
-        .add(HttpUriFetcher(callFactory))
-        .add(HttpUrlFetcher(callFactory))
-        .add(FileFetcher(options.addLastModifiedToFileCacheKey))
-        .add(AssetUriFetcher(context))
-        .add(ContentUriFetcher(context))
-        .add(ResourceUriFetcher(context))
-        .add(DrawableFetcher())
-        .add(BitmapFetcher())
-        .add(ByteBufferFetcher())
+        .add(HttpUrlFetcher.Factory(callFactory))
+        .add(FileFetcher.Factory(options.addLastModifiedToFileCacheKey))
+        .add(AssetUriFetcher.Factory())
+        .add(ContentUriFetcher.Factory())
+        .add(ResourceUriFetcher.Factory())
+        .add(DrawableFetcher.Factory())
+        .add(BitmapFetcher.Factory())
+        .add(ByteBufferFetcher.Factory())
         // Decoders
-        .add(BitmapFactoryDecoder(context))
+        .add(BitmapFactoryDecoder.Factory())
         .build()
     private val interceptors = components.interceptors + EngineInterceptor(components, memoryCache, requestService, logger)
     private val isShutdown = AtomicBoolean(false)

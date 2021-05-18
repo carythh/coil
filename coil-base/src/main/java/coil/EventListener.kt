@@ -73,7 +73,7 @@ interface EventListener : ImageRequest.Listener {
      * @param options The [Options] that will be passed to [Fetcher.fetch].
      */
     @WorkerThread
-    fun fetchStart(request: ImageRequest, fetcher: Fetcher<*>, options: Options) {}
+    fun fetchStart(request: ImageRequest, fetcher: Fetcher, options: Options) {}
 
     /**
      * Called after [Fetcher.fetch].
@@ -83,7 +83,7 @@ interface EventListener : ImageRequest.Listener {
      * @param result The result of [Fetcher.fetch].
      */
     @WorkerThread
-    fun fetchEnd(request: ImageRequest, fetcher: Fetcher<*>, options: Options, result: FetchResult) {}
+    fun fetchEnd(request: ImageRequest, fetcher: Fetcher, options: Options, result: FetchResult) {}
 
     /**
      * Called before [Decoder.decode].

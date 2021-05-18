@@ -6,15 +6,16 @@ import android.content.res.Resources
 import android.net.Uri
 import androidx.annotation.DrawableRes
 import androidx.core.net.toUri
+import coil.decode.Options
 
-internal class ResourceIntMapper(private val context: Context) : Mapper<@DrawableRes Int, Uri> {
+internal class ResourceIntMapper : Mapper<@DrawableRes Int, Uri> {
 
-    override fun map(@DrawableRes data: Int): Uri? {
-        if (isApplicable(data)) return null
-        return "${ContentResolver.SCHEME_ANDROID_RESOURCE}://${context.packageName}/$data".toUri()
+    override fun map(@DrawableRes data: Int, options: Options): Uri? {
+        if (isApplicable(data, options.context)) return null
+        return "${ContentResolver.SCHEME_ANDROID_RESOURCE}://${options.context.packageName}/$data".toUri()
     }
 
-    private fun isApplicable(@DrawableRes data: Int): Boolean {
+    private fun isApplicable(@DrawableRes data: Int, context: Context): Boolean {
         return try {
             context.resources.getResourceEntryName(data) != null
         } catch (_: Resources.NotFoundException) {

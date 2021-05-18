@@ -3,9 +3,7 @@
 
 package coil.util
 
-internal typealias MultiMutableList<R, T> = MutableList<Pair<R, T>>
-
-internal typealias MultiList<R, T> = List<Pair<R, T>>
+import java.util.Collections
 
 /**
  * Functionally the same as [Iterable.forEach] except it generates
@@ -97,4 +95,8 @@ internal inline fun <K, V, R : Any> Map<K, V>.mapNotNullValues(transform: (Map.E
         }
     }
     return destination
+}
+
+internal inline fun <T> List<T>.asImmutable(): List<T> {
+    return Collections.unmodifiableList(this)
 }

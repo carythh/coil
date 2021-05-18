@@ -1,5 +1,6 @@
 package coil.map
 
+import coil.decode.Options
 import coil.fetch.Fetcher
 
 /**
@@ -11,6 +12,9 @@ fun interface Mapper<T : Any, V : Any> {
 
     /**
      * Convert [data] into [V]. Return 'null' if this mapper cannot convert [data].
+     *
+     * @param data The data to convert.
+     * @param options The options for this request.
      */
-    fun map(data: T): V?
+    fun map(data: T, options: Options): V?
 }

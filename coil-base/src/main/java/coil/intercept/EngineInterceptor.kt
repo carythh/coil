@@ -34,7 +34,6 @@ import coil.util.foldIndices
 import coil.util.forEachIndices
 import coil.util.get
 import coil.util.log
-import coil.util.requireFetcher
 import coil.util.safeConfig
 import coil.util.toDrawable
 import kotlinx.coroutines.CancellationException
@@ -62,14 +61,14 @@ internal class EngineInterceptor(
             val data = request.data
             val size = chain.size
             val eventListener = chain.eventListener
+            val options = requestService.options(request, size)
 
             // Perform any data mapping.
             eventListener.mapStart(request, data)
-            val mappedData = components.mapData(data)
+            val mappedData = components.mapData(data, options)
             eventListener.mapEnd(request, mappedData)
 
             // Check the memory cache.
-            val options = requestService.options(request, size)
             val fetcher = request.fetcher(mappedData) ?: components.requireFetcher(mappedData)
             val memoryCacheKey = request.memoryCacheKey ?: createMemoryCacheKey(request, mappedData, fetcher, size)
             val value = if (request.memoryCachePolicy.readEnabled) memoryCache[memoryCacheKey] else null
@@ -120,7 +119,7 @@ internal class EngineInterceptor(
     internal fun createMemoryCacheKey(
         request: ImageRequest,
         data: Any,
-        fetcher: Fetcher<Any>,
+        fetcher: Fetcher,
         size: Size
     ): MemoryCache.Key? {
         val base = fetcher.cacheKey(data) ?: return null
@@ -228,7 +227,7 @@ internal class EngineInterceptor(
     /** Load the [data] as a [Drawable]. Apply any [Transformation]s. */
     private suspend inline fun execute(
         data: Any,
-        fetcher: Fetcher<Any>,
+        fetcher: Fetcher,
         request: ImageRequest,
         options: Options,
         eventListener: EventListener
@@ -239,7 +238,7 @@ internal class EngineInterceptor(
             val fetchResult: FetchResult
             withContext(request.fetcherDispatcher) {
                 eventListener.fetchStart(request, fetcher, options)
-                fetchResult = fetcher.fetch(data, options)
+                fetchResult = fetcher.fetch()
                 fetchResultOrNull = fetchResult
                 eventListener.fetchEnd(request, fetcher, options, fetchResult)
             }

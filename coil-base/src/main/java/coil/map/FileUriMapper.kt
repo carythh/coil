@@ -3,13 +3,14 @@ package coil.map
 import android.content.ContentResolver
 import android.net.Uri
 import androidx.core.net.toFile
+import coil.decode.Options
 import coil.fetch.AssetUriFetcher
 import coil.util.firstPathSegment
 import java.io.File
 
 internal class FileUriMapper : Mapper<Uri, File> {
 
-    override fun map(data: Uri): File? {
+    override fun map(data: Uri, options: Options): File? {
         if (isApplicable(data)) return null
         return data.toFile()
     }

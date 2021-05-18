@@ -3,11 +3,11 @@
 package coil
 
 import coil.decode.Decoder
+import coil.decode.Options
 import coil.fetch.Fetcher
 import coil.intercept.Interceptor
 import coil.map.Mapper
-import coil.util.MultiList
-import coil.util.MultiMutableList
+import coil.util.asImmutable
 import coil.util.forEachIndices
 
 /**
@@ -16,19 +16,19 @@ import coil.util.forEachIndices
  * Use this class to register support for custom [Interceptor]s, [Mapper]s, [Fetcher]s, and [Decoder]s.
  */
 class ComponentRegistry private constructor(
-    internal val interceptors: List<Interceptor>,
-    internal val mappers: MultiList<Mapper<out Any, *>, Class<out Any>>,
-    internal val fetchers: MultiList<Fetcher<out Any>, Class<out Any>>,
-    internal val decoders: List<Decoder>
+    val interceptors: List<Interceptor>,
+    val mappers: List<Pair<Mapper<out Any, *>, Class<out Any>>>,
+    val fetchers: List<Pair<Fetcher.Factory<out Any>, Class<out Any>>>,
+    val decoders: List<Decoder.Factory>
 ) {
 
     constructor() : this(emptyList(), emptyList(), emptyList(), emptyList())
 
-    fun mapData(data: Any): Any {
+    fun mapData(data: Any, options: Options): Any {
         var mappedData = data
         mappers.forEachIndices { (mapper, type) ->
             if (type.isAssignableFrom(mappedData::class.java)) {
-                (mapper as Mapper<Any, *>).map(mappedData)?.let { mappedData = it }
+                (mapper as Mapper<Any, *>).map(mappedData, options)?.let { mappedData = it }
             }
         }
         return mappedData
@@ -39,9 +39,9 @@ class ComponentRegistry private constructor(
     class Builder {
 
         private val interceptors: MutableList<Interceptor>
-        private val mappers: MultiMutableList<Mapper<out Any, *>, Class<out Any>>
-        private val fetchers: MultiMutableList<Fetcher<out Any>, Class<out Any>>
-        private val decoders: MutableList<Decoder>
+        private val mappers: MutableList<Pair<Mapper<out Any, *>, Class<out Any>>>
+        private val fetchers: MutableList<Pair<Fetcher.Factory<out Any>, Class<out Any>>>
+        private val decoders: MutableList<Decoder.Factory>
 
         constructor() {
             interceptors = mutableListOf()
@@ -71,24 +71,24 @@ class ComponentRegistry private constructor(
         }
 
         /** Register a [Fetcher]. */
-        inline fun <reified T : Any> add(fetcher: Fetcher<T>) = add(fetcher, T::class.java)
+        inline fun <reified T : Any> add(fetcher: Fetcher.Factory<T>) = add(fetcher, T::class.java)
 
         @PublishedApi
-        internal fun <T : Any> add(fetcher: Fetcher<T>, type: Class<T>) = apply {
+        internal fun <T : Any> add(fetcher: Fetcher.Factory<T>, type: Class<T>) = apply {
             fetchers += fetcher to type
         }
 
         /** Register a [Decoder]. */
-        fun add(decoder: Decoder) = apply {
+        fun add(decoder: Decoder.Factory) = apply {
             decoders += decoder
         }
 
         fun build(): ComponentRegistry {
             return ComponentRegistry(
-                interceptors.toList(),
-                mappers.toList(),
-                fetchers.toList(),
-                decoders.toList()
+                interceptors.toList().asImmutable(),
+                mappers.toList().asImmutable(),
+                fetchers.toList().asImmutable(),
+                decoders.toList().asImmutable()
             )
         }
     }
