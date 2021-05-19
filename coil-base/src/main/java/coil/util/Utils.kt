@@ -59,7 +59,7 @@ internal object Utils {
     }
 
     /** Modified from Picasso. */
-    fun calculateAvailableMemorySize(context: Context, percentage: Double): Int {
+    fun calculateAppMemoryMaxSizeBytes(context: Context): Int {
         val memoryClassMegabytes = try {
             val activityManager: ActivityManager = context.requireSystemService()
             val isLargeHeap = (context.applicationInfo.flags and ApplicationInfo.FLAG_LARGE_HEAP) != 0
@@ -67,10 +67,10 @@ internal object Utils {
         } catch (_: Exception) {
             DEFAULT_MEMORY_CLASS_MEGABYTES
         }
-        return (percentage * memoryClassMegabytes * 1024 * 1024).toInt()
+        return memoryClassMegabytes * 1024 * 1024
     }
 
-    fun getDefaultAvailableMemoryPercentage(context: Context): Double {
+    fun getDefaultMemoryCacheSizePercent(context: Context): Double {
         return try {
             val activityManager: ActivityManager = context.requireSystemService()
             if (activityManager.isLowRamDevice) LOW_MEMORY_MULTIPLIER else STANDARD_MULTIPLIER

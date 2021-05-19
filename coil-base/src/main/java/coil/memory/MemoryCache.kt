@@ -55,7 +55,7 @@ interface MemoryCache {
 
     class Builder(private val context: Context) {
 
-        private var maxSizePercent = Utils.getDefaultAvailableMemoryPercentage(context)
+        private var maxSizePercent = Utils.getDefaultMemoryCacheSizePercent(context)
         private var maxSizeBytes = -1
         private var strongReferencesEnabled = true
         private var weakReferencesEnabled = true
@@ -104,7 +104,7 @@ interface MemoryCache {
                 EmptyWeakMemoryCache()
             }
             val maxSize = if (maxSizePercent >= 0) {
-                Utils.calculateAvailableMemorySize(context, maxSizePercent)
+                (maxSizePercent * Utils.calculateAppMemoryMaxSizeBytes(context)).toInt()
             } else {
                 maxSizeBytes
             }
