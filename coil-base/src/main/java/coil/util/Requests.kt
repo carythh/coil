@@ -6,7 +6,6 @@ package coil.util
 import android.graphics.drawable.Drawable
 import android.widget.ImageView
 import androidx.annotation.DrawableRes
-import coil.fetch.Fetcher
 import coil.request.ImageRequest
 import coil.size.Precision
 import coil.size.ViewSizeResolver
@@ -23,16 +22,6 @@ internal fun ImageRequest.getDrawableCompat(
         resId != null -> if (resId == 0) null else context.getDrawableCompat(resId)
         else -> default
     }
-}
-
-/** Ensure [ImageRequest.fetcher] is valid for [data]. */
-@Suppress("UNCHECKED_CAST")
-internal fun <T : Any> ImageRequest.fetcher(data: T): Fetcher? {
-    val (fetcher, type) = fetcher ?: return null
-    check(type.isAssignableFrom(data::class.java)) {
-        "${fetcher.javaClass.name} cannot handle data with type ${data.javaClass.name}."
-    }
-    return fetcher as Fetcher
 }
 
 /** Return 'true' if the request does not require the output image's size to match the requested dimensions exactly. */

@@ -4,10 +4,12 @@ package coil
 
 import coil.decode.Decoder
 import coil.fetch.Fetcher
+import coil.fetch.SourceResult
 import coil.intercept.Interceptor
 import coil.map.Mapper
 import coil.request.Options
 import coil.util.asImmutable
+import coil.util.firstNotNullOfOrNullIndices
 import coil.util.forEachIndices
 
 /**
@@ -24,7 +26,7 @@ class ComponentRegistry private constructor(
 
     constructor() : this(emptyList(), emptyList(), emptyList(), emptyList())
 
-    fun mapData(data: Any, options: Options): Any {
+    fun map(data: Any, options: Options): Any {
         var mappedData = data
         mappers.forEachIndices { (mapper, type) ->
             if (type.isAssignableFrom(mappedData::class.java)) {
@@ -32,6 +34,21 @@ class ComponentRegistry private constructor(
             }
         }
         return mappedData
+    }
+
+    fun newFetcher(data: Any, options: Options, imageLoader: ImageLoader): Fetcher? {
+        fetchers.forEachIndices { (fetcher, type) ->
+            if (type.isAssignableFrom(data::class.java)) {
+                (fetcher as Fetcher.Factory<Any>).create(data, options, imageLoader)?.let { return it }
+            }
+        }
+        return null
+    }
+
+    fun newDecoder(result: SourceResult, options: Options, imageLoader: ImageLoader): Decoder? {
+        return decoders.firstNotNullOfOrNullIndices { decoder ->
+            decoder.create(result, options, imageLoader)
+        }
     }
 
     fun newBuilder() = Builder(this)

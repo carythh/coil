@@ -3,8 +3,8 @@ package coil.memory
 import coil.memory.MemoryCache.Key
 
 internal class RealMemoryCache(
-    val strongMemoryCache: StrongMemoryCache,
-    val weakMemoryCache: WeakMemoryCache
+    private val strongMemoryCache: StrongMemoryCache,
+    private val weakMemoryCache: WeakMemoryCache
 ) : MemoryCache {
 
     override val size get() = strongMemoryCache.size

@@ -14,7 +14,7 @@ object CoilUtils {
      */
     @JvmStatic
     fun createDefaultCache(context: Context): Cache {
-        val cacheDirectory = Utils.getDefaultCacheDirectory(context)
+        val cacheDirectory = Utils.getDefaultDiskCacheDirectory(context)
         val cacheSize = Utils.calculateDiskCacheSize(cacheDirectory)
         return Cache(cacheDirectory, cacheSize)
     }
@@ -22,7 +22,7 @@ object CoilUtils {
     /**
      * Cancel any in progress requests attached to [view] and clear any associated resources.
      *
-     * NOTE: Typically you should use [Disposable.dispose] to clear any associated resources,
+     * NOTE: Typically you should use [Disposable.dispose] to cancel requests and clear resources,
      * however this method is provided for convenience.
      */
     @JvmStatic

@@ -6,8 +6,8 @@ import android.graphics.drawable.Drawable
 import android.util.Log
 import androidx.annotation.VisibleForTesting
 import androidx.collection.arrayMapOf
-import coil.ComponentRegistry
 import coil.EventListener
+import coil.ImageLoader
 import coil.decode.DataSource
 import coil.decode.DecodeUtils
 import coil.fetch.DrawableResult
@@ -29,7 +29,6 @@ import coil.util.Logger
 import coil.util.Utils
 import coil.util.allowInexactSize
 import coil.util.closeQuietly
-import coil.util.fetcher
 import coil.util.foldIndices
 import coil.util.forEachIndices
 import coil.util.get
@@ -45,8 +44,7 @@ import kotlin.math.abs
 
 /** The last interceptor in the chain which executes the [ImageRequest]. */
 internal class EngineInterceptor(
-    private val components: ComponentRegistry,
-    private val memoryCache: MemoryCache,
+    private val imageLoader: ImageLoader,
     private val requestService: RequestService,
     private val logger: Logger?
 ) : Interceptor {
@@ -65,13 +63,14 @@ internal class EngineInterceptor(
 
             // Perform any data mapping.
             eventListener.mapStart(request, data)
-            val mappedData = components.mapData(data, options)
+            val mappedData = imageLoader.components.map(data, options)
             eventListener.mapEnd(request, mappedData)
 
             // Check the memory cache.
-            val fetcher = request.fetcher(mappedData) ?: components.requireFetcher(mappedData)
-            val memoryCacheKey = request.memoryCacheKey ?: createMemoryCacheKey(request, mappedData, fetcher, size)
-            val value = if (request.memoryCachePolicy.readEnabled) memoryCache[memoryCacheKey] else null
+            val fetcher = imageLoader.components.newFetcher(mappedData, options, imageLoader)
+            checkNotNull(fetcher) { "Unable to create a fetcher that supports: $mappedData" }
+            val memoryCacheKey = request.memoryCacheKey ?: createMemoryCacheKey(fetcher, request, size)
+            val value = if (request.memoryCachePolicy.readEnabled) imageLoader.memoryCache[memoryCacheKey] else null
 
             // Short circuit if the cached bitmap is valid.
             if (value != null && isCachedValueValid(memoryCacheKey, value, request, size)) {
@@ -92,7 +91,7 @@ internal class EngineInterceptor(
                 val (drawable, isSampled, dataSource) = execute(mappedData, fetcher, request, options, eventListener)
 
                 // Cache the result in the memory cache.
-                val isMemoryCached = writeToMemoryCache(request, memoryCacheKey, drawable, isSampled)
+                val isMemoryCached = writeToMemoryCache(memoryCacheKey, request, drawable, isSampled)
 
                 // Return the result.
                 SuccessResult(
@@ -117,12 +116,11 @@ internal class EngineInterceptor(
     /** Create the memory cache key for this request. */
     @VisibleForTesting
     internal fun createMemoryCacheKey(
-        request: ImageRequest,
-        data: Any,
         fetcher: Fetcher,
+        request: ImageRequest,
         size: Size
     ): MemoryCache.Key? {
-        val base = fetcher.cacheKey(data) ?: return null
+        val base = fetcher.cacheKey ?: return null
         val extras = arrayMapOf<String, String>()
         extras.putAll(request.parameters.cacheKeys())
         if (request.transformations.isNotEmpty()) {
@@ -224,9 +222,9 @@ internal class EngineInterceptor(
         return true
     }
 
-    /** Load the [data] as a [Drawable]. Apply any [Transformation]s. */
+    /** Execute the [Fetcher], decode any data into a [Drawable], and apply any [Transformation]s. */
     private suspend inline fun execute(
-        data: Any,
+        mappedData: Any,
         fetcher: Fetcher,
         request: ImageRequest,
         options: Options,
@@ -246,9 +244,10 @@ internal class EngineInterceptor(
             // Decode the data.
             when (fetchResult) {
                 is SourceResult -> withContext(request.decoderDispatcher) {
-                    val decoder = request.decoder ?: TODO("Resolve the decoder.")
+                    val decoder = imageLoader.components.newDecoder(fetchResult, options, imageLoader)
+                    checkNotNull(decoder) { "Unable to create a decoder that supports: $mappedData" }
                     eventListener.decodeStart(request, decoder, options)
-                    val decodeResult = decoder.decode(fetchResult.source, options)
+                    val decodeResult = decoder.decode()
                     eventListener.decodeEnd(request, decoder, options, decodeResult)
 
                     // Combine the fetch and decode operations' results.
@@ -296,8 +295,8 @@ internal class EngineInterceptor(
 
     /** Write [drawable] to the memory cache. Return 'true' if it was added to the cache. */
     private fun writeToMemoryCache(
-        request: ImageRequest,
         key: MemoryCache.Key?,
+        request: ImageRequest,
         drawable: Drawable,
         isSampled: Boolean
     ): Boolean {
@@ -308,14 +307,14 @@ internal class EngineInterceptor(
         if (key != null) {
             val bitmap = (drawable as? BitmapDrawable)?.bitmap
             if (bitmap != null) {
-                memoryCache[key] = MemoryCache.Value(bitmap, isSampled)
+                imageLoader.memoryCache[key] = MemoryCache.Value(bitmap, isSampled)
                 return true
             }
         }
         return false
     }
 
-    /** Convert [drawable] to a [Bitmap] if necessary. */
+    /** Convert [drawable] to a [Bitmap]. */
     private fun convertDrawableToBitmap(
         drawable: Drawable,
         options: Options,

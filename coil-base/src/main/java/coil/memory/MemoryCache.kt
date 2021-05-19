@@ -104,7 +104,7 @@ interface MemoryCache {
                 EmptyWeakMemoryCache()
             }
             val maxSize = if (maxSizePercent >= 0) {
-                (maxSizePercent * Utils.calculateAppMemoryMaxSizeBytes(context)).toInt()
+                Utils.calculateMemoryCacheSize(context, maxSizePercent)
             } else {
                 maxSizeBytes
             }

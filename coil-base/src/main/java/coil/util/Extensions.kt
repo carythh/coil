@@ -20,8 +20,6 @@ import android.widget.ImageView.ScaleType.FIT_START
 import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat
 import coil.base.R
 import coil.decode.DataSource
-import coil.decode.Decoder
-import coil.fetch.Fetcher
 import coil.memory.MemoryCache
 import coil.memory.TargetDelegate
 import coil.memory.ViewTargetRequestManager
@@ -29,9 +27,7 @@ import coil.request.DefaultRequestOptions
 import coil.request.ImageResult
 import coil.request.Parameters
 import coil.size.Scale
-import coil.size.Size
 import coil.target.ViewTarget
-import coil.transform.Transformation
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Job
 import okhttp3.Call
@@ -145,38 +141,4 @@ internal var TargetDelegate.result: ImageResult?
         (target as? ViewTarget<*>)?.view?.requestManager?.result = value
     }
 
-internal fun <T : Any> Fetcher<T>.asFactory() = Fetcher.Factory<T> { _, _, _ -> this }
-
-internal fun Decoder.asFactory() = Decoder.Factory { _, _, _, _ -> this }
-
-internal inline operator fun MemoryCache.Key.Companion.invoke(
-    base: String,
-    parameters: Parameters
-): MemoryCache.Key {
-    return MemoryCache.Key.Complex(
-        base = base,
-        transformations = emptyList(),
-        size = null,
-        parameters = parameters.cacheKeys()
-    )
-}
-
-internal inline operator fun MemoryCache.Key.Companion.invoke(
-    base: String,
-    transformations: List<Transformation>,
-    size: Size,
-    parameters: Parameters
-): MemoryCache.Key {
-    return MemoryCache.Key.Complex(
-        base = base,
-        transformations = transformations.mapIndices { it.cacheKey },
-        size = size,
-        parameters = parameters.cacheKeys()
-    )
-}
-
 internal inline operator fun MemoryCache.get(key: MemoryCache.Key?) = key?.let(::get)
-
-inline fun synchronized(lock: Any, block: () -> R) {
-    synchronized(lock, block)
-}

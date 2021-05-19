@@ -93,7 +93,7 @@ internal class RealImageLoader(
         // Decoders
         .add(BitmapFactoryDecoder.Factory())
         .build()
-    private val interceptors = components.interceptors + EngineInterceptor(components, memoryCache, requestService, logger)
+    private val interceptors = components.interceptors + EngineInterceptor(this, requestService, logger)
     private val isShutdown = AtomicBoolean(false)
 
     override fun enqueue(request: ImageRequest): Disposable {

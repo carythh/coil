@@ -22,7 +22,7 @@ data class DefaultRequestOptions(
     val fetcherDispatcher: CoroutineDispatcher = Dispatchers.IO,
     val decoderDispatcher: CoroutineDispatcher = Dispatchers.Default,
     val transformationDispatcher: CoroutineDispatcher = Dispatchers.Default,
-    val transition: Transition = Transition.NONE,
+    val transitionFactory: Transition.Factory = Transition.Factory.NONE,
     val precision: Precision = Precision.AUTOMATIC,
     val bitmapConfig: Bitmap.Config = Utils.DEFAULT_BITMAP_CONFIG,
     val allowHardware: Boolean = true,

@@ -8,7 +8,7 @@ import android.os.Build.VERSION.SDK_INT
 import androidx.annotation.VisibleForTesting
 import coil.memory.MemoryCache.Key
 import coil.memory.MemoryCache.Value
-import coil.util.firstNotNullIndices
+import coil.util.firstNotNullOfOrNullIndices
 import coil.util.identityHashCode
 import coil.util.removeIfIndices
 import java.lang.ref.WeakReference
@@ -67,7 +67,7 @@ internal class RealWeakMemoryCache : WeakMemoryCache {
         val values = cache[key] ?: return null
 
         // Find the first bitmap that hasn't been collected.
-        val value = values.firstNotNullIndices { value ->
+        val value = values.firstNotNullOfOrNullIndices { value ->
             value.bitmap.get()?.let { Value(it, value.isSampled) }
         }
 

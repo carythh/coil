@@ -29,7 +29,7 @@ internal object DrawableUtils {
      * @param config The requested config for the bitmap.
      * @param size The requested size for the bitmap.
      * @param scale The requested scale for the bitmap.
-     * @param allowInexactSize Allow returning a bitmap that doesn't match the requested size exactly.
+     * @param allowInexactSize Allow returning a bitmap that is smaller than [size].
      */
     @WorkerThread
     fun convertToBitmap(

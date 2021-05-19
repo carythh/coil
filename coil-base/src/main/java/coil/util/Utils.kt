@@ -43,7 +43,7 @@ internal object Utils {
         return width * height * config.bytesPerPixel
     }
 
-    fun getDefaultCacheDirectory(context: Context): File {
+    fun getDefaultDiskCacheDirectory(context: Context): File {
         return File(context.cacheDir, CACHE_DIRECTORY_NAME).apply { mkdirs() }
     }
 
@@ -59,7 +59,7 @@ internal object Utils {
     }
 
     /** Modified from Picasso. */
-    fun calculateAppMemoryMaxSizeBytes(context: Context): Int {
+    fun calculateMemoryCacheSize(context: Context, percent: Double): Int {
         val memoryClassMegabytes = try {
             val activityManager: ActivityManager = context.requireSystemService()
             val isLargeHeap = (context.applicationInfo.flags and ApplicationInfo.FLAG_LARGE_HEAP) != 0
@@ -67,7 +67,7 @@ internal object Utils {
         } catch (_: Exception) {
             DEFAULT_MEMORY_CLASS_MEGABYTES
         }
-        return memoryClassMegabytes * 1024 * 1024
+        return (percent * memoryClassMegabytes * 1024 * 1024).toInt()
     }
 
     fun getDefaultMemoryCacheSizePercent(context: Context): Double {

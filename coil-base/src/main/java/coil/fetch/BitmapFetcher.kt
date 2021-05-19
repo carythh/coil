@@ -11,7 +11,7 @@ internal class BitmapFetcher(
     private val options: Options
 ) : Fetcher {
 
-    override val cacheKey: String? get() = null
+    override val cacheKey get() = data.hashCode().toString()
 
     override suspend fun fetch(): FetchResult {
         return DrawableResult(

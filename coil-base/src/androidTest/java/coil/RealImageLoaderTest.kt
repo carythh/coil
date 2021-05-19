@@ -246,7 +246,7 @@ class RealImageLoaderTest {
             .build()
 
         val url = server.url(IMAGE_NAME)
-        val cacheFolder = Utils.getDefaultCacheDirectory(context).apply {
+        val cacheFolder = Utils.getDefaultDiskCacheDirectory(context).apply {
             deleteRecursively()
             mkdirs()
         }
@@ -296,7 +296,7 @@ class RealImageLoaderTest {
             .build()
 
         val url = server.url(IMAGE_NAME)
-        val cacheFolder = Utils.getDefaultCacheDirectory(context).apply {
+        val cacheFolder = Utils.getDefaultDiskCacheDirectory(context).apply {
             deleteRecursively()
             mkdirs()
         }

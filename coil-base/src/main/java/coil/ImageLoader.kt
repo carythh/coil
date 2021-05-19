@@ -264,14 +264,20 @@ interface ImageLoader {
          *
          * @see `crossfade(Boolean)`
          */
-        fun crossfade(durationMillis: Int) =
-            transition(if (durationMillis > 0) CrossfadeTransition(durationMillis) else Transition.NONE)
+        fun crossfade(durationMillis: Int) = apply {
+            val factory = if (durationMillis > 0) {
+                CrossfadeTransition.Factory(durationMillis)
+            } else {
+                Transition.Factory.NONE
+            }
+            transitionFactory(factory)
+        }
 
         /**
          * Set the default [Transition] for each request.
          */
-        fun transition(transition: Transition) = apply {
-            this.defaults = this.defaults.copy(transition = transition)
+        fun transitionFactory(factory: Transition.Factory) = apply {
+            this.defaults = this.defaults.copy(transitionFactory = factory)
         }
 
         /**
