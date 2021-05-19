@@ -274,7 +274,7 @@ interface ImageLoader {
         }
 
         /**
-         * Set the default [Transition] for each request.
+         * Set the default [Transition.Factory] for each request.
          */
         fun transitionFactory(factory: Transition.Factory) = apply {
             this.defaults = this.defaults.copy(transitionFactory = factory)
