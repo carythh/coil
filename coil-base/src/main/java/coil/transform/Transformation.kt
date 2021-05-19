@@ -1,6 +1,8 @@
 package coil.transform
 
 import android.graphics.Bitmap
+import android.graphics.Bitmap.Config.ARGB_8888
+import android.graphics.Bitmap.Config.RGBA_F16
 import android.graphics.drawable.BitmapDrawable
 import coil.decode.DecodeResult
 import coil.fetch.DrawableResult
@@ -28,7 +30,7 @@ interface Transformation {
     /**
      * Apply the transformation to [input] and return the transformed [Bitmap].
      *
-     * @param input The input [Bitmap] to transform. Its config will always be [Bitmap.Config.ARGB_8888] or [Bitmap.Config.RGBA_F16].
+     * @param input The input [Bitmap] to transform. Its config will always be [ARGB_8888] or [RGBA_F16].
      * @param size The size of the image request.
      * @return The transformed [Bitmap].
      */
