@@ -63,18 +63,14 @@ class CrossfadeTransition @JvmOverloads constructor(
         }
     }
 
-    override fun equals(other: Any?): Boolean {
-        return (this === other) || (other is CrossfadeTransition && durationMillis == other.durationMillis)
-    }
-
-    override fun hashCode() = durationMillis.hashCode()
-
-    override fun toString() = "CrossfadeTransition(durationMillis=$durationMillis)"
-
     class Factory @JvmOverloads constructor(
         private val durationMillis: Int = CrossfadeDrawable.DEFAULT_DURATION,
         private val preferExactIntrinsicSize: Boolean = false
     ) : Transition.Factory {
+
+        init {
+            require(durationMillis > 0) { "durationMillis must be > 0." }
+        }
 
         override fun create(target: TransitionTarget, result: ImageResult): Transition {
             // Only animate successful requests.
