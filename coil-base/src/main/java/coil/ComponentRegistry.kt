@@ -20,8 +20,8 @@ import coil.util.forEachIndices
 class ComponentRegistry private constructor(
     val interceptors: List<Interceptor>,
     val mappers: List<Pair<Mapper<out Any, *>, Class<out Any>>>,
-    val fetchers: List<Pair<Fetcher.Factory<out Any>, Class<out Any>>>,
-    val decoders: List<Decoder.Factory>
+    val fetcherFactories: List<Pair<Fetcher.Factory<out Any>, Class<out Any>>>,
+    val decoderFactories: List<Decoder.Factory>
 ) {
 
     constructor() : this(emptyList(), emptyList(), emptyList(), emptyList())
@@ -37,7 +37,7 @@ class ComponentRegistry private constructor(
     }
 
     fun newFetcher(data: Any, options: Options, imageLoader: ImageLoader): Fetcher? {
-        fetchers.forEachIndices { (fetcher, type) ->
+        fetcherFactories.forEachIndices { (fetcher, type) ->
             if (type.isAssignableFrom(data::class.java)) {
                 (fetcher as Fetcher.Factory<Any>).create(data, options, imageLoader)?.let { return it }
             }
@@ -46,7 +46,7 @@ class ComponentRegistry private constructor(
     }
 
     fun newDecoder(result: SourceResult, options: Options, imageLoader: ImageLoader): Decoder? {
-        return decoders.firstNotNullOfOrNullIndices { decoder ->
+        return decoderFactories.firstNotNullOfOrNullIndices { decoder ->
             decoder.create(result, options, imageLoader)
         }
     }
@@ -57,21 +57,21 @@ class ComponentRegistry private constructor(
 
         private val interceptors: MutableList<Interceptor>
         private val mappers: MutableList<Pair<Mapper<out Any, *>, Class<out Any>>>
-        private val fetchers: MutableList<Pair<Fetcher.Factory<out Any>, Class<out Any>>>
-        private val decoders: MutableList<Decoder.Factory>
+        private val fetcherFactories: MutableList<Pair<Fetcher.Factory<out Any>, Class<out Any>>>
+        private val decoderFactories: MutableList<Decoder.Factory>
 
         constructor() {
             interceptors = mutableListOf()
             mappers = mutableListOf()
-            fetchers = mutableListOf()
-            decoders = mutableListOf()
+            fetcherFactories = mutableListOf()
+            decoderFactories = mutableListOf()
         }
 
         constructor(registry: ComponentRegistry) {
             interceptors = registry.interceptors.toMutableList()
             mappers = registry.mappers.toMutableList()
-            fetchers = registry.fetchers.toMutableList()
-            decoders = registry.decoders.toMutableList()
+            fetcherFactories = registry.fetcherFactories.toMutableList()
+            decoderFactories = registry.decoderFactories.toMutableList()
         }
 
         /** Register an [Interceptor]. */
@@ -87,25 +87,25 @@ class ComponentRegistry private constructor(
             mappers += mapper to type
         }
 
-        /** Register a [Fetcher]. */
-        inline fun <reified T : Any> add(fetcher: Fetcher.Factory<T>) = add(fetcher, T::class.java)
+        /** Register a [Fetcher.Factory]. */
+        inline fun <reified T : Any> add(factory: Fetcher.Factory<T>) = add(factory, T::class.java)
 
         @PublishedApi
-        internal fun <T : Any> add(fetcher: Fetcher.Factory<T>, type: Class<T>) = apply {
-            fetchers += fetcher to type
+        internal fun <T : Any> add(factory: Fetcher.Factory<T>, type: Class<T>) = apply {
+            fetcherFactories += factory to type
         }
 
-        /** Register a [Decoder]. */
-        fun add(decoder: Decoder.Factory) = apply {
-            decoders += decoder
+        /** Register a [Decoder.Factory]. */
+        fun add(factory: Decoder.Factory) = apply {
+            decoderFactories += factory
         }
 
         fun build(): ComponentRegistry {
             return ComponentRegistry(
                 interceptors.toList().asImmutable(),
                 mappers.toList().asImmutable(),
-                fetchers.toList().asImmutable(),
-                decoders.toList().asImmutable()
+                fetcherFactories.toList().asImmutable(),
+                decoderFactories.toList().asImmutable()
             )
         }
     }
