@@ -23,7 +23,6 @@ import coil.target.ViewTarget
 import coil.transform.Transformation
 import coil.transition.CrossfadeTransition
 import coil.transition.Transition
-import coil.util.CoilUtils
 import coil.util.DEFAULT_REQUEST_OPTIONS
 import coil.util.ImageLoaderOptions
 import coil.util.Logger
@@ -133,8 +132,8 @@ interface ImageLoader {
          *
          * This is a convenience function for calling `callFactory(Call.Factory)`.
          *
-         * NOTE: You must set [OkHttpClient.cache] to enable disk caching. A default
-         * Coil disk cache instance can be created using [CoilUtils.createDiskCache].
+         * NOTE: You must use [OkHttpClient.Builder.buildForImageLoader] instead of
+         * [OkHttpClient.Builder.build] to enable disk caching.
          */
         fun okHttpClient(okHttpClient: OkHttpClient) = callFactory(okHttpClient)
 
@@ -143,8 +142,8 @@ interface ImageLoader {
          *
          * This is a convenience function for calling `callFactory(() -> Call.Factory)`.
          *
-         * NOTE: You must set [OkHttpClient.cache] to enable disk caching. A default
-         * Coil disk cache instance can be created using [CoilUtils.createDiskCache].
+         * NOTE: You must use [OkHttpClient.Builder.buildForImageLoader] instead of
+         * [OkHttpClient.Builder.build] to enable disk caching.
          */
         fun okHttpClient(initializer: () -> OkHttpClient) = callFactory(initializer)
 
@@ -153,8 +152,8 @@ interface ImageLoader {
          *
          * Calling [okHttpClient] automatically sets this value.
          *
-         * NOTE: You must set [OkHttpClient.cache] to enable disk caching. A default
-         * Coil disk cache instance can be created using [CoilUtils.createDiskCache].
+         * NOTE: You must use [OkHttpClient.Builder.buildForImageLoader] instead of
+         * [OkHttpClient.Builder.build] to enable disk caching.
          */
         fun callFactory(callFactory: Call.Factory) = apply {
             this.callFactory = callFactory
@@ -170,8 +169,8 @@ interface ImageLoader {
          *
          * Calling [okHttpClient] automatically sets this value.
          *
-         * NOTE: You must set [OkHttpClient.cache] to enable disk caching. A default
-         * Coil disk cache instance can be created using [CoilUtils.createDiskCache].
+         * NOTE: You must use [OkHttpClient.Builder.buildForImageLoader] instead of
+         * [OkHttpClient.Builder.build] to enable disk caching.
          */
         fun callFactory(initializer: () -> Call.Factory) = apply {
             this.callFactory = lazyCallFactory(initializer)
@@ -240,15 +239,15 @@ interface ImageLoader {
 
         /**
          * Set a single [EventListener] that will receive all callbacks for requests launched by this image loader.
+         *
+         * @see eventListenerFactory
          */
-        fun eventListener(listener: EventListener) = eventListener(EventListener.Factory(listener))
+        fun eventListener(listener: EventListener) = eventListenerFactory(EventListener.Factory(listener))
 
         /**
          * Set the [EventListener.Factory] to create per-request [EventListener]s.
-         *
-         * @see eventListener
          */
-        fun eventListener(factory: EventListener.Factory) = apply {
+        fun eventListenerFactory(factory: EventListener.Factory) = apply {
             this.eventListenerFactory = factory
         }
 

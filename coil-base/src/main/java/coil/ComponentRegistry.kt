@@ -26,6 +26,7 @@ class ComponentRegistry private constructor(
 
     constructor() : this(emptyList(), emptyList(), emptyList(), emptyList())
 
+    /** Convert [data] using the registered [mappers]. */
     fun map(data: Any, options: Options): Any {
         var mappedData = data
         mappers.forEachIndices { (mapper, type) ->
@@ -36,6 +37,7 @@ class ComponentRegistry private constructor(
         return mappedData
     }
 
+    /** Create a new [Fetcher] using the registered [fetcherFactories]. */
     fun newFetcher(data: Any, options: Options, imageLoader: ImageLoader): Fetcher? {
         fetcherFactories.forEachIndices { (fetcher, type) ->
             if (type.isAssignableFrom(data::class.java)) {
@@ -45,6 +47,7 @@ class ComponentRegistry private constructor(
         return null
     }
 
+    /** Create a new [Decoder] using the registered [decoderFactories]. */
     fun newDecoder(result: SourceResult, options: Options, imageLoader: ImageLoader): Decoder? {
         return decoderFactories.firstNotNullOfOrNullIndices { decoder ->
             decoder.create(result, options, imageLoader)
