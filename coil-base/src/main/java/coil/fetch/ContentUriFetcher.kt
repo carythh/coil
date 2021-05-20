@@ -7,7 +7,9 @@ import android.provider.ContactsContract.Contacts
 import androidx.annotation.VisibleForTesting
 import coil.ImageLoader
 import coil.decode.DataSource
+import coil.decode.ImageSource
 import coil.request.Options
+import coil.util.safeCacheDir
 import okio.buffer
 import okio.source
 import java.io.InputStream
@@ -31,7 +33,10 @@ internal class ContentUriFetcher(
         }
 
         return SourceResult(
-            source = inputStream.source().buffer(),
+            source = ImageSource(
+                source = inputStream.source().buffer(),
+                cacheDirectory = context.safeCacheDir
+            ),
             mimeType = context.contentResolver.getType(data),
             dataSource = DataSource.DISK
         )

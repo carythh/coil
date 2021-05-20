@@ -34,7 +34,7 @@ class SvgDecoder @JvmOverloads constructor(
 ) : Decoder {
 
     override suspend fun decode() = runInterruptible {
-        val svg = source.source.use { SVG.getFromInputStream(it.inputStream()) }
+        val svg = source.source().use { SVG.getFromInputStream(it.inputStream()) }
 
         val svgWidth: Float
         val svgHeight: Float
@@ -108,7 +108,7 @@ class SvgDecoder @JvmOverloads constructor(
         }
 
         private fun isApplicable(result: SourceResult): Boolean {
-            return result.mimeType == MIME_TYPE_SVG || containsSvgTag(result.source.source)
+            return result.mimeType == MIME_TYPE_SVG || containsSvgTag(result.source.source())
         }
 
         private fun containsSvgTag(source: BufferedSource): Boolean {

@@ -28,6 +28,7 @@ import coil.util.DEFAULT_REQUEST_OPTIONS
 import coil.util.ImageLoaderOptions
 import coil.util.Logger
 import coil.util.Utils
+import coil.util.buildForImageLoader
 import coil.util.getDrawableCompat
 import coil.util.lazyCallFactory
 import kotlinx.coroutines.CoroutineDispatcher
@@ -133,7 +134,7 @@ interface ImageLoader {
          * This is a convenience function for calling `callFactory(Call.Factory)`.
          *
          * NOTE: You must set [OkHttpClient.cache] to enable disk caching. A default
-         * Coil disk cache instance can be created using [CoilUtils.createDefaultCache].
+         * Coil disk cache instance can be created using [CoilUtils.createDiskCache].
          */
         fun okHttpClient(okHttpClient: OkHttpClient) = callFactory(okHttpClient)
 
@@ -143,7 +144,7 @@ interface ImageLoader {
          * This is a convenience function for calling `callFactory(() -> Call.Factory)`.
          *
          * NOTE: You must set [OkHttpClient.cache] to enable disk caching. A default
-         * Coil disk cache instance can be created using [CoilUtils.createDefaultCache].
+         * Coil disk cache instance can be created using [CoilUtils.createDiskCache].
          */
         fun okHttpClient(initializer: () -> OkHttpClient) = callFactory(initializer)
 
@@ -153,7 +154,7 @@ interface ImageLoader {
          * Calling [okHttpClient] automatically sets this value.
          *
          * NOTE: You must set [OkHttpClient.cache] to enable disk caching. A default
-         * Coil disk cache instance can be created using [CoilUtils.createDefaultCache].
+         * Coil disk cache instance can be created using [CoilUtils.createDiskCache].
          */
         fun callFactory(callFactory: Call.Factory) = apply {
             this.callFactory = callFactory
@@ -170,7 +171,7 @@ interface ImageLoader {
          * Calling [okHttpClient] automatically sets this value.
          *
          * NOTE: You must set [OkHttpClient.cache] to enable disk caching. A default
-         * Coil disk cache instance can be created using [CoilUtils.createDefaultCache].
+         * Coil disk cache instance can be created using [CoilUtils.createDiskCache].
          */
         fun callFactory(initializer: () -> Call.Factory) = apply {
             this.callFactory = lazyCallFactory(initializer)
@@ -428,9 +429,7 @@ interface ImageLoader {
         }
 
         private fun buildDefaultCallFactory() = lazyCallFactory {
-            OkHttpClient.Builder()
-                .cache(CoilUtils.createDefaultCache(applicationContext))
-                .build()
+            OkHttpClient.Builder().buildForImageLoader(applicationContext)
         }
     }
 

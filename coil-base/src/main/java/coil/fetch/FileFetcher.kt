@@ -3,9 +3,8 @@ package coil.fetch
 import android.webkit.MimeTypeMap
 import coil.ImageLoader
 import coil.decode.DataSource
+import coil.decode.ImageSource
 import coil.request.Options
-import okio.buffer
-import okio.source
 import java.io.File
 
 internal class FileFetcher(
@@ -18,7 +17,7 @@ internal class FileFetcher(
 
     override suspend fun fetch(): FetchResult {
         return SourceResult(
-            source = data.source().buffer(),
+            source = ImageSource(file = data),
             mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(data.extension),
             dataSource = DataSource.DISK
         )

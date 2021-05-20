@@ -3,6 +3,7 @@
 
 package coil.util
 
+import android.content.Context
 import android.content.res.Configuration
 import android.graphics.ColorSpace
 import android.graphics.drawable.BitmapDrawable
@@ -33,6 +34,7 @@ import kotlinx.coroutines.Job
 import okhttp3.Call
 import okhttp3.Headers
 import java.io.Closeable
+import java.io.File
 import kotlin.coroutines.CoroutineContext
 
 internal val View.requestManager: ViewTargetRequestManager
@@ -142,3 +144,5 @@ internal var TargetDelegate.result: ImageResult?
     }
 
 internal inline operator fun MemoryCache.get(key: MemoryCache.Key?) = key?.let(::get)
+
+internal val Context.safeCacheDir: File get() = cacheDir.apply { mkdirs() }

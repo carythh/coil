@@ -25,8 +25,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runInterruptible
 import kotlinx.coroutines.withContext
 import okio.BufferedSource
-import okio.sink
-import java.io.File
 import java.nio.ByteBuffer
 import kotlin.math.roundToInt
 
@@ -44,23 +42,15 @@ class ImageDecoderDecoder(
     override suspend fun decode(): DecodeResult {
         var isSampled = false
         val baseDrawable = runInterruptible {
-            var tempFile: File? = null
-            try {
-                val bufferedSource = source.source
-                val decoderSource = if (SDK_INT >= 30) {
-                    // Buffer the source into memory.
-                    ImageDecoder.createSource(ByteBuffer.wrap(bufferedSource.use { it.readByteArray() }))
-                } else {
-                    // Work around https://issuetracker.google.com/issues/139371066 by copying the source to a temp file.
-                    tempFile = File.createTempFile("tmp", null, options.context.cacheDir.apply { mkdirs() })
-                    bufferedSource.use { tempFile.sink().use(it::readAll) }
-                    ImageDecoder.createSource(tempFile)
+            source.use { source ->
+                val file = source.file
+                val decoderSource = when {
+                    file != null -> ImageDecoder.createSource(file)
+                    SDK_INT < 30 -> ImageDecoder.createSource(source.file())
+                    else -> ImageDecoder.createSource(ByteBuffer.wrap(source.source().readByteArray()))
                 }
 
                 decoderSource.decodeDrawable { info, _ ->
-                    // It's safe to delete the temp file here.
-                    tempFile?.delete()
-
                     val size = options.size
                     if (size is PixelSize) {
                         val (srcWidth, srcHeight) = info.size
@@ -102,8 +92,6 @@ class ImageDecoderDecoder(
 
                     postProcessor = options.parameters.animatedTransformation()?.asPostProcessor()
                 }
-            } finally {
-                tempFile?.delete()
             }
         }
 
@@ -135,7 +123,7 @@ class ImageDecoderDecoder(
     class Factory : Decoder.Factory {
 
         override fun create(result: SourceResult, options: Options, imageLoader: ImageLoader): Decoder? {
-            if (!isApplicable(result.source.source)) return null
+            if (!isApplicable(result.source.source())) return null
             return ImageDecoderDecoder(result.source, options)
         }
 

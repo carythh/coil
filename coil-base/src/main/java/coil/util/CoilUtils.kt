@@ -13,7 +13,7 @@ object CoilUtils {
      * Create an OkHttp disk cache with a reasonable default size and location.
      */
     @JvmStatic
-    fun createDefaultCache(context: Context): Cache {
+    fun createDiskCache(context: Context): Cache {
         val cacheDirectory = Utils.getDefaultDiskCacheDirectory(context)
         val cacheSize = Utils.calculateDiskCacheSize(cacheDirectory)
         return Cache(cacheDirectory, cacheSize)

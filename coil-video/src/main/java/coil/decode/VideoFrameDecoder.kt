@@ -6,14 +6,9 @@ import android.media.MediaMetadataRetriever
 import coil.ImageLoader
 import coil.fetch.SourceResult
 import coil.request.Options
-import okio.sink
-import java.io.File
 
 /**
  * A [Decoder] that uses [MediaMetadataRetriever] to fetch and decode a frame from a video.
- *
- * NOTE: [VideoFrameDecoder] creates a temporary copy of the video on the file system. This may cause the decode
- * process to fail if the video being decoded is very large and/or the device is very low on disk space.
  */
 class VideoFrameDecoder(
     private val source: ImageSource,
@@ -23,20 +18,9 @@ class VideoFrameDecoder(
     private val delegate = VideoFrameDecoderDelegate(options.context)
 
     override suspend fun decode(): DecodeResult {
-        val tempFile = File.createTempFile("tmp", null, options.context.cacheDir.apply { mkdirs() })
-        try {
-            // Read the source into a temporary file.
-            source.source.use { tempFile.sink().use(it::readAll) }
-
-            val retriever = MediaMetadataRetriever()
-            try {
-                retriever.setDataSource(tempFile.path)
-                return delegate.decode(retriever, options)
-            } finally {
-                retriever.release()
-            }
-        } finally {
-            tempFile.delete()
+        return MediaMetadataRetriever().use { retriever ->
+            retriever.setDataSource(source.file().path)
+            delegate.decode(retriever, options)
         }
     }
 

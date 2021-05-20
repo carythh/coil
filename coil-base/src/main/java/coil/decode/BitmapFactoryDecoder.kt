@@ -34,7 +34,7 @@ class BitmapFactoryDecoder(
     override suspend fun decode() = runInterruptible { decodeInterruptible() }
 
     private fun decodeInterruptible() = BitmapFactory.Options().run {
-        val safeSource = ExceptionCatchingSource(source.source)
+        val safeSource = ExceptionCatchingSource(source.source())
         val safeBufferedSource = safeSource.buffer()
 
         // Read the image's dimensions.

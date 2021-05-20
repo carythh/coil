@@ -5,9 +5,11 @@ import android.net.Uri
 import android.webkit.MimeTypeMap
 import coil.ImageLoader
 import coil.decode.DataSource
+import coil.decode.ImageSource
 import coil.request.Options
 import coil.util.firstPathSegment
 import coil.util.getMimeTypeFromUrl
+import coil.util.safeCacheDir
 import okio.buffer
 import okio.source
 
@@ -22,7 +24,10 @@ internal class AssetUriFetcher(
         val path = data.pathSegments.drop(1).joinToString("/")
 
         return SourceResult(
-            source = options.context.assets.open(path).source().buffer(),
+            source = ImageSource(
+                source = options.context.assets.open(path).source().buffer(),
+                cacheDirectory = options.context.safeCacheDir
+            ),
             mimeType = MimeTypeMap.getSingleton().getMimeTypeFromUrl(path),
             dataSource = DataSource.DISK
         )

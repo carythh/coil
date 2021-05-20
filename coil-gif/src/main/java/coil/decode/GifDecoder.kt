@@ -27,8 +27,7 @@ class GifDecoder(
 ) : Decoder {
 
     override suspend fun decode() = runInterruptible {
-        val bufferedSource = source.source
-        val movie: Movie? = bufferedSource.use { Movie.decodeStream(it.inputStream()) }
+        val movie: Movie? = source.source().use { Movie.decodeStream(it.inputStream()) }
 
         check(movie != null && movie.width() > 0 && movie.height() > 0) { "Failed to decode GIF." }
 
@@ -63,7 +62,7 @@ class GifDecoder(
     class Factory : Decoder.Factory {
 
         override fun create(result: SourceResult, options: Options, imageLoader: ImageLoader): Decoder? {
-            if (!DecodeUtils.isGif(result.source.source)) return null
+            if (!DecodeUtils.isGif(result.source.source())) return null
             return GifDecoder(result.source, options)
         }
     }

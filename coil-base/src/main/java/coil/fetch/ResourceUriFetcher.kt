@@ -6,12 +6,14 @@ import android.util.TypedValue
 import android.webkit.MimeTypeMap
 import coil.ImageLoader
 import coil.decode.DataSource
+import coil.decode.ImageSource
 import coil.request.Options
 import coil.util.getDrawableCompat
 import coil.util.getMimeTypeFromUrl
 import coil.util.getXmlDrawableCompat
 import coil.util.isVector
 import coil.util.nightMode
+import coil.util.safeCacheDir
 import coil.util.toDrawable
 import okio.buffer
 import okio.source
@@ -60,7 +62,10 @@ internal class ResourceUriFetcher(
             )
         } else {
             SourceResult(
-                source = resources.openRawResource(resId).source().buffer(),
+                source = ImageSource(
+                    source = resources.openRawResource(resId).source().buffer(),
+                    cacheDirectory = context.safeCacheDir
+                ),
                 mimeType = mimeType,
                 dataSource = DataSource.MEMORY
             )

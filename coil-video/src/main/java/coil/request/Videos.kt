@@ -11,7 +11,6 @@ import android.media.MediaMetadataRetriever.OPTION_PREVIOUS_SYNC
 import coil.decode.VideoFrameDecoder
 import coil.decode.VideoFrameDecoder.Companion.VIDEO_FRAME_MICROS_KEY
 import coil.decode.VideoFrameDecoder.Companion.VIDEO_FRAME_OPTION_KEY
-import coil.fetch.VideoFrameFetcher
 
 /**
  * Set the time **in milliseconds** of the frame to extract from a video.
