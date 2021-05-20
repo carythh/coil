@@ -209,6 +209,13 @@ class BitmapFactoryDecoder(
         return outBitmap
     }
 
+    class Factory : Decoder.Factory {
+
+        override fun create(result: SourceResult, options: Options, imageLoader: ImageLoader): Decoder {
+            return BitmapFactoryDecoder(result.source, options)
+        }
+    }
+
     /** Prevent [BitmapFactory.decodeStream] from swallowing [Exception]s. */
     private class ExceptionCatchingSource(delegate: Source) : ForwardingSource(delegate) {
 
@@ -250,14 +257,7 @@ class BitmapFactoryDecoder(
         }
     }
 
-    class Factory : Decoder.Factory {
-
-        override fun create(result: SourceResult, options: Options, imageLoader: ImageLoader): Decoder {
-            return BitmapFactoryDecoder(result.source, options)
-        }
-    }
-
-    companion object {
+    private companion object {
         private const val MIME_TYPE_JPEG = "image/jpeg"
         private const val MIME_TYPE_WEBP = "image/webp"
         private const val MIME_TYPE_HEIC = "image/heic"
