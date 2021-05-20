@@ -3,6 +3,7 @@
 package coil.util
 
 import android.content.Context
+import coil.ImageLoader
 import okhttp3.Cache
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
@@ -10,8 +11,12 @@ import okhttp3.Response
 import java.io.File
 
 /**
- * Builds an [OkHttpClient] with
+ * Builds an [OkHttpClient] with extensions for use with an [ImageLoader].
+ *
+ * @param context A context.
+ * @param diskCache The disk cache to use with this [OkHttpClient].
  */
+@JvmOverloads
 fun OkHttpClient.Builder.buildForImageLoader(
     context: Context,
     diskCache: Cache? = CoilUtils.createDiskCache(context)
@@ -50,6 +55,7 @@ private class DiskCacheInterceptor(private val diskCache: Cache) : Interceptor {
     }
 }
 
+/** Use a private class so its tag is guaranteed not to be overwritten. */
 private class CacheFile(val file: File)
 
 internal val Response.cacheFile: File?
