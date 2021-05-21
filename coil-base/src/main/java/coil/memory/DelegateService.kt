@@ -12,13 +12,18 @@ import coil.util.Logger
 import coil.util.requestManager
 import kotlinx.coroutines.Job
 
-/** [DelegateService] wraps [Target]s to support [Bitmap] pooling and [ImageRequest]s to manage their lifecycle. */
+/**
+ * [DelegateService] wraps [Target]s to support [Bitmap] pooling and [ImageRequest]s to
+ * manage their lifecycle.
+ */
 internal class DelegateService(
     private val imageLoader: ImageLoader,
     private val logger: Logger?
 ) {
 
-    /** Wrap the [Target] to support [Bitmap] pooling. */
+    /**
+     * Wrap the [Target] to support [Bitmap] pooling.
+     */
     @MainThread
     fun createTargetDelegate(
         target: Target?,
@@ -30,7 +35,10 @@ internal class DelegateService(
         }
     }
 
-    /** Wrap [request] to automatically dispose (and for [ViewTarget]s restart) the [ImageRequest] based on its lifecycle. */
+    /**
+     * Wrap [request] to automatically dispose (and for [ViewTarget]s restart)
+     * the [ImageRequest] based on its lifecycle.
+     */
     @MainThread
     fun createRequestDelegate(
         request: ImageRequest,

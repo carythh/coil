@@ -59,9 +59,7 @@ internal class ViewTargetRequestDelegate(
         job.cancel()
         targetDelegate.clear()
         targetDelegate.result = null
-        if (request.target is LifecycleObserver) {
-            request.lifecycle.removeObserver(request.target)
-        }
+        (request.target as? LifecycleObserver)?.let(request.lifecycle::removeObserver)
         request.lifecycle.removeObserver(this)
     }
 }
