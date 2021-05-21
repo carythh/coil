@@ -10,7 +10,6 @@ import coil.key.Keyer
 import coil.map.Mapper
 import coil.request.Options
 import coil.util.asImmutable
-import coil.util.firstNotNullOfOrNullIndices
 import coil.util.forEachIndices
 
 /**
@@ -28,7 +27,9 @@ class ComponentRegistry private constructor(
 
     constructor() : this(emptyList(), emptyList(), emptyList(), emptyList(), emptyList())
 
-    /** Convert [data] using the registered [mappers]. */
+    /**
+     * Convert [data] using the registered [mappers].
+     */
     fun map(data: Any, options: Options): Any {
         var mappedData = data
         mappers.forEachIndices { (mapper, type) ->
@@ -39,7 +40,9 @@ class ComponentRegistry private constructor(
         return mappedData
     }
 
-    /** Key [data] using the registered [keyers]. */
+    /**
+     * Key [data] using the registered [keyers].
+     */
     fun key(data: Any, options: Options): String? {
         keyers.forEachIndices { (keyer, type) ->
             if (type.isAssignableFrom(data::class.java)) {
@@ -49,21 +52,42 @@ class ComponentRegistry private constructor(
         return null
     }
 
-    /** Create a new [Fetcher] using the registered [fetcherFactories]. */
-    fun newFetcher(data: Any, options: Options, imageLoader: ImageLoader): Fetcher? {
-        fetcherFactories.forEachIndices { (fetcher, type) ->
+    /**
+     * Create a new [Fetcher] using the registered [fetcherFactories].
+     */
+    @JvmOverloads
+    fun newFetcher(
+        data: Any,
+        options: Options,
+        imageLoader: ImageLoader,
+        startIndex: Int = 0
+    ): Pair<Fetcher, Int>? {
+        for (index in startIndex until fetcherFactories.size) {
+            val (factory, type) = fetcherFactories[index]
             if (type.isAssignableFrom(data::class.java)) {
-                (fetcher as Fetcher.Factory<Any>).create(data, options, imageLoader)?.let { return it }
+                val fetcher = (factory as Fetcher.Factory<Any>).create(data, options, imageLoader)
+                if (fetcher != null) return fetcher to index
             }
         }
         return null
     }
 
-    /** Create a new [Decoder] using the registered [decoderFactories]. */
-    fun newDecoder(result: SourceResult, options: Options, imageLoader: ImageLoader): Decoder? {
-        return decoderFactories.firstNotNullOfOrNullIndices { decoder ->
-            decoder.create(result, options, imageLoader)
+    /**
+     * Create a new [Decoder] using the registered [decoderFactories].
+     */
+    @JvmOverloads
+    fun newDecoder(
+        result: SourceResult,
+        options: Options,
+        imageLoader: ImageLoader,
+        startIndex: Int = 0
+    ): Pair<Decoder, Int>? {
+        for (index in startIndex until decoderFactories.size) {
+            val factory = decoderFactories[index]
+            val decoder = factory.create(result, options, imageLoader)
+            if (decoder != null) return decoder to index
         }
+        return null
     }
 
     fun newBuilder() = Builder(this)

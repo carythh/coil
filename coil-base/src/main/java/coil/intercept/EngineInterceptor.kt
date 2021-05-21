@@ -9,6 +9,7 @@ import androidx.collection.arrayMapOf
 import coil.EventListener
 import coil.ImageLoader
 import coil.decode.DataSource
+import coil.decode.DecodeResult
 import coil.decode.DecodeUtils
 import coil.fetch.DrawableResult
 import coil.fetch.DrawableUtils
@@ -234,46 +235,90 @@ internal class EngineInterceptor(
         options: Options,
         eventListener: EventListener
     ): DrawableResult {
-        var fetchResultOrNull: FetchResult? = null
+        var fetchResult: FetchResult? = null
         val drawableResult = try {
             // Fetch the data.
-            val fetchResult: FetchResult
-            withContext(request.fetcherDispatcher) {
-                val fetcher = imageLoader.components.newFetcher(mappedData, options, imageLoader)
-                checkNotNull(fetcher) { "Unable to create a fetcher that supports: $mappedData" }
-                eventListener.fetchStart(request, fetcher, options)
-                fetchResult = fetcher.fetch()
-                fetchResultOrNull = fetchResult
-                eventListener.fetchEnd(request, fetcher, options, fetchResult)
-            }
+            fetchResult = fetch(request, mappedData, options, eventListener)
 
             // Decode the data.
             when (fetchResult) {
-                is SourceResult -> withContext(request.decoderDispatcher) {
-                    val decoder = imageLoader.components.newDecoder(fetchResult, options, imageLoader)
-                    checkNotNull(decoder) { "Unable to create a decoder that supports: $mappedData" }
-                    eventListener.decodeStart(request, decoder, options)
-                    val decodeResult = decoder.decode()
-                    eventListener.decodeEnd(request, decoder, options, decodeResult)
-
-                    // Combine the fetch and decode operations' results.
-                    DrawableResult(
-                        drawable = decodeResult.drawable,
-                        isSampled = decodeResult.isSampled,
-                        dataSource = fetchResult.dataSource
-                    )
-                }
+                is SourceResult -> decode(request, fetchResult, options, mappedData, eventListener)
                 is DrawableResult -> fetchResult
             }
         } finally {
             // Ensure the fetch result's source is always closed.
-            (fetchResultOrNull as? SourceResult)?.source?.closeQuietly()
+            (fetchResult as? SourceResult)?.source?.closeQuietly()
         }
 
         // Apply any transformations and prepare to draw.
         val finalResult = applyTransformations(drawableResult, request, options, eventListener)
         (finalResult.drawable as? BitmapDrawable)?.bitmap?.prepareToDraw()
         return finalResult
+    }
+
+    private suspend inline fun fetch(
+        request: ImageRequest,
+        mappedData: Any,
+        options: Options,
+        eventListener: EventListener
+    ): FetchResult = withContext(request.fetcherDispatcher) {
+        val fetchResult: FetchResult
+        var searchIndex = 0
+        while (true) {
+            val pair = imageLoader.components.newFetcher(mappedData, options, imageLoader, searchIndex)
+            checkNotNull(pair) { "Unable to create a fetcher that supports: $mappedData" }
+            val fetcher = pair.first
+            searchIndex = pair.second + 1
+
+            eventListener.fetchStart(request, fetcher, options)
+            val result = fetcher.fetch()
+            try {
+                eventListener.fetchEnd(request, fetcher, options, result)
+            } catch (throwable: Throwable) {
+                // Ensure the fetch result's source is closed if an exception
+                // occurs before returning the result.
+                (result as? SourceResult)?.source?.closeQuietly()
+            }
+
+            if (result != null) {
+                fetchResult = result
+                break
+            }
+        }
+        fetchResult
+    }
+
+    private suspend inline fun decode(
+        request: ImageRequest,
+        fetchResult: SourceResult,
+        options: Options,
+        mappedData: Any,
+        eventListener: EventListener
+    ): DrawableResult = withContext(request.decoderDispatcher) {
+        val decodeResult: DecodeResult
+        var searchIndex = 0
+        while (true) {
+            val pair = imageLoader.components.newDecoder(fetchResult, options, imageLoader, searchIndex)
+            checkNotNull(pair) { "Unable to create a decoder that supports: $mappedData" }
+            val decoder = pair.first
+            searchIndex = pair.second + 1
+
+            eventListener.decodeStart(request, decoder, options)
+            val result = decoder.decode()
+            eventListener.decodeEnd(request, decoder, options, result)
+
+            if (result != null) {
+                decodeResult = result
+                break
+            }
+        }
+
+        // Combine the fetch and decode operations' results.
+        DrawableResult(
+            drawable = decodeResult.drawable,
+            isSampled = decodeResult.isSampled,
+            dataSource = fetchResult.dataSource
+        )
     }
 
     /** Apply any [Transformation]s and return an updated [DrawableResult]. */

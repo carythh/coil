@@ -18,13 +18,7 @@ import coil.request.Options
  */
 fun interface Fetcher {
 
-    /**
-     * Load the [data] into memory. Perform any necessary fetching operations.
-     *
-     * @param data The data to load.
-     * @param options A set of configuration options for this request.
-     */
-    suspend fun fetch(): FetchResult
+    suspend fun fetch(): FetchResult?
 
     fun interface Factory<T : Any> {
 

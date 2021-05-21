@@ -101,7 +101,7 @@ interface EventListener : ImageRequest.Listener {
      * @param result The result of [Fetcher.fetch].
      */
     @WorkerThread
-    fun fetchEnd(request: ImageRequest, fetcher: Fetcher, options: Options, result: FetchResult) {}
+    fun fetchEnd(request: ImageRequest, fetcher: Fetcher, options: Options, result: FetchResult?) {}
 
     /**
      * Called before [Decoder.decode].
@@ -124,7 +124,7 @@ interface EventListener : ImageRequest.Listener {
      * @param result The result of [Decoder.decode].
      */
     @WorkerThread
-    fun decodeEnd(request: ImageRequest, decoder: Decoder, options: Options, result: DecodeResult) {}
+    fun decodeEnd(request: ImageRequest, decoder: Decoder, options: Options, result: DecodeResult?) {}
 
     /**
      * Called before any [Transformation]s are applied.

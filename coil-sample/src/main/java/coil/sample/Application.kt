@@ -23,11 +23,12 @@ import java.io.File
 class Application : Application(), ImageLoaderFactory {
 
     override fun newImageLoader(): ImageLoader {
-        val memoryCache = MemoryCache.Builder(this)
-            .maxSizePercent(0.25) // Use 25% of the application's available memory.
-            .build()
         return ImageLoader.Builder(this)
-            .memoryCache(memoryCache)
+            .memoryCache(
+                MemoryCache.Builder(this)
+                    .maxSizePercent(0.25) // Use 25% of the application's available memory.
+                    .build()
+            )
             .crossfade(true) // Show a short crossfade when loading images from network or disk.
             .componentRegistry {
                 // GIFs
