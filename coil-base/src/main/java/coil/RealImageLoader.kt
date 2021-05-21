@@ -14,6 +14,7 @@ import coil.fetch.HttpUrlFetcher
 import coil.fetch.ResourceUriFetcher
 import coil.intercept.EngineInterceptor
 import coil.intercept.RealInterceptorChain
+import coil.key.CompositeKeyer
 import coil.map.FileUriMapper
 import coil.map.ResourceIntMapper
 import coil.map.ResourceUriMapper
@@ -81,9 +82,11 @@ internal class RealImageLoader(
         .add(FileUriMapper())
         .add(ResourceUriMapper())
         .add(ResourceIntMapper())
+        // Keyers
+        .add(CompositeKeyer(options.addLastModifiedToFileCacheKey))
         // Fetchers
         .add(HttpUrlFetcher.Factory(callFactory))
-        .add(FileFetcher.Factory(options.addLastModifiedToFileCacheKey))
+        .add(FileFetcher.Factory())
         .add(AssetUriFetcher.Factory())
         .add(ContentUriFetcher.Factory())
         .add(ResourceUriFetcher.Factory())

@@ -12,7 +12,6 @@ import coil.util.getDrawableCompat
 import coil.util.getMimeTypeFromUrl
 import coil.util.getXmlDrawableCompat
 import coil.util.isVector
-import coil.util.nightMode
 import coil.util.safeCacheDir
 import coil.util.toDrawable
 import okio.buffer
@@ -22,8 +21,6 @@ internal class ResourceUriFetcher(
     private val data: Uri,
     private val options: Options
 ) : Fetcher {
-
-    override val cacheKey get() = "$data-${options.context.resources.configuration.nightMode}"
 
     override suspend fun fetch(): FetchResult {
         // Expected format: android.resource://example.package.name/12345678

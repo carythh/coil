@@ -13,8 +13,6 @@ internal class ByteBufferFetcher(
     private val options: Options
 ) : Fetcher {
 
-    override val cacheKey get() = data.hashCode().toString()
-
     override suspend fun fetch(): FetchResult {
         return SourceResult(
             source = ImageSource(

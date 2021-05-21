@@ -6,6 +6,7 @@ import coil.decode.Decoder
 import coil.fetch.Fetcher
 import coil.fetch.SourceResult
 import coil.intercept.Interceptor
+import coil.key.Keyer
 import coil.map.Mapper
 import coil.request.Options
 import coil.util.asImmutable
@@ -15,16 +16,17 @@ import coil.util.forEachIndices
 /**
  * Registry for all the components that an [ImageLoader] uses to fulfil image requests.
  *
- * Use this class to register support for custom [Interceptor]s, [Mapper]s, [Fetcher]s, and [Decoder]s.
+ * Use this class to register support for custom [Interceptor]s, [Mapper]s, [Keyer]s, [Fetcher]s, and [Decoder]s.
  */
 class ComponentRegistry private constructor(
     val interceptors: List<Interceptor>,
     val mappers: List<Pair<Mapper<out Any, *>, Class<out Any>>>,
+    val keyers: List<Pair<Keyer<out Any>, Class<out Any>>>,
     val fetcherFactories: List<Pair<Fetcher.Factory<out Any>, Class<out Any>>>,
     val decoderFactories: List<Decoder.Factory>
 ) {
 
-    constructor() : this(emptyList(), emptyList(), emptyList(), emptyList())
+    constructor() : this(emptyList(), emptyList(), emptyList(), emptyList(), emptyList())
 
     /** Convert [data] using the registered [mappers]. */
     fun map(data: Any, options: Options): Any {
@@ -35,6 +37,16 @@ class ComponentRegistry private constructor(
             }
         }
         return mappedData
+    }
+
+    /** Key [data] using the registered [keyers]. */
+    fun key(data: Any, options: Options): String? {
+        keyers.forEachIndices { (keyer, type) ->
+            if (type.isAssignableFrom(data::class.java)) {
+                (keyer as Keyer<Any>).key(data, options)?.let { return it }
+            }
+        }
+        return null
     }
 
     /** Create a new [Fetcher] using the registered [fetcherFactories]. */
@@ -60,12 +72,14 @@ class ComponentRegistry private constructor(
 
         private val interceptors: MutableList<Interceptor>
         private val mappers: MutableList<Pair<Mapper<out Any, *>, Class<out Any>>>
+        private val keyers: MutableList<Pair<Keyer<out Any>, Class<out Any>>>
         private val fetcherFactories: MutableList<Pair<Fetcher.Factory<out Any>, Class<out Any>>>
         private val decoderFactories: MutableList<Decoder.Factory>
 
         constructor() {
             interceptors = mutableListOf()
             mappers = mutableListOf()
+            keyers = mutableListOf()
             fetcherFactories = mutableListOf()
             decoderFactories = mutableListOf()
         }
@@ -73,6 +87,7 @@ class ComponentRegistry private constructor(
         constructor(registry: ComponentRegistry) {
             interceptors = registry.interceptors.toMutableList()
             mappers = registry.mappers.toMutableList()
+            keyers = registry.keyers.toMutableList()
             fetcherFactories = registry.fetcherFactories.toMutableList()
             decoderFactories = registry.decoderFactories.toMutableList()
         }
@@ -88,6 +103,14 @@ class ComponentRegistry private constructor(
         @PublishedApi
         internal fun <T : Any> add(mapper: Mapper<T, *>, type: Class<T>) = apply {
             mappers += mapper to type
+        }
+
+        /** Register a [Keyer]. */
+        inline fun <reified T : Any> add(keyer: Keyer<T>) = add(keyer, T::class.java)
+
+        @PublishedApi
+        internal fun <T : Any> add(keyer: Keyer<T>, type: Class<T>) = apply {
+            keyers += keyer to type
         }
 
         /** Register a [Fetcher.Factory]. */
@@ -107,6 +130,7 @@ class ComponentRegistry private constructor(
             return ComponentRegistry(
                 interceptors.toList().asImmutable(),
                 mappers.toList().asImmutable(),
+                keyers.toList().asImmutable(),
                 fetcherFactories.toList().asImmutable(),
                 decoderFactories.toList().asImmutable()
             )

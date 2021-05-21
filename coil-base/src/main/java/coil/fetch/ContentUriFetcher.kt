@@ -19,8 +19,6 @@ internal class ContentUriFetcher(
     private val options: Options
 ) : Fetcher {
 
-    override val cacheKey get() = data.toString()
-
     override suspend fun fetch(): FetchResult {
         val context = options.context
         val inputStream = if (isContactPhotoUri(data)) {

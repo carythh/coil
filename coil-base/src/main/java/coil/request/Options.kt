@@ -5,6 +5,7 @@ package coil.request
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.ColorSpace
+import coil.decode.BitmapFactoryDecoder
 import coil.decode.Decoder
 import coil.fetch.Fetcher
 import coil.size.OriginalSize

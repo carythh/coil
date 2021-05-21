@@ -7,13 +7,7 @@ import coil.decode.ImageSource
 import coil.request.Options
 import java.io.File
 
-internal class FileFetcher(
-    private val data: File,
-    private val addLastModifiedToFileCacheKey: Boolean
-) : Fetcher {
-
-    override val cacheKey: String
-        get() = if (addLastModifiedToFileCacheKey) "${data.path}:${data.lastModified()}" else data.path
+internal class FileFetcher(private val data: File) : Fetcher {
 
     override suspend fun fetch(): FetchResult {
         return SourceResult(
@@ -23,10 +17,10 @@ internal class FileFetcher(
         )
     }
 
-    class Factory(private val addLastModifiedToFileCacheKey: Boolean) : Fetcher.Factory<File> {
+    class Factory : Fetcher.Factory<File> {
 
         override fun create(data: File, options: Options, imageLoader: ImageLoader): Fetcher {
-            return FileFetcher(data, addLastModifiedToFileCacheKey)
+            return FileFetcher(data)
         }
     }
 }

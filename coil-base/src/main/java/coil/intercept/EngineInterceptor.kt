@@ -67,9 +67,8 @@ internal class EngineInterceptor(
             eventListener.mapEnd(request, mappedData)
 
             // Check the memory cache.
-            val fetcher = imageLoader.components.newFetcher(mappedData, options, imageLoader)
-            checkNotNull(fetcher) { "Unable to create a fetcher that supports: $mappedData" }
-            val memoryCacheKey = request.memoryCacheKey ?: createMemoryCacheKey(fetcher, request, size)
+            val memoryCacheKey = request.memoryCacheKey
+                ?: newMemoryCacheKey(mappedData, options, request, size, eventListener)
             val value = if (request.memoryCachePolicy.readEnabled) imageLoader.memoryCache[memoryCacheKey] else null
 
             // Short circuit if the cached bitmap is valid.
@@ -88,7 +87,7 @@ internal class EngineInterceptor(
             // Fetch, decode, transform, and cache the image.
             return withContext(Dispatchers.Unconfined) {
                 // Fetch and decode the image.
-                val (drawable, isSampled, dataSource) = execute(mappedData, fetcher, request, options, eventListener)
+                val (drawable, isSampled, dataSource) = execute(mappedData, request, options, eventListener)
 
                 // Cache the result in the memory cache.
                 val isMemoryCached = writeToMemoryCache(memoryCacheKey, request, drawable, isSampled)
@@ -115,12 +114,18 @@ internal class EngineInterceptor(
 
     /** Create the memory cache key for this request. */
     @VisibleForTesting
-    internal fun createMemoryCacheKey(
-        fetcher: Fetcher,
+    internal fun newMemoryCacheKey(
+        mappedData: Any,
+        options: Options,
         request: ImageRequest,
-        size: Size
+        size: Size,
+        eventListener: EventListener
     ): MemoryCache.Key? {
-        val base = fetcher.cacheKey ?: return null
+        eventListener.keyStart(request, mappedData)
+        val base = imageLoader.components.key(mappedData, options)
+        eventListener.keyEnd(request, base)
+        if (base == null) return null
+
         val extras = arrayMapOf<String, String>()
         extras.putAll(request.parameters.cacheKeys())
         if (request.transformations.isNotEmpty()) {
@@ -225,7 +230,6 @@ internal class EngineInterceptor(
     /** Execute the [Fetcher], decode any data into a [Drawable], and apply any [Transformation]s. */
     private suspend inline fun execute(
         mappedData: Any,
-        fetcher: Fetcher,
         request: ImageRequest,
         options: Options,
         eventListener: EventListener
@@ -235,6 +239,8 @@ internal class EngineInterceptor(
             // Fetch the data.
             val fetchResult: FetchResult
             withContext(request.fetcherDispatcher) {
+                val fetcher = imageLoader.components.newFetcher(mappedData, options, imageLoader)
+                checkNotNull(fetcher) { "Unable to create a fetcher that supports: $mappedData" }
                 eventListener.fetchStart(request, fetcher, options)
                 fetchResult = fetcher.fetch()
                 fetchResultOrNull = fetchResult

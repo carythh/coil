@@ -12,8 +12,6 @@ internal class DrawableFetcher(
     private val options: Options
 ) : Fetcher {
 
-    override val cacheKey get() = data.hashCode().toString()
-
     override suspend fun fetch(): FetchResult {
         val isVector = data.isVector
         return DrawableResult(

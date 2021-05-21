@@ -18,8 +18,6 @@ internal class AssetUriFetcher(
     private val options: Options
 ) : Fetcher {
 
-    override val cacheKey get() = data.toString()
-
     override suspend fun fetch(): FetchResult {
         val path = data.pathSegments.drop(1).joinToString("/")
 
@@ -41,7 +39,8 @@ internal class AssetUriFetcher(
         }
 
         private fun isApplicable(data: Uri): Boolean {
-            return data.scheme == ContentResolver.SCHEME_FILE && data.firstPathSegment == ASSET_FILE_PATH_ROOT
+            return data.scheme == ContentResolver.SCHEME_FILE &&
+                data.firstPathSegment == ASSET_FILE_PATH_ROOT
         }
     }
 

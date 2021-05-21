@@ -30,8 +30,6 @@ internal class HttpUrlFetcher(
     private val callFactory: Call.Factory
 ) : Fetcher {
 
-    override val cacheKey get() = data.toString()
-
     override suspend fun fetch(): FetchResult {
         // Perform this conversion in a fetcher instead of a mapper so
         // 'toHttpUrl' can be executed on a background thread.

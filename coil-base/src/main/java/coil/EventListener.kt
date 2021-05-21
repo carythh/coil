@@ -10,6 +10,7 @@ import coil.decode.Decoder
 import coil.fetch.FetchResult
 import coil.fetch.Fetcher
 import coil.fetch.SourceResult
+import coil.key.Keyer
 import coil.map.Mapper
 import coil.request.ErrorResult
 import coil.request.ImageRequest
@@ -65,6 +66,23 @@ interface EventListener : ImageRequest.Listener {
      */
     @AnyThread
     fun mapEnd(request: ImageRequest, output: Any) {}
+
+    /**
+     * Called before [Keyer.key].
+     *
+     * @param input The data that will be converted.
+     */
+    @AnyThread
+    fun keyStart(request: ImageRequest, input: Any) {}
+
+    /**
+     * Called after [Keyer.key].
+     *
+     * @param output The data after it has been converted into a string key. If [output] is
+     *  'null' it will not be cached in the memory cache.
+     */
+    @AnyThread
+    fun keyEnd(request: ImageRequest, output: String?) {}
 
     /**
      * Called before [Fetcher.fetch].
