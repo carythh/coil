@@ -75,11 +75,11 @@ class ImageRequest private constructor(
     /** @see Builder.colorSpace */
     val colorSpace: ColorSpace?,
 
-    /** @see Builder.fetcher */
-    val fetcher: Pair<Fetcher<*>, Class<*>>?,
+    /** @see Builder.fetcherFactory */
+    val fetcherFactory: Pair<Fetcher.Factory<*>, Class<*>>?,
 
-    /** @see Builder.decoder */
-    val decoder: Decoder?,
+    /** @see Builder.decoderFactory */
+    val decoderFactory: Decoder.Factory?,
 
     /** @see Builder.transformations */
     val transformations: List<Transformation>,
@@ -111,8 +111,8 @@ class ImageRequest private constructor(
     /** @see Builder.transformationDispatcher */
     val transformationDispatcher: CoroutineDispatcher,
 
-    /** @see Builder.transition */
-    val transition: Transition,
+    /** @see Builder.transitionFactory */
+    val transitionFactory: Transition.Factory,
 
     /** @see Builder.precision */
     val precision: Precision,
@@ -205,8 +205,8 @@ class ImageRequest private constructor(
         private var memoryCacheKey: MemoryCache.Key?
         private var placeholderMemoryCacheKey: MemoryCache.Key?
         private var colorSpace: ColorSpace? = null
-        private var fetcher: Pair<Fetcher<*>, Class<*>>?
-        private var decoder: Decoder?
+        private var fetcherFactory: Pair<Fetcher.Factory<*>, Class<*>>?
+        private var decoderFactory: Decoder.Factory?
         private var transformations: List<Transformation>
 
         private var headers: Headers.Builder?
@@ -221,7 +221,7 @@ class ImageRequest private constructor(
         private var decoderDispatcher: CoroutineDispatcher?
         private var transformationDispatcher: CoroutineDispatcher?
 
-        private var transition: Transition?
+        private var transitionFactory: Transition.Factory?
         private var precision: Precision?
         private var bitmapConfig: Bitmap.Config?
         private var allowHardware: Boolean?
@@ -251,8 +251,8 @@ class ImageRequest private constructor(
             memoryCacheKey = null
             placeholderMemoryCacheKey = null
             if (SDK_INT >= 26) colorSpace = null
-            fetcher = null
-            decoder = null
+            fetcherFactory = null
+            decoderFactory = null
             transformations = emptyList()
             headers = null
             parameters = null
@@ -263,7 +263,7 @@ class ImageRequest private constructor(
             fetcherDispatcher = null
             decoderDispatcher = null
             transformationDispatcher = null
-            transition = null
+            transitionFactory = null
             precision = null
             bitmapConfig = null
             allowHardware = null
@@ -293,8 +293,8 @@ class ImageRequest private constructor(
             memoryCacheKey = request.memoryCacheKey
             placeholderMemoryCacheKey = request.placeholderMemoryCacheKey
             if (SDK_INT >= 26) colorSpace = request.colorSpace
-            fetcher = request.fetcher
-            decoder = request.decoder
+            fetcherFactory = request.fetcherFactory
+            decoderFactory = request.decoderFactory
             transformations = request.transformations
             headers = request.headers.newBuilder()
             parameters = request.parameters.newBuilder()
@@ -305,7 +305,7 @@ class ImageRequest private constructor(
             fetcherDispatcher = request.defined.fetcherDispatcher
             decoderDispatcher = request.defined.decoderDispatcher
             transformationDispatcher = request.defined.transformationDispatcher
-            transition = request.defined.transition
+            transitionFactory = request.defined.transitionFactory
             precision = request.defined.precision
             bitmapConfig = request.defined.bitmapConfig
             allowHardware = request.defined.allowHardware
@@ -492,29 +492,29 @@ class ImageRequest private constructor(
         }
 
         /**
-         * Use [fetcher] to handle fetching any image data.
+         * Use [factory] to handle fetching any image data.
          *
          * If this is null or is not set the [ImageLoader] will find an applicable fetcher in its [ComponentRegistry].
          */
-        inline fun <reified T : Any> fetcher(fetcher: Fetcher<T>) = fetcher(fetcher, T::class.java)
+        inline fun <reified T : Any> fetcherFactory(factory: Fetcher.Factory<T>) = fetcherFactory(factory, T::class.java)
 
         /**
-         * Use [fetcher] to handle fetching any image data.
+         * Use [factory] to handle fetching any image data.
          *
          * If this is null or is not set the [ImageLoader] will find an applicable fetcher in its [ComponentRegistry].
          */
         @PublishedApi
-        internal fun <T : Any> fetcher(fetcher: Fetcher<T>, type: Class<T>) = apply {
-            this.fetcher = fetcher to type
+        internal fun <T : Any> fetcherFactory(factory: Fetcher.Factory<T>, type: Class<T>) = apply {
+            this.fetcherFactory = factory to type
         }
 
         /**
-         * Use [decoder] to handle decoding any image data.
+         * Use [factory] to handle decoding any image data.
          *
          * If this is null or is not set the [ImageLoader] will find an applicable decoder in its [ComponentRegistry].
          */
-        fun decoder(decoder: Decoder) = apply {
-            this.decoder = decoder
+        fun decoderFactory(factory: Decoder.Factory) = apply {
+            this.decoderFactory = factory
         }
 
         /**
@@ -720,14 +720,20 @@ class ImageRequest private constructor(
         /**
          * @see ImageLoader.Builder.crossfade
          */
-        fun crossfade(durationMillis: Int) =
-            transition(if (durationMillis > 0) CrossfadeTransition(durationMillis) else Transition.NONE)
+        fun crossfade(durationMillis: Int) = apply {
+            val factory = if (durationMillis > 0) {
+                CrossfadeTransition.Factory(durationMillis)
+            } else {
+                Transition.Factory.NONE
+            }
+            transitionFactory(factory)
+        }
 
         /**
-         * @see ImageLoader.Builder.transition
+         * @see ImageLoader.Builder.transitionFactory
          */
-        fun transition(transition: Transition) = apply {
-            this.transition = transition
+        fun transitionFactory(transition: Transition.Factory) = apply {
+            this.transitionFactory = transition
         }
 
         /**
@@ -768,8 +774,8 @@ class ImageRequest private constructor(
                 memoryCacheKey = memoryCacheKey,
                 placeholderMemoryCacheKey = placeholderMemoryCacheKey,
                 colorSpace = colorSpace,
-                fetcher = fetcher,
-                decoder = decoder,
+                fetcherFactory = fetcherFactory,
+                decoderFactory = decoderFactory,
                 transformations = transformations,
                 headers = headers?.build().orEmpty(),
                 parameters = parameters?.build().orEmpty(),
@@ -780,7 +786,7 @@ class ImageRequest private constructor(
                 fetcherDispatcher = fetcherDispatcher ?: defaults.fetcherDispatcher,
                 decoderDispatcher = decoderDispatcher ?: defaults.decoderDispatcher,
                 transformationDispatcher = transformationDispatcher ?: defaults.transformationDispatcher,
-                transition = transition ?: defaults.transition,
+                transitionFactory = transitionFactory ?: defaults.transitionFactory,
                 precision = precision ?: defaults.precision,
                 bitmapConfig = bitmapConfig ?: defaults.bitmapConfig,
                 allowHardware = allowHardware ?: defaults.allowHardware,
@@ -790,7 +796,7 @@ class ImageRequest private constructor(
                 diskCachePolicy = diskCachePolicy ?: defaults.diskCachePolicy,
                 networkCachePolicy = networkCachePolicy ?: defaults.networkCachePolicy,
                 defined = DefinedRequestOptions(lifecycle, sizeResolver, scale, interceptorDispatcher,
-                    fetcherDispatcher, decoderDispatcher, transformationDispatcher, transition, precision,
+                    fetcherDispatcher, decoderDispatcher, transformationDispatcher, transitionFactory, precision,
                     bitmapConfig, allowHardware, allowRgb565, memoryCachePolicy, diskCachePolicy, networkCachePolicy),
                 defaults = defaults,
                 placeholderResId = placeholderResId,

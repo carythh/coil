@@ -26,7 +26,7 @@ internal sealed class RequestDelegate : DefaultLifecycleObserver {
     override fun onDestroy(owner: LifecycleOwner) = dispose()
 }
 
-/** A request delegate for a one-shot requests with a non-poolable target. */
+/** A request delegate for a one-shot requests with no [ViewTarget]. */
 internal class BaseRequestDelegate(
     private val lifecycle: Lifecycle,
     private val job: Job
@@ -45,7 +45,7 @@ internal class BaseRequestDelegate(
 internal class ViewTargetRequestDelegate(
     private val imageLoader: ImageLoader,
     private val request: ImageRequest,
-    private val targetDelegate: TargetDelegate,
+    private val target: ViewTarget<*>,
     private val job: Job
 ) : RequestDelegate() {
 
@@ -57,8 +57,7 @@ internal class ViewTargetRequestDelegate(
 
     override fun dispose() {
         job.cancel()
-        targetDelegate.clear()
-        targetDelegate.result = null
+        target.result = null
         (request.target as? LifecycleObserver)?.let(request.lifecycle::removeObserver)
         request.lifecycle.removeObserver(this)
     }

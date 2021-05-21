@@ -275,9 +275,9 @@ internal class EngineInterceptor(
             try {
                 eventListener.fetchEnd(request, fetcher, options, result)
             } catch (throwable: Throwable) {
-                // Ensure the fetch result's source is closed if an exception
-                // occurs before returning the result.
+                // Ensure the source is closed if an exception occurs before returning the result.
                 (result as? SourceResult)?.source?.closeQuietly()
+                throw throwable
             }
 
             if (result != null) {

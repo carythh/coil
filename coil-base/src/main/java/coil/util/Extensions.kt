@@ -22,12 +22,12 @@ import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat
 import coil.base.R
 import coil.decode.DataSource
 import coil.memory.MemoryCache
-import coil.memory.TargetDelegate
 import coil.memory.ViewTargetRequestManager
 import coil.request.DefaultRequestOptions
 import coil.request.ImageResult
 import coil.request.Parameters
 import coil.size.Scale
+import coil.target.Target
 import coil.target.ViewTarget
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Job
@@ -137,10 +137,10 @@ internal inline val CoroutineContext.job: Job get() = get(Job)!!
 @OptIn(ExperimentalStdlibApi::class)
 internal inline val CoroutineContext.dispatcher: CoroutineDispatcher get() = get(CoroutineDispatcher)!!
 
-internal var TargetDelegate.result: ImageResult?
-    get() = (target as? ViewTarget<*>)?.view?.requestManager?.result
+internal var Target.result: ImageResult?
+    get() = (this as? ViewTarget<*>)?.view?.requestManager?.result
     set(value) {
-        (target as? ViewTarget<*>)?.view?.requestManager?.result = value
+        (this as? ViewTarget<*>)?.view?.requestManager?.result = value
     }
 
 internal inline operator fun MemoryCache.get(key: MemoryCache.Key?) = key?.let(::get)

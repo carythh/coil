@@ -1,7 +1,10 @@
 package coil.memory
 
 import android.graphics.Bitmap
+import androidx.annotation.MainThread
 import androidx.annotation.WorkerThread
+import androidx.lifecycle.LifecycleObserver
+import coil.ImageLoader
 import coil.request.CachePolicy
 import coil.request.ErrorResult
 import coil.request.ImageRequest
@@ -16,14 +19,47 @@ import coil.util.SystemCallbacks
 import coil.util.Utils
 import coil.util.allowInexactSize
 import coil.util.isHardware
+import coil.util.requestManager
+import kotlinx.coroutines.Job
 
 /** Handles operations that act on [ImageRequest]s. */
 internal class RequestService(
+    private val imageLoader: ImageLoader,
     private val systemCallbacks: SystemCallbacks,
     logger: Logger?
 ) {
 
     private val hardwareBitmapService = HardwareBitmapService(logger)
+
+    /** Wrap [request] to automatically dispose and/or restart the [ImageRequest] based on its lifecycle. */
+    @MainThread
+    fun createRequestDelegate(request: ImageRequest, job: Job): RequestDelegate {
+        val lifecycle = request.lifecycle
+        val delegate: RequestDelegate
+        when (val target = request.target) {
+            is ViewTarget<*> -> {
+                delegate = ViewTargetRequestDelegate(imageLoader, request, target, job)
+                lifecycle.addObserver(delegate)
+
+                if (target is LifecycleObserver) {
+                    lifecycle.removeObserver(target)
+                    lifecycle.addObserver(target)
+                }
+
+                target.view.requestManager.setCurrentRequest(delegate)
+
+                // Call onViewDetachedFromWindow immediately if the view is already detached.
+                if (!target.view.isAttachedToWindow) {
+                    target.view.requestManager.onViewDetachedFromWindow(target.view)
+                }
+            }
+            else -> {
+                delegate = BaseRequestDelegate(lifecycle, job)
+                lifecycle.addObserver(delegate)
+            }
+        }
+        return delegate
+    }
 
     fun errorResult(request: ImageRequest, throwable: Throwable): ErrorResult {
         return ErrorResult(

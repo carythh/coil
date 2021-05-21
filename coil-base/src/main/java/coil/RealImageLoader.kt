@@ -19,10 +19,8 @@ import coil.map.FileUriMapper
 import coil.map.ResourceIntMapper
 import coil.map.ResourceUriMapper
 import coil.map.StringMapper
-import coil.memory.DelegateService
 import coil.memory.MemoryCache
 import coil.memory.RequestService
-import coil.memory.TargetDelegate
 import coil.request.DefaultRequestOptions
 import coil.request.Disposable
 import coil.request.ErrorResult
@@ -33,7 +31,9 @@ import coil.request.NullRequestDataException
 import coil.request.OneShotDisposable
 import coil.request.SuccessResult
 import coil.request.ViewTargetDisposable
+import coil.target.Target
 import coil.target.ViewTarget
+import coil.transition.TransitionTarget
 import coil.util.Emoji
 import coil.util.ImageLoaderOptions
 import coil.util.Logger
@@ -74,8 +74,7 @@ internal class RealImageLoader(
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate +
         CoroutineExceptionHandler { _, throwable -> logger?.log(TAG, throwable) })
     private val systemCallbacks = SystemCallbacks(this, context)
-    private val delegateService = DelegateService(this, logger)
-    private val requestService = RequestService(systemCallbacks, logger)
+    private val requestService = RequestService(this, systemCallbacks, logger)
     override val components = componentRegistry.newBuilder()
         // Mappers
         .add(StringMapper())
@@ -142,11 +141,8 @@ internal class RealImageLoader(
         // Create a new event listener.
         val eventListener = eventListenerFactory.create(request)
 
-        // Wrap the target to support bitmap pooling.
-        val targetDelegate = delegateService.createTargetDelegate(request.target, eventListener)
-
         // Wrap the request to manage its lifecycle.
-        val requestDelegate = delegateService.createRequestDelegate(request, targetDelegate, coroutineContext.job)
+        val requestDelegate = requestService.createRequestDelegate(request, coroutineContext.job)
 
         try {
             // Fail before starting if data is null.
@@ -157,8 +153,8 @@ internal class RealImageLoader(
 
             // Set the placeholder on the target.
             val cached = memoryCache[request.placeholderMemoryCacheKey]?.bitmap
-            targetDelegate.result = null
-            targetDelegate.start(cached?.toDrawable(request.context) ?: request.placeholder, cached)
+            request.target?.result = null
+            request.target?.onStart(cached?.toDrawable(request.context) ?: request.placeholder)
             eventListener.onStart(request)
             request.listener?.onStart(request)
 
@@ -173,10 +169,10 @@ internal class RealImageLoader(
             }
 
             // Set the result on the target.
-            targetDelegate.result = result
+            request.target?.result = result
             when (result) {
-                is SuccessResult -> onSuccess(result, targetDelegate, eventListener)
-                is ErrorResult -> onError(result, targetDelegate, eventListener)
+                is SuccessResult -> onSuccess(result, request.target, eventListener)
+                is ErrorResult -> onError(result, request.target, eventListener)
             }
             return result
         } catch (throwable: Throwable) {
@@ -186,7 +182,7 @@ internal class RealImageLoader(
             } else {
                 // Create the default error result if there's an uncaught exception.
                 val result = requestService.errorResult(request, throwable)
-                onError(result, targetDelegate, eventListener)
+                onError(result, request.target, eventListener)
                 return result
             }
         } finally {
@@ -201,8 +197,6 @@ internal class RealImageLoader(
 
     override fun shutdown() {
         if (isShutdown.getAndSet(true)) return
-
-        // Order is important.
         scope.cancel()
         systemCallbacks.shutdown()
         memoryCache.clear()
@@ -212,25 +206,33 @@ internal class RealImageLoader(
 
     private suspend inline fun onSuccess(
         result: SuccessResult,
-        targetDelegate: TargetDelegate,
+        target: Target?,
         eventListener: EventListener
     ) {
         val request = result.request
         val dataSource = result.dataSource
         logger?.log(TAG, Log.INFO) { "${dataSource.emoji} Successful (${dataSource.name}) - ${request.data}" }
-        targetDelegate.success(result)
+        if (target is TransitionTarget) {
+            transition(result, target, eventListener)
+        } else {
+            target?.onSuccess(result.drawable)
+        }
         eventListener.onSuccess(request, result)
         request.listener?.onSuccess(request, result)
     }
 
     private suspend inline fun onError(
         result: ErrorResult,
-        targetDelegate: TargetDelegate,
+        target: Target?,
         eventListener: EventListener
     ) {
         val request = result.request
         logger?.log(TAG, Log.INFO) { "${Emoji.SIREN} Failed - ${request.data} - ${result.throwable}" }
-        targetDelegate.error(result)
+        if (target is TransitionTarget) {
+            transition(result, target, eventListener)
+        } else {
+            target?.onError(result.drawable)
+        }
         eventListener.onError(request, result)
         request.listener?.onError(request, result)
     }
@@ -239,6 +241,17 @@ internal class RealImageLoader(
         logger?.log(TAG, Log.INFO) { "${Emoji.CONSTRUCTION} Cancelled - ${request.data}" }
         eventListener.onCancel(request)
         request.listener?.onCancel(request)
+    }
+
+    private suspend inline fun transition(
+        result: ImageResult,
+        target: TransitionTarget,
+        eventListener: EventListener
+    ) {
+        val transition = result.request.transitionFactory.create(target, result)
+        eventListener.transitionStart(result.request)
+        transition.transition()
+        eventListener.transitionEnd(result.request)
     }
 
     companion object {
