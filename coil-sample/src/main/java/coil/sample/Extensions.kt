@@ -51,6 +51,6 @@ fun randomColor(): Int {
 
 fun <T> DiffUtil.ItemCallback<T>.asConfig(): AsyncDifferConfig<T> {
     return AsyncDifferConfig.Builder(this)
-        .setBackgroundThreadExecutor(Dispatchers.Default.asExecutor())
+        .setBackgroundThreadExecutor(Dispatchers.IO.asExecutor())
         .build()
 }
