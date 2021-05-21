@@ -37,7 +37,7 @@ private class DiskCacheInterceptor(private val diskCache: Cache) : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
         var response = chain.proceed(chain.request())
         val request = response.request
-        val cacheFile = diskCache.directory.resolve("${Cache.key(request.url)}.$ENTRY_BODY")
+        val cacheFile = CoilUtils.getDiskCacheFile(diskCache, request.url)
         if (cacheFile.exists()) {
             val newRequest = request.newBuilder()
                 .tag(CacheFile::class.java, CacheFile(cacheFile))
@@ -47,11 +47,6 @@ private class DiskCacheInterceptor(private val diskCache: Cache) : Interceptor {
                 .build()
         }
         return response
-    }
-
-    companion object {
-        // Tracks 'okhttp3.Cache.ENTRY_BODY' which is private.
-        private const val ENTRY_BODY = 1
     }
 }
 
