@@ -49,7 +49,10 @@ class Application : Application(), ImageLoaderFactory {
                 val diskCache = Cache(cacheDirectory, Long.MAX_VALUE)
 
                 // Rewrite the Cache-Control header to cache all responses for a year.
-                val cacheControlInterceptor = ResponseHeaderInterceptor("Cache-Control", "max-age=31536000,public")
+                val cacheControlInterceptor = ResponseHeaderInterceptor(
+                    name = "Cache-Control",
+                    value = "max-age=31536000,public"
+                )
 
                 // Don't limit concurrent network requests by host.
                 val dispatcher = Dispatcher().apply { maxRequestsPerHost = maxRequests }
