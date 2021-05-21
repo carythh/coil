@@ -11,7 +11,7 @@ import coil.request.Options
 internal class ResourceIntMapper : Mapper<@DrawableRes Int, Uri> {
 
     override fun map(@DrawableRes data: Int, options: Options): Uri? {
-        if (isApplicable(data, options.context)) return null
+        if (!isApplicable(data, options.context)) return null
         return "${ContentResolver.SCHEME_ANDROID_RESOURCE}://${options.context.packageName}/$data".toUri()
     }
 

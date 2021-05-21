@@ -11,7 +11,7 @@ import java.io.File
 internal class FileUriMapper : Mapper<Uri, File> {
 
     override fun map(data: Uri, options: Options): File? {
-        if (isApplicable(data)) return null
+        if (!isApplicable(data)) return null
         return data.toFile()
     }
 
