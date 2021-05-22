@@ -132,9 +132,6 @@ internal class RealImageLoader(
 
     @MainThread
     private suspend fun executeMain(initialRequest: ImageRequest, type: Int): ImageResult {
-        // Ensure this image loader isn't shutdown.
-        check(!isShutdown.get()) { "The image loader is shutdown." }
-
         // Apply this image loader's defaults to this request.
         val request = initialRequest.newBuilder().defaults(defaults).build()
 
