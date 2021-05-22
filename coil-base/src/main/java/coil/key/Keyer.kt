@@ -8,7 +8,7 @@ import coil.request.Options
 fun interface Keyer<T : Any> {
 
     /**
-     * Convert [data] into a string key. Return 'null' if this mapper cannot convert [data].
+     * Convert [data] into a string key. Return 'null' if this keyer cannot convert [data].
      *
      * @param data The data to convert.
      * @param options The options for this request.
