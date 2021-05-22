@@ -31,9 +31,9 @@ class BitmapFactoryDecoder(
 
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
 
-    override suspend fun decode() = runInterruptible { decodeInterruptible() }
+    override suspend fun decode() = runInterruptible { BitmapFactory.Options().decode() }
 
-    private fun decodeInterruptible() = BitmapFactory.Options().run {
+    private fun BitmapFactory.Options.decode(): DecodeResult {
         val safeSource = ExceptionCatchingSource(source.source())
         val safeBufferedSource = safeSource.buffer()
 
@@ -129,7 +129,7 @@ class BitmapFactoryDecoder(
         val bitmap = applyExifTransformations(outBitmap, inPreferredConfig, isFlipped, rotationDegrees)
         bitmap.density = Bitmap.DENSITY_NONE
 
-        DecodeResult(
+        return DecodeResult(
             drawable = bitmap.toDrawable(options.context),
             isSampled = inSampleSize > 1 || inScaled
         )
@@ -154,7 +154,6 @@ class BitmapFactoryDecoder(
         }
 
         // Decode the image as RGB_565 as an optimization if allowed.
-        // TODO: Peek the source to figure out its format (and if it has alpha) instead of relying on the MIME type.
         if (options.allowRgb565 && config == Bitmap.Config.ARGB_8888 && outMimeType == MIME_TYPE_JPEG) {
             config = Bitmap.Config.RGB_565
         }

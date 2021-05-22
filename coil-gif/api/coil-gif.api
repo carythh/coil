@@ -4,12 +4,16 @@ public final class coil/decode/GifDecoder : coil/decode/Decoder {
 	public static final field ANIMATION_START_CALLBACK_KEY Ljava/lang/String;
 	public static final field Companion Lcoil/decode/GifDecoder$Companion;
 	public static final field REPEAT_COUNT_KEY Ljava/lang/String;
-	public fun <init> ()V
-	public fun decode (Lokio/BufferedSource;Lcoil/decode/Options;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun handles (Lokio/BufferedSource;Ljava/lang/String;)Z
+	public fun <init> (Lcoil/decode/ImageSource;Lcoil/request/Options;)V
+	public fun decode (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class coil/decode/GifDecoder$Companion {
+}
+
+public final class coil/decode/GifDecoder$Factory : coil/decode/Decoder$Factory {
+	public fun <init> ()V
+	public fun create (Lcoil/fetch/SourceResult;Lcoil/request/Options;Lcoil/ImageLoader;)Lcoil/decode/Decoder;
 }
 
 public final class coil/decode/ImageDecoderDecoder : coil/decode/Decoder {
@@ -18,12 +22,16 @@ public final class coil/decode/ImageDecoderDecoder : coil/decode/Decoder {
 	public static final field ANIMATION_START_CALLBACK_KEY Ljava/lang/String;
 	public static final field Companion Lcoil/decode/ImageDecoderDecoder$Companion;
 	public static final field REPEAT_COUNT_KEY Ljava/lang/String;
-	public fun <init> (Landroid/content/Context;)V
-	public fun decode (Lokio/BufferedSource;Lcoil/decode/Options;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun handles (Lokio/BufferedSource;Ljava/lang/String;)Z
+	public fun <init> (Lcoil/decode/ImageSource;Lcoil/request/Options;)V
+	public fun decode (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class coil/decode/ImageDecoderDecoder$Companion {
+}
+
+public final class coil/decode/ImageDecoderDecoder$Factory : coil/decode/Decoder$Factory {
+	public fun <init> ()V
+	public fun create (Lcoil/fetch/SourceResult;Lcoil/request/Options;Lcoil/ImageLoader;)Lcoil/decode/Decoder;
 }
 
 public final class coil/drawable/MovieDrawable : android/graphics/drawable/Drawable, androidx/vectordrawable/graphics/drawable/Animatable2Compat {

@@ -1,3 +1,5 @@
+@file:JvmName("ImageSources")
+
 package coil.decode
 
 import coil.util.closeQuietly
@@ -8,6 +10,19 @@ import okio.source
 import java.io.Closeable
 import java.io.File
 
+@JvmOverloads
+@JvmName("create")
+fun ImageSource(
+    file: File,
+    source: BufferedSource? = null
+): ImageSource = FileImageSource(file, source)
+
+@JvmName("create")
+fun ImageSource(
+    source: BufferedSource,
+    cacheDirectory: File
+): ImageSource = SourceImageSource(source, cacheDirectory)
+
 sealed class ImageSource : Closeable {
 
     abstract val source: BufferedSource?
@@ -15,24 +30,6 @@ sealed class ImageSource : Closeable {
 
     abstract fun source(): BufferedSource
     abstract fun file(): File
-
-    companion object {
-
-        @JvmStatic
-        @JvmOverloads
-        @JvmName("create")
-        operator fun invoke(
-            file: File,
-            source: BufferedSource? = null
-        ): ImageSource = FileImageSource(file, source)
-
-        @JvmStatic
-        @JvmName("create")
-        operator fun invoke(
-            source: BufferedSource,
-            cacheDirectory: File
-        ): ImageSource = SourceImageSource(source, cacheDirectory)
-    }
 }
 
 private class FileImageSource(
