@@ -194,7 +194,6 @@ interface EventListener : ImageRequest.Listener {
             operator fun invoke(listener: EventListener) = Factory { listener }
         }
 
-        /** Return a new [EventListener]. */
         fun create(request: ImageRequest): EventListener
     }
 

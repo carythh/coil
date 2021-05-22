@@ -16,11 +16,11 @@ fun interface Decoder {
 
     suspend fun decode(): DecodeResult?
 
+    /** A factory that creates new [Decoder] instances. */
     fun interface Factory {
 
         /**
-         * Return a [Decoder] that can decode [result] or 'null' if this factory
-         * cannot create a decoder for the source.
+         * Return a [Decoder] that can decode [result] or 'null' if this factory cannot create a decoder for the source.
          *
          * Implementations **must not** consume [result]'s [ImageSource], as this can cause calls
          * to subsequent decoders to fail.

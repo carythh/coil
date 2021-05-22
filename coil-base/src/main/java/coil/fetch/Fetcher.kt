@@ -20,6 +20,7 @@ fun interface Fetcher {
 
     suspend fun fetch(): FetchResult?
 
+    /** A factory that creates new [Fetcher] instances. */
     fun interface Factory<T : Any> {
 
         fun create(data: T, options: Options, imageLoader: ImageLoader): Fetcher?
