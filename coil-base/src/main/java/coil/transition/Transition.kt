@@ -24,7 +24,6 @@ fun interface Transition {
     /** A factory that creates new [Transition] instances. */
     fun interface Factory {
 
-        /** Create a new [Transition]. */
         fun create(target: TransitionTarget, result: ImageResult): Transition
 
         companion object {
