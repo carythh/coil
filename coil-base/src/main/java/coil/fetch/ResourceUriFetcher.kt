@@ -12,7 +12,6 @@ import coil.util.getDrawableCompat
 import coil.util.getMimeTypeFromUrl
 import coil.util.getXmlDrawableCompat
 import coil.util.isVector
-import coil.util.safeCacheDir
 import coil.util.toDrawable
 import okio.buffer
 import okio.source
@@ -61,7 +60,7 @@ internal class ResourceUriFetcher(
             SourceResult(
                 source = ImageSource(
                     source = resources.openRawResource(resId).source().buffer(),
-                    cacheDirectory = context.safeCacheDir
+                    context = context
                 ),
                 mimeType = mimeType,
                 dataSource = DataSource.MEMORY

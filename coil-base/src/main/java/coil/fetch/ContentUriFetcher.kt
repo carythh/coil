@@ -9,7 +9,6 @@ import coil.ImageLoader
 import coil.decode.DataSource
 import coil.decode.ImageSource
 import coil.request.Options
-import coil.util.safeCacheDir
 import okio.buffer
 import okio.source
 import java.io.InputStream
@@ -31,10 +30,7 @@ internal class ContentUriFetcher(
         }
 
         return SourceResult(
-            source = ImageSource(
-                source = inputStream.source().buffer(),
-                cacheDirectory = context.safeCacheDir
-            ),
+            source = ImageSource(inputStream.source().buffer(), context),
             mimeType = context.contentResolver.getType(data),
             dataSource = DataSource.DISK
         )

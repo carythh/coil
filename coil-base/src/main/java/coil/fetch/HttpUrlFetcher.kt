@@ -13,7 +13,6 @@ import coil.util.await
 import coil.util.cacheFile
 import coil.util.dispatcher
 import coil.util.getMimeTypeFromUrl
-import coil.util.safeCacheDir
 import kotlinx.coroutines.MainCoroutineDispatcher
 import okhttp3.CacheControl
 import okhttp3.Call
@@ -79,13 +78,15 @@ internal class HttpUrlFetcher(
         val cacheFile = response.cacheFile
         val source = body.source()
         val imageSource = if (cacheFile != null && cacheFile.exists()) {
-            // Read the file into the disk cache.
-            source.readAll(blackholeSink())
+            // Read the file into the disk cache if it isn't already cached.
+            if (response.cacheResponse == null) {
+                source.readAll(blackholeSink())
+            }
             ImageSource(cacheFile, source)
         } else {
             // Buffer the file into memory.
             source.peek().readAll(blackholeSink())
-            ImageSource(source, options.context.safeCacheDir)
+            ImageSource(source, options.context)
         }
 
         return SourceResult(

@@ -4,7 +4,6 @@ import coil.ImageLoader
 import coil.decode.DataSource
 import coil.decode.ImageSource
 import coil.request.Options
-import coil.util.safeCacheDir
 import okio.Buffer
 import java.nio.ByteBuffer
 
@@ -17,7 +16,7 @@ internal class ByteBufferFetcher(
         return SourceResult(
             source = ImageSource(
                 source = Buffer().apply { write(data) },
-                cacheDirectory = options.context.safeCacheDir
+                context = options.context
             ),
             mimeType = null,
             dataSource = DataSource.MEMORY

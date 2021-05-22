@@ -9,7 +9,6 @@ import coil.decode.ImageSource
 import coil.request.Options
 import coil.util.firstPathSegment
 import coil.util.getMimeTypeFromUrl
-import coil.util.safeCacheDir
 import okio.buffer
 import okio.source
 
@@ -24,7 +23,7 @@ internal class AssetUriFetcher(
         return SourceResult(
             source = ImageSource(
                 source = options.context.assets.open(path).source().buffer(),
-                cacheDirectory = options.context.safeCacheDir
+                context = options.context
             ),
             mimeType = MimeTypeMap.getSingleton().getMimeTypeFromUrl(path),
             dataSource = DataSource.DISK

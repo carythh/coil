@@ -2,7 +2,9 @@
 
 package coil.decode
 
+import android.content.Context
 import coil.util.closeQuietly
+import coil.util.safeCacheDir
 import okio.BufferedSource
 import okio.buffer
 import okio.sink
@@ -16,6 +18,12 @@ fun ImageSource(
     file: File,
     source: BufferedSource? = null
 ): ImageSource = FileImageSource(file, source)
+
+@JvmName("create")
+fun ImageSource(
+    source: BufferedSource,
+    context: Context
+): ImageSource = SourceImageSource(source, context.safeCacheDir)
 
 @JvmName("create")
 fun ImageSource(
