@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
+import coil.request.CachePolicy
 import coil.request.SuccessResult
 import coil.result
 import coil.sample.ImageListAdapter.ViewHolder
@@ -23,7 +24,7 @@ class ImageListAdapter(
 
     private val maxColumnWidth = 320.dp(context)
     private val displayWidth = context.getDisplaySize().width
-    val numColumns = ceil(displayWidth / maxColumnWidth).toInt().coerceAtLeast(3)
+    val numColumns = ceil(displayWidth / maxColumnWidth).toInt().coerceAtLeast(6)
     private val columnWidth = (displayWidth / numColumns.toDouble()).roundToInt()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -43,6 +44,7 @@ class ImageListAdapter(
             load(item.uri) {
                 placeholder(ColorDrawable(item.color))
                 parameters(item.parameters)
+                memoryCachePolicy(CachePolicy.WRITE_ONLY)
             }
 
             setOnClickListener {

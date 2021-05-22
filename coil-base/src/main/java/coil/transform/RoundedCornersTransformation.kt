@@ -103,12 +103,4 @@ class RoundedCornersTransformation(
         result = 31 * result + bottomRight.hashCode()
         return result
     }
-
-    override fun toString(): String {
-        return "RoundedCornersTransformation(" +
-            "topLeft=$topLeft, " +
-            "topRight=$topRight, " +
-            "bottomLeft=$bottomLeft, " +
-            "bottomRight=$bottomRight)"
-    }
 }

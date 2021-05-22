@@ -17,6 +17,4 @@ open class ImageViewTarget(override val view: ImageView) : GenericViewTarget<Ima
     }
 
     override fun hashCode() = view.hashCode()
-
-    override fun toString() = "ImageViewTarget(view=$view)"
 }

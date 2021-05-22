@@ -65,7 +65,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 val url: String
                 val color: Int
                 if (assetType == AssetType.JPG) {
-                    url = image.getJSONObject("urls").getString("regular")
+                    url = image.getJSONObject("urls").getString("raw")
                     color = image.getString("color").toColorInt()
                 } else {
                     url = image.getString("url")
