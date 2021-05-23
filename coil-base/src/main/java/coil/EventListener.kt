@@ -19,6 +19,7 @@ import coil.request.SuccessResult
 import coil.size.Size
 import coil.size.SizeResolver
 import coil.transform.Transformation
+import coil.transition.NoneTransition
 import coil.transition.Transition
 import coil.transition.TransitionTarget
 
@@ -61,8 +62,8 @@ interface EventListener : ImageRequest.Listener {
     /**
      * Called after [Mapper.map].
      *
-     * @param output The data after it has been converted. If there were no applicable mappers,
-     *  [output] will be the same as [ImageRequest.data].
+     * @param output The data after it has been converted. If there were no
+     *  applicable mappers, [output] will be the same as [ImageRequest.data].
      */
     @AnyThread
     fun mapEnd(request: ImageRequest, output: Any) {}
@@ -78,8 +79,8 @@ interface EventListener : ImageRequest.Listener {
     /**
      * Called after [Keyer.key].
      *
-     * @param output The data after it has been converted into a string key. If [output] is
-     *  'null' it will not be cached in the memory cache.
+     * @param output The data after it has been converted into a string key.
+     *  If [output] is 'null' it will not be cached in the memory cache.
      */
     @AnyThread
     fun keyEnd(request: ImageRequest, output: String?) {}
@@ -149,20 +150,20 @@ interface EventListener : ImageRequest.Listener {
     /**
      * Called before [Transition.transition].
      *
-     * This is skipped if [ImageRequest.transition] is [Transition.NONE]
+     * This is skipped if [transition] is a [NoneTransition]
      * or [ImageRequest.target] does not implement [TransitionTarget].
      */
     @MainThread
-    fun transitionStart(request: ImageRequest) {}
+    fun transitionStart(request: ImageRequest, transition: Transition) {}
 
     /**
      * Called after [Transition.transition].
      *
-     * This is skipped if [ImageRequest.transition] is [Transition.NONE]
+     * This is skipped if [transition] is a [NoneTransition]
      * or [ImageRequest.target] does not implement [TransitionTarget].
      */
     @MainThread
-    fun transitionEnd(request: ImageRequest) {}
+    fun transitionEnd(request: ImageRequest, transition: Transition) {}
 
     /**
      * @see ImageRequest.Listener.onCancel

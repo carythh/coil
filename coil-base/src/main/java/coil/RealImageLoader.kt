@@ -33,6 +33,7 @@ import coil.request.SuccessResult
 import coil.request.ViewTargetDisposable
 import coil.target.Target
 import coil.target.ViewTarget
+import coil.transition.NoneTransition
 import coil.transition.TransitionTarget
 import coil.util.Emoji
 import coil.util.ImageLoaderOptions
@@ -209,11 +210,7 @@ internal class RealImageLoader(
         val request = result.request
         val dataSource = result.dataSource
         logger?.log(TAG, Log.INFO) { "${dataSource.emoji} Successful (${dataSource.name}) - ${request.data}" }
-        if (target is TransitionTarget) {
-            transition(result, target, eventListener)
-        } else {
-            target?.onSuccess(result.drawable)
-        }
+        transition(result, target, eventListener) { target?.onSuccess(result.drawable) }
         eventListener.onSuccess(request, result)
         request.listener?.onSuccess(request, result)
     }
@@ -225,11 +222,7 @@ internal class RealImageLoader(
     ) {
         val request = result.request
         logger?.log(TAG, Log.INFO) { "${Emoji.SIREN} Failed - ${request.data} - ${result.throwable}" }
-        if (target is TransitionTarget) {
-            transition(result, target, eventListener)
-        } else {
-            target?.onError(result.drawable)
-        }
+        transition(result, target, eventListener) { target?.onError(result.drawable) }
         eventListener.onError(request, result)
         request.listener?.onError(request, result)
     }
@@ -242,13 +235,24 @@ internal class RealImageLoader(
 
     private suspend inline fun transition(
         result: ImageResult,
-        target: TransitionTarget,
-        eventListener: EventListener
+        target: Target?,
+        eventListener: EventListener,
+        setDrawable: () -> Unit
     ) {
+        if (target !is TransitionTarget) {
+            setDrawable()
+            return
+        }
+
         val transition = result.request.transitionFactory.create(target, result)
-        eventListener.transitionStart(result.request)
+        if (transition is NoneTransition) {
+            setDrawable()
+            return
+        }
+
+        eventListener.transitionStart(result.request, transition)
         transition.transition()
-        eventListener.transitionEnd(result.request)
+        eventListener.transitionEnd(result.request, transition)
     }
 
     companion object {
