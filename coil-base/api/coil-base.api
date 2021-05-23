@@ -47,8 +47,8 @@ public abstract interface class coil/EventListener : coil/request/ImageRequest$L
 	public fun resolveSizeStart (Lcoil/request/ImageRequest;)V
 	public fun transformEnd (Lcoil/request/ImageRequest;Landroid/graphics/Bitmap;)V
 	public fun transformStart (Lcoil/request/ImageRequest;Landroid/graphics/Bitmap;)V
-	public fun transitionEnd (Lcoil/request/ImageRequest;)V
-	public fun transitionStart (Lcoil/request/ImageRequest;)V
+	public fun transitionEnd (Lcoil/request/ImageRequest;Lcoil/transition/Transition;)V
+	public fun transitionStart (Lcoil/request/ImageRequest;Lcoil/transition/Transition;)V
 }
 
 public final class coil/EventListener$Companion {
@@ -190,10 +190,10 @@ public abstract class coil/decode/ImageSource : java/io/Closeable {
 
 public final class coil/decode/ImageSources {
 	public static final fun create (Ljava/io/File;)Lcoil/decode/ImageSource;
-	public static final fun create (Ljava/io/File;Lokio/BufferedSource;)Lcoil/decode/ImageSource;
+	public static final fun create (Ljava/io/File;Ljava/io/Closeable;)Lcoil/decode/ImageSource;
 	public static final fun create (Lokio/BufferedSource;Landroid/content/Context;)Lcoil/decode/ImageSource;
 	public static final fun create (Lokio/BufferedSource;Ljava/io/File;)Lcoil/decode/ImageSource;
-	public static synthetic fun create$default (Ljava/io/File;Lokio/BufferedSource;ILjava/lang/Object;)Lcoil/decode/ImageSource;
+	public static synthetic fun create$default (Ljava/io/File;Ljava/io/Closeable;ILjava/lang/Object;)Lcoil/decode/ImageSource;
 }
 
 public final class coil/drawable/CrossfadeDrawable : android/graphics/drawable/Drawable, android/graphics/drawable/Drawable$Callback, androidx/vectordrawable/graphics/drawable/Animatable2Compat {

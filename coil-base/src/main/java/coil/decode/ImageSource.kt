@@ -12,19 +12,39 @@ import okio.source
 import java.io.Closeable
 import java.io.File
 
+/**
+ * Create a new [ImageSource] backed by a [File].
+ *
+ * @param file The file to read from.
+ * @param closeable An optional closeable reference that will
+ *  be closed when the image source is closed.
+ */
 @JvmOverloads
 @JvmName("create")
 fun ImageSource(
     file: File,
-    source: BufferedSource? = null
-): ImageSource = FileImageSource(file, source)
+    closeable: Closeable? = null
+): ImageSource = FileImageSource(file, closeable)
 
+/**
+ * Create a new [ImageSource] backed by a [BufferedSource].
+ *
+ * @param source The buffered source to read from.
+ * @param context A context used to resolve a safe cache directory.
+ */
 @JvmName("create")
 fun ImageSource(
     source: BufferedSource,
     context: Context
 ): ImageSource = SourceImageSource(source, context.safeCacheDir)
 
+/**
+ * Create a new [ImageSource] backed by a [BufferedSource].
+ *
+ * @param source The buffered source to read from.
+ * @param cacheDirectory The directory to create temporary files in
+ *  if [ImageSource.file] is called.
+ */
 @JvmName("create")
 fun ImageSource(
     source: BufferedSource,
@@ -33,19 +53,37 @@ fun ImageSource(
 
 sealed class ImageSource : Closeable {
 
+    /**
+     * Return the underlying [BufferedSource] for this [ImageSource] if it exists.
+     * If this is null, [file] is guaranteed to be not null.
+     */
     abstract val source: BufferedSource?
+
+    /**
+     * Return the underlying [File] for this [ImageSource] if it exists.
+     * If this is null, [source] is guaranteed to be not null.
+     */
     abstract val file: File?
 
+    /**
+     * Return a [BufferedSource] to read this [ImageSource].
+     * The source returned by this method is reused for subsequent calls.
+     */
     abstract fun source(): BufferedSource
+
+    /**
+     * Return a [File] containing this [ImageSource]'s data.
+     * If this image source is backed by a [BufferedSource], a temporary file
+     * on disk will be created.
+     */
     abstract fun file(): File
 }
 
 private class FileImageSource(
     override val file: File,
-    source: BufferedSource?
+    private val closeable: Closeable?
 ) : ImageSource() {
 
-    private val _source = source
     private var isClosed = false
     private var tempSource: BufferedSource? = null
 
@@ -68,7 +106,7 @@ private class FileImageSource(
     override fun close() {
         isClosed = true
         tempSource?.closeQuietly()
-        _source?.closeQuietly()
+        closeable?.closeQuietly()
     }
 
     private fun assertNotClosed() {
