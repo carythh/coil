@@ -19,8 +19,10 @@ import android.widget.ImageView.ScaleType.FIT_CENTER
 import android.widget.ImageView.ScaleType.FIT_END
 import android.widget.ImageView.ScaleType.FIT_START
 import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat
+import coil.ComponentRegistry
 import coil.base.R
 import coil.decode.DataSource
+import coil.fetch.Fetcher
 import coil.memory.MemoryCache
 import coil.memory.ViewTargetRequestManager
 import coil.request.DefaultRequestOptions
@@ -146,3 +148,7 @@ internal var Target.result: ImageResult?
 internal inline operator fun MemoryCache.get(key: MemoryCache.Key?) = key?.let(::get)
 
 internal val Context.safeCacheDir: File get() = cacheDir.apply { mkdirs() }
+
+@Suppress("UNCHECKED_CAST")
+internal inline fun ComponentRegistry.Builder.add(pair: Pair<Fetcher.Factory<*>, Class<*>>) =
+    add(pair.first as Fetcher.Factory<Any>, pair.second as Class<Any>)

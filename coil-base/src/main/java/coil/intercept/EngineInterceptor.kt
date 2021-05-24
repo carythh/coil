@@ -6,6 +6,7 @@ import android.graphics.drawable.Drawable
 import android.util.Log
 import androidx.annotation.VisibleForTesting
 import androidx.collection.arrayMapOf
+import coil.ComponentRegistry
 import coil.EventListener
 import coil.ImageLoader
 import coil.decode.DataSource
@@ -88,7 +89,7 @@ internal class EngineInterceptor(
             // Fetch, decode, transform, and cache the image.
             return withContext(Dispatchers.Unconfined) {
                 // Fetch and decode the image.
-                val (drawable, isSampled, dataSource) = execute(mappedData, request, options, eventListener)
+                val (drawable, isSampled, dataSource) = execute(request, mappedData, options, eventListener)
 
                 // Cache the result in the memory cache.
                 val isMemoryCached = writeToMemoryCache(memoryCacheKey, request, drawable, isSampled)
@@ -230,26 +231,27 @@ internal class EngineInterceptor(
 
     /** Execute the [Fetcher], decode any data into a [Drawable], and apply any [Transformation]s. */
     private suspend inline fun execute(
-        mappedData: Any,
         request: ImageRequest,
-        options: Options,
+        mappedData: Any,
+        baseOptions: Options,
         eventListener: EventListener
     ): DrawableResult {
-        var newOptions = options
+        var options = baseOptions
         var fetchResult: FetchResult? = null
         val drawableResult = try {
             // Fetch the data.
+            val components = requestService.components(request)
             fetchResult = withContext(request.fetcherDispatcher) {
-                if (!requestService.allowHardwareWorkerThread(options)) {
-                    newOptions = options.copy(config = Bitmap.Config.ARGB_8888)
+                if (!requestService.allowHardwareWorkerThread(baseOptions)) {
+                    options = baseOptions.copy(config = Bitmap.Config.ARGB_8888)
                 }
-                fetch(request, mappedData, newOptions, eventListener)
+                fetch(components, request, mappedData, options, eventListener)
             }
 
             // Decode the data.
             when (fetchResult) {
                 is SourceResult -> withContext(request.decoderDispatcher) {
-                    decode(fetchResult, request, mappedData, newOptions, eventListener)
+                    decode(fetchResult, components, request, mappedData, options, eventListener)
                 }
                 is DrawableResult -> fetchResult
             }
@@ -259,12 +261,13 @@ internal class EngineInterceptor(
         }
 
         // Apply any transformations and prepare to draw.
-        val finalResult = applyTransformations(drawableResult, request, newOptions, eventListener)
+        val finalResult = applyTransformations(drawableResult, request, options, eventListener)
         (finalResult.drawable as? BitmapDrawable)?.bitmap?.prepareToDraw()
         return finalResult
     }
 
     private suspend inline fun fetch(
+        components: ComponentRegistry,
         request: ImageRequest,
         mappedData: Any,
         options: Options,
@@ -273,7 +276,7 @@ internal class EngineInterceptor(
         val fetchResult: FetchResult
         var searchIndex = 0
         while (true) {
-            val pair = imageLoader.components.newFetcher(mappedData, options, imageLoader, searchIndex)
+            val pair = components.newFetcher(mappedData, options, imageLoader, searchIndex)
             checkNotNull(pair) { "Unable to create a fetcher that supports: $mappedData" }
             val fetcher = pair.first
             searchIndex = pair.second + 1
@@ -298,6 +301,7 @@ internal class EngineInterceptor(
 
     private suspend inline fun decode(
         fetchResult: SourceResult,
+        components: ComponentRegistry,
         request: ImageRequest,
         mappedData: Any,
         options: Options,
@@ -306,7 +310,7 @@ internal class EngineInterceptor(
         val decodeResult: DecodeResult
         var searchIndex = 0
         while (true) {
-            val pair = imageLoader.components.newDecoder(fetchResult, options, imageLoader, searchIndex)
+            val pair = components.newDecoder(fetchResult, options, imageLoader, searchIndex)
             checkNotNull(pair) { "Unable to create a decoder that supports: $mappedData" }
             val decoder = pair.first
             searchIndex = pair.second + 1
