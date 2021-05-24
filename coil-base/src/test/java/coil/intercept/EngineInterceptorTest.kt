@@ -80,7 +80,7 @@ class EngineInterceptorTest {
         val fetcher = createFakeFetcher(key = null)
         val size = OriginalSize
         val key = runBlocking {
-            interceptor.newMemoryCacheKey(request, Unit, fetcher, size)
+            interceptor.getMemoryCacheKey(request, Unit, fetcher, size)
         }
 
         assertNull(key)
@@ -92,7 +92,7 @@ class EngineInterceptorTest {
         val fetcher = createFakeFetcher()
         val size = OriginalSize
         val result = runBlocking {
-            interceptor.newMemoryCacheKey(request, Unit, fetcher, size)
+            interceptor.getMemoryCacheKey(request, Unit, fetcher, size)
         }
 
         assertEquals(Key("base_key", Parameters.EMPTY), result)
@@ -107,7 +107,7 @@ class EngineInterceptorTest {
         val fetcher = createFakeFetcher()
         val size = OriginalSize
         val result = runBlocking {
-            interceptor.newMemoryCacheKey(request, Unit, fetcher, size)
+            interceptor.getMemoryCacheKey(request, Unit, fetcher, size)
         }
 
         assertEquals(Key("base_key", parameters), result)
@@ -122,7 +122,7 @@ class EngineInterceptorTest {
         val fetcher = createFakeFetcher()
         val size = PixelSize(123, 332)
         val result = runBlocking {
-            interceptor.newMemoryCacheKey(request, Unit, fetcher, size)
+            interceptor.getMemoryCacheKey(request, Unit, fetcher, size)
         }
 
         assertEquals(Key("base_key", transformations, size, Parameters.EMPTY), result)
@@ -139,7 +139,7 @@ class EngineInterceptorTest {
         val fetcher = createFakeFetcher()
         val size = OriginalSize
         val result = runBlocking {
-            interceptor.newMemoryCacheKey(request, Unit, fetcher, size)
+            interceptor.getMemoryCacheKey(request, Unit, fetcher, size)
         }
 
         assertEquals(Key("base_key", transformations, size, parameters), result)

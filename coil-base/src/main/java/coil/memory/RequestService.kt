@@ -4,7 +4,6 @@ import android.graphics.Bitmap
 import androidx.annotation.MainThread
 import androidx.annotation.WorkerThread
 import androidx.lifecycle.LifecycleObserver
-import coil.ComponentRegistry
 import coil.ImageLoader
 import coil.request.CachePolicy
 import coil.request.ErrorResult
@@ -18,7 +17,6 @@ import coil.transform.Transformation
 import coil.util.Logger
 import coil.util.SystemCallbacks
 import coil.util.Utils
-import coil.util.add
 import coil.util.allowInexactSize
 import coil.util.isHardware
 import coil.util.requestManager
@@ -71,18 +69,7 @@ internal class RequestService(
         )
     }
 
-    /** Create the [ComponentRegistry] for [request]. */
-    fun components(request: ImageRequest): ComponentRegistry {
-        if (request.fetcherFactory == null && request.decoderFactory == null) {
-            return imageLoader.components
-        }
-
-        val builder = imageLoader.components.newBuilder()
-        request.fetcherFactory?.let(builder::add)
-        request.decoderFactory?.let(builder::add)
-        return builder.build()
-    }
-
+    /** The function is called from the main thread and must be fast. */
     fun options(request: ImageRequest, size: Size): Options {
         // Fall back to ARGB_8888 if the requested bitmap config does not pass the checks.
         val isValidConfig = isConfigValidForTransformations(request) &&

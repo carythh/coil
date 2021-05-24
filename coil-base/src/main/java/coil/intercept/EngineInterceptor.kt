@@ -29,6 +29,7 @@ import coil.size.Size
 import coil.transform.Transformation
 import coil.util.Logger
 import coil.util.Utils
+import coil.util.add
 import coil.util.allowInexactSize
 import coil.util.closeQuietly
 import coil.util.foldIndices
@@ -69,24 +70,23 @@ internal class EngineInterceptor(
             eventListener.mapEnd(request, mappedData)
 
             // Check the memory cache.
-            val memoryCacheKey = request.memoryCacheKey
-                ?: newMemoryCacheKey(mappedData, options, request, size, eventListener)
-            val value = if (request.memoryCachePolicy.readEnabled) imageLoader.memoryCache[memoryCacheKey] else null
+            val memoryCacheKey = getMemoryCacheKey(mappedData, options, request, size, eventListener)
+            val memoryCacheValue = getMemoryCacheValue(request, memoryCacheKey)
 
-            // Short circuit if the cached bitmap is valid.
-            if (value != null && isCachedValueValid(memoryCacheKey, value, request, size)) {
+            // Fast path: return the value from the memory cache.
+            if (memoryCacheValue != null && isCachedValueValid(memoryCacheKey, memoryCacheValue, request, size)) {
                 return SuccessResult(
-                    drawable = value.bitmap.toDrawable(context),
+                    drawable = memoryCacheValue.bitmap.toDrawable(context),
                     request = request,
                     memoryCacheKey = memoryCacheKey,
                     diskCacheFile = null,
-                    isSampled = value.isSampled,
+                    isSampled = memoryCacheValue.isSampled,
                     dataSource = DataSource.MEMORY_CACHE,
                     isPlaceholderMemoryCacheKeyPresent = chain.cached != null
                 )
             }
 
-            // Fetch, decode, transform, and cache the image.
+            // Slow path: fetch, decode, transform, and cache the image.
             return withContext(Dispatchers.Unconfined) {
                 // Fetch and decode the image.
                 val (drawable, isSampled, dataSource) = execute(request, mappedData, options, eventListener)
@@ -114,15 +114,19 @@ internal class EngineInterceptor(
         }
     }
 
-    /** Create the memory cache key for this request. */
+    /** Get the memory cache key for this request. */
     @VisibleForTesting
-    internal fun newMemoryCacheKey(
+    internal fun getMemoryCacheKey(
         mappedData: Any,
         options: Options,
         request: ImageRequest,
         size: Size,
         eventListener: EventListener
     ): MemoryCache.Key? {
+        // Fast path: an explicit memory cache key has been set.
+        request.memoryCacheKey?.let { return it }
+
+        // Slow path: create a new memory cache key.
         eventListener.keyStart(request, mappedData)
         val base = imageLoader.components.key(mappedData, options)
         eventListener.keyEnd(request, base)
@@ -143,6 +147,11 @@ internal class EngineInterceptor(
             }
         }
         return MemoryCache.Key(base, extras)
+    }
+
+    /** Get the memory cache value for this request. */
+    private fun getMemoryCacheValue(request: ImageRequest, memoryCacheKey: MemoryCache.Key?): MemoryCache.Value? {
+        return if (request.memoryCachePolicy.readEnabled) imageLoader.memoryCache[memoryCacheKey] else null
     }
 
     /** Return 'true' if [cacheValue] satisfies the [request]. */
@@ -233,17 +242,23 @@ internal class EngineInterceptor(
     private suspend inline fun execute(
         request: ImageRequest,
         mappedData: Any,
-        baseOptions: Options,
+        requestOptions: Options,
         eventListener: EventListener
     ): DrawableResult {
-        var options = baseOptions
+        var options = requestOptions
+        var components = imageLoader.components
         var fetchResult: FetchResult? = null
         val drawableResult = try {
             // Fetch the data.
-            val components = requestService.components(request)
             fetchResult = withContext(request.fetcherDispatcher) {
-                if (!requestService.allowHardwareWorkerThread(baseOptions)) {
-                    options = baseOptions.copy(config = Bitmap.Config.ARGB_8888)
+                if (request.fetcherFactory != null || request.decoderFactory != null) {
+                    components = components.newBuilder()
+                        .add(request.fetcherFactory)
+                        .add(request.decoderFactory)
+                        .build()
+                }
+                if (!requestService.allowHardwareWorkerThread(options)) {
+                    options = options.copy(config = Bitmap.Config.ARGB_8888)
                 }
                 fetch(components, request, mappedData, options, eventListener)
             }

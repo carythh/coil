@@ -28,7 +28,7 @@ internal sealed class HardwareBitmapService {
     @MainThread
     abstract fun allowHardwareMainThread(size: Size): Boolean
 
-    /** Return 'true' if we are currently able to create [Bitmap.Config.HARDWARE]. */
+    /** The same as [allowHardwareMainThread] except perform any checks that cannot be done on the main thread. */
     @WorkerThread
     abstract fun allowHardwareWorkerThread(): Boolean
 }
@@ -69,7 +69,7 @@ private object FileDescriptorCounter {
 
     private const val TAG = "FileDescriptorCounter"
     private const val FILE_DESCRIPTOR_LIMIT = 800
-    private const val FILE_DESCRIPTOR_CHECK_INTERVAL_DECODES = 50
+    private const val FILE_DESCRIPTOR_CHECK_INTERVAL_DECODES = 30
     private const val FILE_DESCRIPTOR_CHECK_INTERVAL_MILLIS = 30_000
 
     private val fileDescriptorList = File("/proc/self/fd")

@@ -22,6 +22,7 @@ import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat
 import coil.ComponentRegistry
 import coil.base.R
 import coil.decode.DataSource
+import coil.decode.Decoder
 import coil.fetch.Fetcher
 import coil.memory.MemoryCache
 import coil.memory.ViewTargetRequestManager
@@ -150,5 +151,10 @@ internal inline operator fun MemoryCache.get(key: MemoryCache.Key?) = key?.let(:
 internal val Context.safeCacheDir: File get() = cacheDir.apply { mkdirs() }
 
 @Suppress("UNCHECKED_CAST")
-internal inline fun ComponentRegistry.Builder.add(pair: Pair<Fetcher.Factory<*>, Class<*>>) =
-    add(pair.first as Fetcher.Factory<Any>, pair.second as Class<Any>)
+internal inline fun ComponentRegistry.Builder.add(
+    pair: Pair<Fetcher.Factory<*>, Class<*>>?
+) = if (pair == null) this else add(pair.first as Fetcher.Factory<Any>, pair.second as Class<Any>)
+
+internal inline fun ComponentRegistry.Builder.add(factory: Decoder.Factory?) =
+    if (factory == null) this else add(factory)
+
