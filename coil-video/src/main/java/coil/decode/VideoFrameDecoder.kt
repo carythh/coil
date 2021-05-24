@@ -21,6 +21,7 @@ import coil.request.videoFrameOption
 import coil.size.OriginalSize
 import coil.size.PixelSize
 import coil.size.Size
+import coil.util.use
 import kotlin.math.roundToInt
 
 /**
