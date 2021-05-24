@@ -3,7 +3,9 @@ package coil.memory
 import android.graphics.Bitmap
 import android.os.Build
 import android.os.Build.VERSION.SDK_INT
+import android.os.SystemClock
 import android.util.Log
+import androidx.annotation.MainThread
 import androidx.annotation.WorkerThread
 import coil.size.PixelSize
 import coil.size.Size
@@ -22,29 +24,34 @@ internal sealed class HardwareBitmapService {
         }
     }
 
-    /** Return 'true' if we can currently use [Bitmap.Config.HARDWARE]. */
-    abstract fun allowHardware(size: Size): Boolean
+    /** Return 'true' if we are currently able to create [Bitmap.Config.HARDWARE]. */
+    @MainThread
+    abstract fun allowHardwareMainThread(size: Size): Boolean
+
+    /** Return 'true' if we are currently able to create [Bitmap.Config.HARDWARE]. */
+    @WorkerThread
+    abstract fun allowHardwareWorkerThread(): Boolean
 }
 
-/** Returns a fixed value for [allowHardware]. */
+/** Returns a fixed value for [allowHardwareMainThread] and [allowHardwareWorkerThread]. */
 private class ImmutableHardwareBitmapService(private val allowHardware: Boolean) : HardwareBitmapService() {
-
-    override fun allowHardware(size: Size) = allowHardware
+    override fun allowHardwareMainThread(size: Size) = allowHardware
+    override fun allowHardwareWorkerThread() = allowHardware
 }
 
+/** Guards against running out of file descriptors. */
 private class LimitedFileDescriptorHardwareBitmapService(private val logger: Logger?) : HardwareBitmapService() {
 
-    override fun allowHardware(size: Size): Boolean {
-        // Don't use up file descriptors on small bitmaps.
-        if (size is PixelSize && (size.width < MIN_SIZE_DIMENSION || size.height < MIN_SIZE_DIMENSION)) {
-            return false
-        }
+    override fun allowHardwareMainThread(size: Size): Boolean {
+        return size !is PixelSize || (size.width >= MIN_SIZE_DIMENSION && size.height >= MIN_SIZE_DIMENSION)
+    }
 
+    override fun allowHardwareWorkerThread(): Boolean {
         return FileDescriptorCounter.hasAvailableFileDescriptors(logger)
     }
 
     companion object {
-        private const val MIN_SIZE_DIMENSION = 75
+        private const val MIN_SIZE_DIMENSION = 100
     }
 }
 
@@ -57,40 +64,43 @@ private class LimitedFileDescriptorHardwareBitmapService(private val logger: Log
  * too close to the limit, as passing the limit can cause crashes and/or rendering issues.
  *
  * NOTE: This must be a singleton as file descriptor usage is shared for the entire process.
- *
- * Adapted from [Glide](https://github.com/bumptech/glide)'s HardwareConfigState.
- * Glide's license information is available [here](https://github.com/bumptech/glide/blob/master/LICENSE).
  */
 private object FileDescriptorCounter {
 
     private const val TAG = "FileDescriptorCounter"
-
-    private const val FILE_DESCRIPTOR_LIMIT = 750
-    private const val FILE_DESCRIPTOR_CHECK_INTERVAL = 50
+    private const val FILE_DESCRIPTOR_LIMIT = 800
+    private const val FILE_DESCRIPTOR_CHECK_INTERVAL_DECODES = 50
+    private const val FILE_DESCRIPTOR_CHECK_INTERVAL_MILLIS = 30_000
 
     private val fileDescriptorList = File("/proc/self/fd")
-    private var decodesSinceLastFileDescriptorCheck = 0
+    private var decodesSinceLastFileDescriptorCheck = FILE_DESCRIPTOR_CHECK_INTERVAL_DECODES
+    private var lastFileDescriptorCheckTimestamp = SystemClock.uptimeMillis()
     private var hasAvailableFileDescriptors = true
 
     @Synchronized
     @WorkerThread
     fun hasAvailableFileDescriptors(logger: Logger?): Boolean {
-        // Only check if we have available file descriptors after a
-        // set amount of decodes since it's expensive (1-2 milliseconds).
-        if (decodesSinceLastFileDescriptorCheck++ >= FILE_DESCRIPTOR_CHECK_INTERVAL) {
+        if (checkFileDescriptors()) {
             decodesSinceLastFileDescriptorCheck = 0
+            lastFileDescriptorCheckTimestamp = SystemClock.uptimeMillis()
 
             val numUsedFileDescriptors = fileDescriptorList.list().orEmpty().count()
             hasAvailableFileDescriptors = numUsedFileDescriptors < FILE_DESCRIPTOR_LIMIT
-
             if (!hasAvailableFileDescriptors) {
                 logger?.log(TAG, Log.WARN) {
-                    "Unable to allocate more hardware bitmaps. Number of used file descriptors: $numUsedFileDescriptors"
+                    "Unable to allocate more hardware bitmaps. " +
+                        "Number of used file descriptors: $numUsedFileDescriptors"
                 }
             }
         }
-
         return hasAvailableFileDescriptors
+    }
+
+    private fun checkFileDescriptors(): Boolean {
+        // Only check if we have available file descriptors after a
+        // set amount of time/decodes since it's expensive (1-2 milliseconds).
+        return decodesSinceLastFileDescriptorCheck++ >= FILE_DESCRIPTOR_CHECK_INTERVAL_DECODES ||
+            SystemClock.uptimeMillis() > lastFileDescriptorCheckTimestamp + FILE_DESCRIPTOR_CHECK_INTERVAL_MILLIS
     }
 }
 

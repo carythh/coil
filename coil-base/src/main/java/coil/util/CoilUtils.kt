@@ -27,9 +27,9 @@ object CoilUtils {
     /**
      * Get the [File] for a [url] in [diskCache].
      *
-     * NOTE: This function does not imply the returned [File] exists. Callers should always
-     * check [File.exists] before using. Additionally, if the file does exist it can be deleted
-     * at any moment (especially if new entries are actively being added to [diskCache]).
+     * NOTE: This function **does not** imply that the returned [File] exists. Callers should
+     * always check [File.exists] before using. Additionally, if the file does exist it can be
+     * deleted at any moment (especially if new entries are actively being added to [diskCache]).
      */
     @JvmStatic
     fun getDiskCacheFile(diskCache: Cache, url: HttpUrl): File {
@@ -48,7 +48,7 @@ object CoilUtils {
     }
 
     /**
-     * Get the metadata of the successful request attached to this view.
+     * Get the [ImageResult] of the most recent executed image request attached to this view.
      */
     @JvmStatic
     fun result(view: View): ImageResult? {

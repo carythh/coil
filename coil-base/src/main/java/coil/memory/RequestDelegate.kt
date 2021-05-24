@@ -41,15 +41,16 @@ internal class BaseRequestDelegate(
     }
 }
 
-/** A request delegate for requests with a [ViewTarget]. */
+/** A request delegate for restartable requests with a [ViewTarget]. */
 internal class ViewTargetRequestDelegate(
     private val imageLoader: ImageLoader,
     private val request: ImageRequest,
     private val target: ViewTarget<*>,
+    private val lifecycle: Lifecycle,
     private val job: Job
 ) : RequestDelegate() {
 
-    /** Repeat this request with the same params. */
+    /** Repeat this request with the same [ImageRequest]. */
     @MainThread
     fun restart() {
         imageLoader.enqueue(request)
@@ -58,7 +59,7 @@ internal class ViewTargetRequestDelegate(
     override fun dispose() {
         job.cancel()
         target.result = null
-        (request.target as? LifecycleObserver)?.let(request.lifecycle::removeObserver)
-        request.lifecycle.removeObserver(this)
+        (target as? LifecycleObserver)?.let(lifecycle::removeObserver)
+        lifecycle.removeObserver(this)
     }
 }

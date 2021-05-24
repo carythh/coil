@@ -235,14 +235,22 @@ internal class EngineInterceptor(
         options: Options,
         eventListener: EventListener
     ): DrawableResult {
+        var newOptions = options
         var fetchResult: FetchResult? = null
         val drawableResult = try {
             // Fetch the data.
-            fetchResult = fetch(request, mappedData, options, eventListener)
+            fetchResult = withContext(request.fetcherDispatcher) {
+                if (!requestService.allowHardwareWorkerThread(options)) {
+                    newOptions = options.copy(config = Bitmap.Config.ARGB_8888)
+                }
+                fetch(request, mappedData, newOptions, eventListener)
+            }
 
             // Decode the data.
             when (fetchResult) {
-                is SourceResult -> decode(request, fetchResult, options, mappedData, eventListener)
+                is SourceResult -> withContext(request.decoderDispatcher) {
+                    decode(fetchResult, request, mappedData, newOptions, eventListener)
+                }
                 is DrawableResult -> fetchResult
             }
         } finally {
@@ -251,7 +259,7 @@ internal class EngineInterceptor(
         }
 
         // Apply any transformations and prepare to draw.
-        val finalResult = applyTransformations(drawableResult, request, options, eventListener)
+        val finalResult = applyTransformations(drawableResult, request, newOptions, eventListener)
         (finalResult.drawable as? BitmapDrawable)?.bitmap?.prepareToDraw()
         return finalResult
     }
@@ -261,7 +269,7 @@ internal class EngineInterceptor(
         mappedData: Any,
         options: Options,
         eventListener: EventListener
-    ): FetchResult = withContext(request.fetcherDispatcher) {
+    ): FetchResult {
         val fetchResult: FetchResult
         var searchIndex = 0
         while (true) {
@@ -285,16 +293,16 @@ internal class EngineInterceptor(
                 break
             }
         }
-        fetchResult
+        return fetchResult
     }
 
     private suspend inline fun decode(
-        request: ImageRequest,
         fetchResult: SourceResult,
-        options: Options,
+        request: ImageRequest,
         mappedData: Any,
+        options: Options,
         eventListener: EventListener
-    ): DrawableResult = withContext(request.decoderDispatcher) {
+    ): DrawableResult {
         val decodeResult: DecodeResult
         var searchIndex = 0
         while (true) {
@@ -314,7 +322,7 @@ internal class EngineInterceptor(
         }
 
         // Combine the fetch and decode operations' results.
-        DrawableResult(
+        return DrawableResult(
             drawable = decodeResult.drawable,
             isSampled = decodeResult.isSampled,
             dataSource = fetchResult.dataSource

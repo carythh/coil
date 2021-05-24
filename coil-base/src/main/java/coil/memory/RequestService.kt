@@ -38,7 +38,7 @@ internal class RequestService(
         val delegate: RequestDelegate
         when (val target = request.target) {
             is ViewTarget<*> -> {
-                delegate = ViewTargetRequestDelegate(imageLoader, request, target, job)
+                delegate = ViewTargetRequestDelegate(imageLoader, request, target, lifecycle, job)
                 lifecycle.addObserver(delegate)
 
                 if (target is LifecycleObserver) {
@@ -69,10 +69,10 @@ internal class RequestService(
         )
     }
 
-    @WorkerThread
     fun options(request: ImageRequest, size: Size): Options {
         // Fall back to ARGB_8888 if the requested bitmap config does not pass the checks.
-        val isValidConfig = isConfigValidForTransformations(request) && isConfigValidForHardwareAllocation(request, size)
+        val isValidConfig = isConfigValidForTransformations(request) &&
+            isConfigValidForHardwareAllocation(request, size)
         val config = if (isValidConfig) request.bitmapConfig else Bitmap.Config.ARGB_8888
 
         // Disable fetching from the network if we know we're offline.
@@ -115,15 +115,21 @@ internal class RequestService(
         return true
     }
 
+    /** Return 'true' if we can allocate a hardware bitmap. */
+    @WorkerThread
+    fun allowHardwareWorkerThread(options: Options): Boolean {
+        return !options.config.isHardware || hardwareBitmapService.allowHardwareWorkerThread()
+    }
+
     /**
      * Return 'true' if [request]'s requested bitmap config is valid (i.e. can be returned to its [Target]).
      *
      * This check is similar to [isConfigValidForHardware] except this method also checks
      * that we are able to allocate a new hardware bitmap.
      */
-    @WorkerThread
     private fun isConfigValidForHardwareAllocation(request: ImageRequest, size: Size): Boolean {
-        return isConfigValidForHardware(request, request.bitmapConfig) && hardwareBitmapService.allowHardware(size)
+        return isConfigValidForHardware(request, request.bitmapConfig) &&
+            hardwareBitmapService.allowHardwareMainThread(size)
     }
 
     /** Return 'true' if [ImageRequest.bitmapConfig] is valid given its [Transformation]s. */
