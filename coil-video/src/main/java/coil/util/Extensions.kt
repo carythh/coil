@@ -10,6 +10,7 @@ internal inline fun <T> MediaMetadataRetriever.use(block: (MediaMetadataRetrieve
     try {
         return block(this)
     } finally {
+        // We must call 'close' on API 29+ to avoid a strict mode warning.
         if (SDK_INT >= 29) {
             close()
         } else {
