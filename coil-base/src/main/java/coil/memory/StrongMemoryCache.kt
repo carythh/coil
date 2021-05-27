@@ -1,6 +1,5 @@
 package coil.memory
 
-import android.content.ComponentCallbacks2
 import android.content.ComponentCallbacks2.TRIM_MEMORY_BACKGROUND
 import android.content.ComponentCallbacks2.TRIM_MEMORY_RUNNING_LOW
 import android.content.ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN
@@ -13,26 +12,21 @@ import coil.util.allocationByteCountCompat
 /** An in-memory cache that holds strong references [Bitmap]s. */
 internal interface StrongMemoryCache {
 
-    /** The current size of the memory cache in bytes. */
     val size: Int
 
-    /** The maximum size of the memory cache in bytes. */
     val maxSize: Int
 
-    /** Get the value associated with [key]. */
     fun get(key: Key): Value?
 
-    /** Set the value associated with [key]. */
     fun set(key: Key, bitmap: Bitmap, isSampled: Boolean)
 
-    /** Remove the value referenced by [key] from this cache. */
     fun remove(key: Key): Boolean
 
-    /** Remove all values from this cache. */
     fun clearMemory()
 
-    /** @see ComponentCallbacks2.onTrimMemory */
     fun trimMemory(level: Int)
+
+    fun keys(): Set<Key>
 }
 
 /** A [StrongMemoryCache] implementation that caches nothing and only delegates [set]s to a [WeakMemoryCache]. */
@@ -55,6 +49,8 @@ internal class EmptyStrongMemoryCache(
     override fun clearMemory() {}
 
     override fun trimMemory(level: Int) {}
+
+    override fun keys() = emptySet<Key>()
 }
 
 /** A [StrongMemoryCache] implementation backed by an [LruCache]. */
@@ -103,6 +99,10 @@ internal class RealStrongMemoryCache(
 
     override fun clearMemory() {
         cache.trimToSize(-1)
+    }
+
+    override fun keys(): Set<Key> {
+        return cache.snapshot().keys
     }
 
     override fun trimMemory(level: Int) {

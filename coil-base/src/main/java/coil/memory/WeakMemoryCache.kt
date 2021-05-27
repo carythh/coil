@@ -1,6 +1,5 @@
 package coil.memory
 
-import android.content.ComponentCallbacks2
 import android.content.ComponentCallbacks2.TRIM_MEMORY_RUNNING_LOW
 import android.content.ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN
 import android.graphics.Bitmap
@@ -22,23 +21,17 @@ import java.lang.ref.WeakReference
  */
 internal interface WeakMemoryCache {
 
-    /** Get the value associated with [key]. */
     fun get(key: Key): Value?
 
-    /** Set the value associated with [key]. */
     fun set(key: Key, bitmap: Bitmap, isSampled: Boolean, size: Int)
 
-    /** Remove the value referenced by [key] from this cache. */
     fun remove(key: Key): Boolean
 
-    /** Remove [bitmap] from this cache. */
-    fun remove(bitmap: Bitmap): Boolean
-
-    /** Remove all values from this cache. */
     fun clearMemory()
 
-    /** @see ComponentCallbacks2.onTrimMemory */
     fun trimMemory(level: Int)
+
+    fun keys(): Set<Key>
 }
 
 /** A [WeakMemoryCache] implementation that holds no references. */
@@ -50,11 +43,11 @@ internal class EmptyWeakMemoryCache : WeakMemoryCache {
 
     override fun remove(key: Key) = false
 
-    override fun remove(bitmap: Bitmap) = false
-
     override fun clearMemory() {}
 
     override fun trimMemory(level: Int) {}
+
+    override fun keys() = emptySet<Key>()
 }
 
 /** A [WeakMemoryCache] implementation backed by a [HashMap]. */
@@ -107,39 +100,21 @@ internal class RealWeakMemoryCache : WeakMemoryCache {
     }
 
     @Synchronized
-    override fun remove(bitmap: Bitmap): Boolean {
-        val identityHashCode = bitmap.identityHashCode
-
-        // Find the bitmap in the cache and remove it.
-        val removed = run {
-            cache.values.forEach { values ->
-                for (index in values.indices) {
-                    if (values[index].identityHashCode == identityHashCode) {
-                        values.removeAt(index)
-                        return@run true
-                    }
-                }
-            }
-            return@run false
-        }
-
-        cleanUpIfNecessary()
-        return removed
-    }
-
-    /** Remove all values from this cache. */
-    @Synchronized
     override fun clearMemory() {
         operationsSinceCleanUp = 0
         cache.clear()
     }
 
-    /** @see ComponentCallbacks2.onTrimMemory */
     @Synchronized
     override fun trimMemory(level: Int) {
         if (level >= TRIM_MEMORY_RUNNING_LOW && level != TRIM_MEMORY_UI_HIDDEN) {
             cleanUp()
         }
+    }
+
+    @Synchronized
+    override fun keys(): Set<Key> {
+        return cache.keys
     }
 
     private fun cleanUpIfNecessary() {
