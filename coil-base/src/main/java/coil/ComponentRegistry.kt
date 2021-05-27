@@ -41,7 +41,7 @@ class ComponentRegistry private constructor(
     }
 
     /**
-     * Key [data] using the registered [keyers].
+     * Convert [data] to a string key using the registered [keyers].
      */
     fun key(data: Any, options: Options): String? {
         keyers.forEachIndices { (keyer, type) ->
