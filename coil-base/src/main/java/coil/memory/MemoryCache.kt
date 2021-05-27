@@ -7,6 +7,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.os.Parcelable
 import androidx.annotation.FloatRange
+import coil.key.Keyer
 import coil.util.Utils
 import kotlinx.parcelize.Parcelize
 
@@ -43,15 +44,28 @@ interface MemoryCache {
     /** @see ComponentCallbacks2.onTrimMemory */
     fun trimMemory(level: Int)
 
-    /** The cache key for an image in the memory cache. */
+    /**
+     * The cache key for an image in the memory cache.
+     *
+     * @param base The base component of the cache key.
+     *  Usually this is the value returned by [Keyer.key].
+     * @param extras Any extra values that differentiate the
+     *  associated cached value from other values with the same [base].
+     */
     @Parcelize
-    data class Key(
+    data class Key @JvmOverloads constructor(
         val base: String,
         val extras: Map<String, String> = emptyMap()
     ) : Parcelable
 
-    /** The value for an image in the memory cache. */
-    data class Value(
+    /**
+     * The value for an image in the memory cache.
+     *
+     * @param bitmap The cached [Bitmap].
+     * @param isSampled 'true' if [drawable] is sampled
+     *  (i.e. loaded into memory at less than its original size).
+     */
+    data class Value @JvmOverloads constructor(
         val bitmap: Bitmap,
         val isSampled: Boolean = false
     )

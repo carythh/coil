@@ -323,6 +323,7 @@ public final class coil/memory/MemoryCache$Companion {
 
 public final class coil/memory/MemoryCache$Key : android/os/Parcelable {
 	public static final field CREATOR Landroid/os/Parcelable$Creator;
+	public fun <init> (Ljava/lang/String;)V
 	public fun <init> (Ljava/lang/String;Ljava/util/Map;)V
 	public synthetic fun <init> (Ljava/lang/String;Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/lang/String;
@@ -347,6 +348,7 @@ public final class coil/memory/MemoryCache$Key$Creator : android/os/Parcelable$C
 }
 
 public final class coil/memory/MemoryCache$Value {
+	public fun <init> (Landroid/graphics/Bitmap;)V
 	public fun <init> (Landroid/graphics/Bitmap;Z)V
 	public synthetic fun <init> (Landroid/graphics/Bitmap;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Landroid/graphics/Bitmap;
