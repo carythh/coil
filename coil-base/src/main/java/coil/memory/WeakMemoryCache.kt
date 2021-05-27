@@ -21,6 +21,8 @@ import java.lang.ref.WeakReference
  */
 internal interface WeakMemoryCache {
 
+    val keys: Set<Key>
+
     fun get(key: Key): Value?
 
     fun set(key: Key, bitmap: Bitmap, isSampled: Boolean, size: Int)
@@ -30,12 +32,12 @@ internal interface WeakMemoryCache {
     fun clearMemory()
 
     fun trimMemory(level: Int)
-
-    fun keys(): Set<Key>
 }
 
 /** A [WeakMemoryCache] implementation that holds no references. */
 internal class EmptyWeakMemoryCache : WeakMemoryCache {
+
+    override val keys get() = emptySet<Key>()
 
     override fun get(key: Key): Value? = null
 
@@ -46,15 +48,15 @@ internal class EmptyWeakMemoryCache : WeakMemoryCache {
     override fun clearMemory() {}
 
     override fun trimMemory(level: Int) {}
-
-    override fun keys() = emptySet<Key>()
 }
 
 /** A [WeakMemoryCache] implementation backed by a [HashMap]. */
 internal class RealWeakMemoryCache : WeakMemoryCache {
 
-    private val cache = hashMapOf<Key, ArrayList<InternalValue>>()
+    private val cache = LinkedHashMap<Key, ArrayList<InternalValue>>()
     private var operationsSinceCleanUp = 0
+
+    override val keys @Synchronized get() = cache.keys
 
     @Synchronized
     override fun get(key: Key): Value? {
@@ -110,11 +112,6 @@ internal class RealWeakMemoryCache : WeakMemoryCache {
         if (level >= TRIM_MEMORY_RUNNING_LOW && level != TRIM_MEMORY_UI_HIDDEN) {
             cleanUp()
         }
-    }
-
-    @Synchronized
-    override fun keys(): Set<Key> {
-        return cache.keys
     }
 
     private fun cleanUpIfNecessary() {

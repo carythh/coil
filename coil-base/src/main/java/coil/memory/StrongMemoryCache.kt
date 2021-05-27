@@ -16,6 +16,8 @@ internal interface StrongMemoryCache {
 
     val maxSize: Int
 
+    val keys: Set<Key>
+
     fun get(key: Key): Value?
 
     fun set(key: Key, bitmap: Bitmap, isSampled: Boolean)
@@ -25,8 +27,6 @@ internal interface StrongMemoryCache {
     fun clearMemory()
 
     fun trimMemory(level: Int)
-
-    fun keys(): Set<Key>
 }
 
 /** A [StrongMemoryCache] implementation that caches nothing and only delegates [set]s to a [WeakMemoryCache]. */
@@ -37,6 +37,8 @@ internal class EmptyStrongMemoryCache(
     override val size get() = 0
 
     override val maxSize get() = 0
+
+    override val keys get() = emptySet<Key>()
 
     override fun get(key: Key): Value? = null
 
@@ -49,8 +51,6 @@ internal class EmptyStrongMemoryCache(
     override fun clearMemory() {}
 
     override fun trimMemory(level: Int) {}
-
-    override fun keys() = emptySet<Key>()
 }
 
 /** A [StrongMemoryCache] implementation backed by an [LruCache]. */
@@ -76,6 +76,8 @@ internal class RealStrongMemoryCache(
 
     override val maxSize get() = cache.maxSize()
 
+    override val keys get() = cache.snapshot().keys
+
     override fun get(key: Key): Value? {
         return cache.get(key)?.let { Value(it.bitmap, it.isSampled) }
     }
@@ -99,10 +101,6 @@ internal class RealStrongMemoryCache(
 
     override fun clearMemory() {
         cache.trimToSize(-1)
-    }
-
-    override fun keys(): Set<Key> {
-        return cache.snapshot().keys
     }
 
     override fun trimMemory(level: Int) {
