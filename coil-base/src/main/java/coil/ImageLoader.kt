@@ -340,9 +340,8 @@ interface ImageLoader {
         /**
          * Set the default placeholder drawable to use when a request starts.
          */
-        fun placeholder(@DrawableRes drawableResId: Int) = apply {
-            this.defaults = this.defaults.copy(placeholder = applicationContext.getDrawableCompat(drawableResId))
-        }
+        fun placeholder(@DrawableRes drawableResId: Int) =
+            placeholder(applicationContext.getDrawableCompat(drawableResId))
 
         /**
          * Set the default placeholder drawable to use when a request starts.
@@ -354,9 +353,8 @@ interface ImageLoader {
         /**
          * Set the default error drawable to use when a request fails.
          */
-        fun error(@DrawableRes drawableResId: Int) = apply {
-            this.defaults = this.defaults.copy(error = applicationContext.getDrawableCompat(drawableResId))
-        }
+        fun error(@DrawableRes drawableResId: Int) =
+            error(applicationContext.getDrawableCompat(drawableResId))
 
         /**
          * Set the default error drawable to use when a request fails.
@@ -368,9 +366,8 @@ interface ImageLoader {
         /**
          * Set the default fallback drawable to use if [ImageRequest.data] is null.
          */
-        fun fallback(@DrawableRes drawableResId: Int) = apply {
-            this.defaults = this.defaults.copy(fallback = applicationContext.getDrawableCompat(drawableResId))
-        }
+        fun fallback(@DrawableRes drawableResId: Int) =
+            fallback(applicationContext.getDrawableCompat(drawableResId))
 
         /**
          * Set the default fallback drawable to use if [ImageRequest.data] is null.
