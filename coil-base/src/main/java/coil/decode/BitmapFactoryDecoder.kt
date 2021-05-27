@@ -213,6 +213,10 @@ class BitmapFactoryDecoder(
         override fun create(result: SourceResult, options: Options, imageLoader: ImageLoader): Decoder {
             return BitmapFactoryDecoder(result.source, options)
         }
+
+        override fun equals(other: Any?) = other is Factory
+
+        override fun hashCode() = javaClass.hashCode()
     }
 
     /** Prevent [BitmapFactory.decodeStream] from swallowing [Exception]s. */

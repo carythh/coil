@@ -132,6 +132,10 @@ class ImageDecoderDecoder(
                 DecodeUtils.isAnimatedWebP(source) ||
                 (SDK_INT >= 30 && DecodeUtils.isAnimatedHeif(source))
         }
+
+        override fun equals(other: Any?) = other is Factory
+
+        override fun hashCode() = javaClass.hashCode()
     }
 
     companion object {

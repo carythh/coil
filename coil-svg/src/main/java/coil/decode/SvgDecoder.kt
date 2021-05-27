@@ -115,6 +115,13 @@ class SvgDecoder @JvmOverloads constructor(
             return source.rangeEquals(0, LEFT_ANGLE_BRACKET) &&
                 source.indexOf(SVG_TAG, 0, SVG_TAG_SEARCH_THRESHOLD_BYTES) != -1L
         }
+
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            return other is Factory && useViewBoundsAsIntrinsicSize == other.useViewBoundsAsIntrinsicSize
+        }
+
+        override fun hashCode() = useViewBoundsAsIntrinsicSize.hashCode()
     }
 
     private companion object {

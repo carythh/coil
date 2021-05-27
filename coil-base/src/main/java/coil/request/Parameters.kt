@@ -54,7 +54,8 @@ class Parameters private constructor(
     }
 
     override fun equals(other: Any?): Boolean {
-        return (this === other) || (other is Parameters && map == other.map)
+        if (this === other) return true
+        return other is Parameters && map == other.map
     }
 
     override fun hashCode() = map.hashCode()

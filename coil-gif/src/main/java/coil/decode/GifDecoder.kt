@@ -65,6 +65,10 @@ class GifDecoder(
             if (!DecodeUtils.isGif(result.source.source())) return null
             return GifDecoder(result.source, options)
         }
+
+        override fun equals(other: Any?) = other is Factory
+
+        override fun hashCode() = javaClass.hashCode()
     }
 
     companion object {
