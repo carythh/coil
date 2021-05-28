@@ -24,5 +24,9 @@ internal class NoneTransition(
         override fun create(target: TransitionTarget, result: ImageResult): Transition {
             return NoneTransition(target, result)
         }
+
+        override fun equals(other: Any?) = other is Factory
+
+        override fun hashCode() = javaClass.hashCode()
     }
 }

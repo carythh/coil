@@ -13,7 +13,8 @@ open class ImageViewTarget(override val view: ImageView) : GenericViewTarget<Ima
         set(value) = view.setImageDrawable(value)
 
     override fun equals(other: Any?): Boolean {
-        return (this === other) || (other is ImageViewTarget && view == other.view)
+        if (this === other) return true
+        return other is ImageViewTarget && view == other.view
     }
 
     override fun hashCode() = view.hashCode()

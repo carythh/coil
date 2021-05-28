@@ -91,5 +91,18 @@ class CrossfadeTransition @JvmOverloads constructor(
 
             return CrossfadeTransition(target, result, durationMillis, preferExactIntrinsicSize)
         }
+
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            return other is Factory &&
+                durationMillis == other.durationMillis &&
+                preferExactIntrinsicSize == other.preferExactIntrinsicSize
+        }
+
+        override fun hashCode(): Int {
+            var result = durationMillis
+            result = 31 * result + preferExactIntrinsicSize.hashCode()
+            return result
+        }
     }
 }

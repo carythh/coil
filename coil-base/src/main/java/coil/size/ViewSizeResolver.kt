@@ -22,10 +22,7 @@ interface ViewSizeResolver<T : View> : SizeResolver {
         operator fun <T : View> invoke(
             view: T,
             subtractPadding: Boolean = true
-        ): ViewSizeResolver<T> = object : ViewSizeResolver<T> {
-            override val view = view
-            override val subtractPadding = subtractPadding
-        }
+        ): ViewSizeResolver<T> = RealViewSizeResolver(view, subtractPadding)
     }
 
     /** The [View] to measure. This field should be immutable. */
