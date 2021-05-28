@@ -82,7 +82,7 @@ interface ImageLoader {
     /**
      * Shutdown this image loader.
      *
-     * All associated resources will be freed, new requests will fail before starting,
+     * Any closeable resources will be freed, new requests will fail before starting,
      * and in progress requests will be cancelled immediately.
      *
      * Shutting down an image loader is optional. It will be cleaned up automatically if dereferenced.
