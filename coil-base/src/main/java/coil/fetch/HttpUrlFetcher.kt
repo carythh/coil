@@ -11,6 +11,7 @@ import coil.network.HttpException
 import coil.request.Options
 import coil.util.await
 import coil.util.cacheFile
+import coil.util.closeQuietly
 import coil.util.dispatcher
 import coil.util.getMimeTypeFromUrl
 import kotlinx.coroutines.MainCoroutineDispatcher
@@ -20,6 +21,7 @@ import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.Request
 import okhttp3.ResponseBody
+import okio.Buffer
 import okio.blackholeSink
 import kotlin.coroutines.coroutineContext
 
@@ -77,23 +79,31 @@ internal class HttpUrlFetcher(
 
         val cacheFile = response.cacheFile
         val source = body.source()
-        val imageSource = if (cacheFile != null && cacheFile.exists()) {
-            // Read the file into the disk cache if it isn't already cached.
-            if (response.cacheResponse == null) {
-                source.readAll(blackholeSink())
+        try {
+            val imageSource = if (cacheFile != null && cacheFile.exists()) {
+                // Read the file into the disk cache if it isn't already cached.
+                if (response.cacheResponse == null) {
+                    source.readAll(blackholeSink())
+                }
+                // Intentionally do not close the source here. This prevents the cache file from being
+                // deleted while being read and it will be cleaned up at the end of the request.
+                ImageSource(cacheFile, source)
+            } else {
+                // Read the file into memory.
+                val buffer = Buffer()
+                source.use { it.readAll(buffer) }
+                ImageSource(buffer, options.context)
             }
-            ImageSource(cacheFile, source)
-        } else {
-            // Buffer the file into memory.
-            source.peek().readAll(blackholeSink())
-            ImageSource(source, options.context)
-        }
 
-        return SourceResult(
-            source = imageSource,
-            mimeType = getMimeType(url, body),
-            dataSource = if (response.cacheResponse != null) DataSource.DISK else DataSource.NETWORK
-        )
+            return SourceResult(
+                source = imageSource,
+                mimeType = getMimeType(url, body),
+                dataSource = if (response.cacheResponse != null) DataSource.DISK else DataSource.NETWORK
+            )
+        } catch (throwable: Throwable) {
+            source.closeQuietly()
+            throw throwable
+        }
     }
 
     /**
