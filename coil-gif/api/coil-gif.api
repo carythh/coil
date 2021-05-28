@@ -14,6 +14,8 @@ public final class coil/decode/GifDecoder$Companion {
 public final class coil/decode/GifDecoder$Factory : coil/decode/Decoder$Factory {
 	public fun <init> ()V
 	public fun create (Lcoil/fetch/SourceResult;Lcoil/request/Options;Lcoil/ImageLoader;)Lcoil/decode/Decoder;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
 }
 
 public final class coil/decode/ImageDecoderDecoder : coil/decode/Decoder {
@@ -32,6 +34,8 @@ public final class coil/decode/ImageDecoderDecoder$Companion {
 public final class coil/decode/ImageDecoderDecoder$Factory : coil/decode/Decoder$Factory {
 	public fun <init> ()V
 	public fun create (Lcoil/fetch/SourceResult;Lcoil/request/Options;Lcoil/ImageLoader;)Lcoil/decode/Decoder;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
 }
 
 public final class coil/drawable/MovieDrawable : android/graphics/drawable/Drawable, androidx/vectordrawable/graphics/drawable/Animatable2Compat {

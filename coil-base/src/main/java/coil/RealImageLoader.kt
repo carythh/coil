@@ -55,10 +55,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.withContext
 import okhttp3.Call
-import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.coroutineContext
 
 internal class RealImageLoader(
@@ -97,7 +95,6 @@ internal class RealImageLoader(
         .add(BitmapFactoryDecoder.Factory())
         .build()
     private val interceptors = components.interceptors + EngineInterceptor(this, requestService, logger)
-    private val isShutdown = AtomicBoolean(false)
 
     override fun enqueue(request: ImageRequest): Disposable {
         // Start executing the request on the main thread.
@@ -191,13 +188,6 @@ internal class RealImageLoader(
     /** Called by [SystemCallbacks.onTrimMemory]. */
     internal fun onTrimMemory(level: Int) {
         memoryCache.trimMemory(level)
-    }
-
-    override fun shutdown() {
-        if (isShutdown.getAndSet(true)) return
-        scope.cancel()
-        systemCallbacks.shutdown()
-        memoryCache.clear()
     }
 
     override fun newBuilder() = ImageLoader.Builder(this)

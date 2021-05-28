@@ -10,5 +10,7 @@ public final class coil/decode/SvgDecoder$Factory : coil/decode/Decoder$Factory 
 	public fun <init> (Z)V
 	public synthetic fun <init> (ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun create (Lcoil/fetch/SourceResult;Lcoil/request/Options;Lcoil/ImageLoader;)Lcoil/decode/Decoder;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
 }
 

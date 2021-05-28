@@ -74,7 +74,6 @@ public abstract interface class coil/ImageLoader {
 	public abstract fun getDefaults ()Lcoil/request/DefaultRequestOptions;
 	public abstract fun getMemoryCache ()Lcoil/memory/MemoryCache;
 	public abstract fun newBuilder ()Lcoil/ImageLoader$Builder;
-	public abstract fun shutdown ()V
 }
 
 public final class coil/ImageLoader$Builder {
@@ -135,6 +134,8 @@ public final class coil/decode/BitmapFactoryDecoder : coil/decode/Decoder {
 public final class coil/decode/BitmapFactoryDecoder$Factory : coil/decode/Decoder$Factory {
 	public fun <init> ()V
 	public fun create (Lcoil/fetch/SourceResult;Lcoil/request/Options;Lcoil/ImageLoader;)Lcoil/decode/Decoder;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
 }
 
 public final class coil/decode/DataSource : java/lang/Enum {

@@ -22,7 +22,7 @@ interface MemoryCache {
     /** The maximum size of the cache in bytes. */
     val maxSize: Int
 
-    /** The [Key]s present in the cache. */
+    /** The keys present in the cache. */
     val keys: Set<Key>
 
     /** Get the [Value] associated with [key]. */

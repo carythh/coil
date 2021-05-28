@@ -12,6 +12,8 @@ public final class coil/decode/VideoFrameDecoder$Companion {
 public final class coil/decode/VideoFrameDecoder$Factory : coil/decode/Decoder$Factory {
 	public fun <init> ()V
 	public fun create (Lcoil/fetch/SourceResult;Lcoil/request/Options;Lcoil/ImageLoader;)Lcoil/decode/Decoder;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
 }
 
 public final class coil/request/Videos {

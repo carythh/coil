@@ -37,11 +37,11 @@ import okhttp3.OkHttpClient
 import java.io.File
 
 /**
- * A service class that loads images by executing [ImageRequest]s. Image loaders handle caching, data fetching,
- * image decoding, request management, memory management, and more.
+ * A service class that loads images by executing [ImageRequest]s. Image loaders handle
+ * caching, data fetching, image decoding, request management, memory management, and more.
  *
- * Image loaders are designed to be shareable and work best when you create a single instance and
- * share it throughout your app.
+ * Image loaders are designed to be shareable and work best when you create a single
+ * instance and share it throughout your app.
  */
 interface ImageLoader {
 
@@ -78,16 +78,6 @@ interface ImageLoader {
      * @return A [SuccessResult] if the request completes successfully. Else, returns an [ErrorResult].
      */
     suspend fun execute(request: ImageRequest): ImageResult
-
-    /**
-     * Shutdown this image loader.
-     *
-     * Any closeable resources will be freed, new requests will fail before starting,
-     * and in progress requests will be cancelled immediately.
-     *
-     * Shutting down an image loader is optional. It will be cleaned up automatically if dereferenced.
-     */
-    fun shutdown()
 
     /**
      * Create an [ImageLoader.Builder] that shares the same resources and configuration as this image loader.

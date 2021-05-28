@@ -6,7 +6,6 @@ import android.content.Context
 import android.content.res.Configuration
 import android.util.Log
 import androidx.annotation.VisibleForTesting
-import coil.ImageLoader
 import coil.RealImageLoader
 import coil.network.NetworkObserver
 import java.lang.ref.WeakReference
@@ -16,8 +15,7 @@ import java.util.concurrent.atomic.AtomicBoolean
  * Proxies [ComponentCallbacks2] and [NetworkObserver.Listener] calls to a weakly referenced [imageLoader].
  *
  * This prevents the system from having a strong reference to the [imageLoader], which allows it be freed
- * naturally even if [ImageLoader.shutdown] is not called. If the [imageLoader] is freed, it unregisters
- * its callbacks.
+ * naturally by the garbage collector. If the [imageLoader] is freed, it unregisters its callbacks.
  */
 internal class SystemCallbacks(
     imageLoader: RealImageLoader,

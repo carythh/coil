@@ -3,6 +3,7 @@ package coil.request
 import android.view.View
 import coil.target.ViewTarget
 import coil.util.requestManager
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
 import java.util.UUID
 
@@ -59,7 +60,7 @@ internal class ViewTargetDisposable(
         get() = target.view.requestManager.currentRequestId != requestId
 
     override val currentJob: Deferred<ImageResult>
-        get() = TODO()
+        get() = CompletableDeferred()
 
     override fun dispose() {
         if (isDisposed) return
