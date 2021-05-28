@@ -1,7 +1,6 @@
 package coil
 
 import android.graphics.Bitmap
-import androidx.annotation.AnyThread
 import androidx.annotation.MainThread
 import androidx.annotation.WorkerThread
 import coil.EventListener.Factory
@@ -56,7 +55,7 @@ interface EventListener : ImageRequest.Listener {
      *
      * @param input The data that will be converted.
      */
-    @AnyThread
+    @MainThread
     fun mapStart(request: ImageRequest, input: Any) {}
 
     /**
@@ -65,7 +64,7 @@ interface EventListener : ImageRequest.Listener {
      * @param output The data after it has been converted. If there were no
      *  applicable mappers, [output] will be the same as [ImageRequest.data].
      */
-    @AnyThread
+    @MainThread
     fun mapEnd(request: ImageRequest, output: Any) {}
 
     /**
@@ -73,7 +72,7 @@ interface EventListener : ImageRequest.Listener {
      *
      * @param input The data that will be converted.
      */
-    @AnyThread
+    @MainThread
     fun keyStart(request: ImageRequest, input: Any) {}
 
     /**
@@ -82,7 +81,7 @@ interface EventListener : ImageRequest.Listener {
      * @param output The data after it has been converted into a string key.
      *  If [output] is 'null' it will not be cached in the memory cache.
      */
-    @AnyThread
+    @MainThread
     fun keyEnd(request: ImageRequest, output: String?) {}
 
     /**
