@@ -74,6 +74,7 @@ public abstract interface class coil/ImageLoader {
 	public abstract fun getDefaults ()Lcoil/request/DefaultRequestOptions;
 	public abstract fun getMemoryCache ()Lcoil/memory/MemoryCache;
 	public abstract fun newBuilder ()Lcoil/ImageLoader$Builder;
+	public abstract fun shutdown ()V
 }
 
 public final class coil/ImageLoader$Builder {
@@ -868,6 +869,8 @@ public final class coil/transition/CrossfadeTransition$Factory : coil/transition
 	public fun <init> (IZ)V
 	public synthetic fun <init> (IZILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun create (Lcoil/transition/TransitionTarget;Lcoil/request/ImageResult;)Lcoil/transition/Transition;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
 }
 
 public abstract interface class coil/transition/Transition {
