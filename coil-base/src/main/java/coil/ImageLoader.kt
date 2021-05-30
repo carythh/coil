@@ -80,6 +80,13 @@ interface ImageLoader {
     suspend fun execute(request: ImageRequest): ImageResult
 
     /**
+     * Cancel any new and in progress requests, clear the [MemoryCache], and close any open system resources.
+     *
+     * Shutting down an image loader is optional. It will be shut down automatically if dereferenced.
+     */
+    fun shutdown()
+
+    /**
      * Create an [ImageLoader.Builder] that shares the same resources and configuration as this image loader.
      */
     fun newBuilder(): Builder
