@@ -1,5 +1,3 @@
-@file:Suppress("unused")
-
 package coil.decode
 
 import android.graphics.ImageDecoder
@@ -136,12 +134,5 @@ class ImageDecoderDecoder(
         override fun equals(other: Any?) = other is Factory
 
         override fun hashCode() = javaClass.hashCode()
-    }
-
-    companion object {
-        const val REPEAT_COUNT_KEY = GifDecoder.REPEAT_COUNT_KEY
-        const val ANIMATED_TRANSFORMATION_KEY = GifDecoder.ANIMATED_TRANSFORMATION_KEY
-        const val ANIMATION_START_CALLBACK_KEY = GifDecoder.ANIMATION_START_CALLBACK_KEY
-        const val ANIMATION_END_CALLBACK_KEY = GifDecoder.ANIMATION_END_CALLBACK_KEY
     }
 }

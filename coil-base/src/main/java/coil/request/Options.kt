@@ -1,5 +1,3 @@
-@file:Suppress("unused")
-
 package coil.request
 
 import android.content.Context

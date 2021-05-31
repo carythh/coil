@@ -1,5 +1,3 @@
-@file:Suppress("SpellCheckingInspection", "unused")
-
 package coil
 
 object Library {

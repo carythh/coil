@@ -64,7 +64,6 @@ private inline fun <reified T : BaseExtension> Project.setupBaseModule(crossinli
             )
             if (project.name != "coil-test") {
                 arguments += "-Xopt-in=coil.annotation.ExperimentalCoilApi"
-                arguments += "-Xopt-in=coil.annotation.InternalCoilApi"
             }
             freeCompilerArgs = arguments
         }

@@ -1,5 +1,3 @@
-@file:Suppress("unused")
-
 package coil.decode
 
 import android.graphics.Bitmap

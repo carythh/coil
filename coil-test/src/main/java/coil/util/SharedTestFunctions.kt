@@ -1,4 +1,4 @@
-@file:Suppress("EXPERIMENTAL_API_USAGE", "NOTHING_TO_INLINE", "unused")
+@file:Suppress("NOTHING_TO_INLINE")
 
 package coil.util
 
@@ -9,6 +9,7 @@ import coil.request.ImageRequest
 import coil.size.PixelSize
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.TestCoroutineDispatcher
 import kotlinx.coroutines.test.setMain
@@ -67,6 +68,7 @@ fun runBlockingTest(
     block: suspend CoroutineScope.() -> Unit
 ) = runBlocking(context, block)
 
+@OptIn(ExperimentalCoroutinesApi::class)
 fun createTestMainDispatcher(): TestCoroutineDispatcher {
     return TestCoroutineDispatcher().apply { Dispatchers.setMain(this) }
 }

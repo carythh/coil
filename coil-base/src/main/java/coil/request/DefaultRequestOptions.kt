@@ -1,5 +1,3 @@
-@file:Suppress("unused")
-
 package coil.request
 
 import android.graphics.Bitmap
@@ -20,8 +18,8 @@ import kotlinx.coroutines.Dispatchers
 data class DefaultRequestOptions(
     val interceptorDispatcher: CoroutineDispatcher = Dispatchers.Main.immediate,
     val fetcherDispatcher: CoroutineDispatcher = Dispatchers.IO,
-    val decoderDispatcher: CoroutineDispatcher = Dispatchers.Default,
-    val transformationDispatcher: CoroutineDispatcher = Dispatchers.Default,
+    val decoderDispatcher: CoroutineDispatcher = Dispatchers.IO,
+    val transformationDispatcher: CoroutineDispatcher = Dispatchers.IO,
     val transitionFactory: Transition.Factory = Transition.Factory.NONE,
     val precision: Precision = Precision.AUTOMATIC,
     val bitmapConfig: Bitmap.Config = Utils.DEFAULT_BITMAP_CONFIG,

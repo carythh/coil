@@ -1,11 +1,7 @@
-@file:Suppress("unused")
-
 package coil.decode
 
-import android.content.Context
 import android.graphics.Canvas
 import android.graphics.RectF
-import android.graphics.drawable.Drawable
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.drawable.toDrawable
 import coil.ImageLoader
@@ -23,7 +19,6 @@ import okio.ByteString.Companion.encodeUtf8
 /**
  * A [Decoder] that uses [AndroidSVG](https://bigbadaboom.github.io/androidsvg/) to decode SVG files.
  *
- * @param context A [Context] used to create the [Drawable].
  * @param useViewBoundsAsIntrinsicSize If true, uses the SVG's view bounds as the intrinsic size for the SVG.
  *  If false, uses the SVG's width/height as the intrinsic size for the SVG.
  */
