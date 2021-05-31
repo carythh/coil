@@ -37,7 +37,7 @@ inline val Context.imageLoader: ImageLoader
  * The default supported [data] types  are:
  *
  * - [String] (treated as a [Uri])
- * - [Uri] (`android.resource`, `content`, `file`, `http`, and `https` schemes only)
+ * - [Uri] (`android.resource`, `content`, `file`, `http`, and `https` schemes)
  * - [HttpUrl]
  * - [File]
  * - [DrawableRes] [Int]

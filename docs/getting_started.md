@@ -180,7 +180,7 @@ The base data types that are supported by all `ImageLoader` instances are:
 
 * String (mapped to a Uri)
 * HttpUrl
-* Uri (`android.resource`, `content`, `file`, `http`, and `https` schemes only)
+* Uri (`android.resource`, `content`, `file`, `http`, and `https` schemes)
 * File
 * @DrawableRes Int
 * Drawable
