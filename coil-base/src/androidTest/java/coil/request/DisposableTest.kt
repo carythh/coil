@@ -9,7 +9,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.rules.activityScenarioRule
 import coil.ImageLoader
-import coil.bitmap.BitmapPool
 import coil.fetch.AssetUriFetcher.Companion.ASSET_FILE_PATH_ROOT
 import coil.size.Size
 import coil.transform.Transformation
@@ -61,7 +60,7 @@ class DisposableTest {
             .build()
         val disposable = imageLoader.enqueue(request)
 
-        assertTrue(disposable is BaseTargetDisposable)
+        assertTrue(disposable is OneShotDisposable)
         assertFalse(disposable.isDisposed)
         disposable.dispose()
         assertTrue(disposable.isDisposed)
@@ -79,10 +78,10 @@ class DisposableTest {
             .build()
         val disposable = imageLoader.enqueue(request)
 
-        assertTrue(disposable is BaseTargetDisposable)
+        assertTrue(disposable is OneShotDisposable)
         assertNull(result)
         transformation.open()
-        disposable.await()
+        disposable.job.await()
         assertNotNull(result)
     }
 
@@ -120,7 +119,7 @@ class DisposableTest {
         assertTrue(disposable is ViewTargetDisposable)
         assertNull(imageView.drawable)
         transformation.open()
-        disposable.await()
+        disposable.job.await()
         assertNotNull(imageView.drawable)
     }
 
@@ -141,7 +140,7 @@ class DisposableTest {
         assertFalse(disposable.isDisposed)
 
         transformation.open()
-        disposable.await()
+        disposable.job.await()
         assertFalse(disposable.isDisposed)
 
         imageView.requestManager.onViewDetachedFromWindow(imageView)
@@ -213,7 +212,7 @@ class DisposableTest {
         val disposable = imageLoader.enqueue(request)
 
         assertFalse(disposable.isDisposed)
-        assertTrue(imageView.requestManager.currentRequestJob!!.isCancelled)
+        assertTrue(disposable.job.isCancelled)
     }
 
     /**
@@ -226,10 +225,9 @@ class DisposableTest {
 
         override val cacheKey = "$javaClass"
 
-        override suspend fun transform(pool: BitmapPool, input: Bitmap, size: Size): Bitmap {
+        override suspend fun transform(input: Bitmap, size: Size): Bitmap {
             // Suspend until the gate is open.
             isOpen.first { it }
-
             return input
         }
 

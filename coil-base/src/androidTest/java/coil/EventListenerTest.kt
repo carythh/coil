@@ -7,7 +7,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.rules.activityScenarioRule
 import coil.base.test.R
-import coil.bitmap.BitmapPool
 import coil.decode.DecodeResult
 import coil.decode.Decoder
 import coil.fetch.FetchResult

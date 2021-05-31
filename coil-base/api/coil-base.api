@@ -124,9 +124,6 @@ public final class coil/ImageLoaders {
 public abstract interface annotation class coil/annotation/ExperimentalCoilApi : java/lang/annotation/Annotation {
 }
 
-public abstract interface annotation class coil/annotation/InternalCoilApi : java/lang/annotation/Annotation {
-}
-
 public final class coil/decode/BitmapFactoryDecoder : coil/decode/Decoder {
 	public fun <init> (Lcoil/decode/ImageSource;Lcoil/request/Options;)V
 	public fun decode (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
