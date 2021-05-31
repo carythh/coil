@@ -27,12 +27,11 @@ import coil.fetch.Fetcher
 import coil.memory.MemoryCache
 import coil.memory.ViewTargetRequestManager
 import coil.request.DefaultRequestOptions
-import coil.request.ImageResult
 import coil.request.Parameters
 import coil.size.Scale
-import coil.target.Target
-import coil.target.ViewTarget
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import okhttp3.Call
 import okhttp3.Headers
@@ -49,7 +48,7 @@ internal val View.requestManager: ViewTargetRequestManager
                 (getTag(R.id.coil_request_manager) as? ViewTargetRequestManager)
                     ?.let { return@synchronized it }
 
-                ViewTargetRequestManager().apply {
+                ViewTargetRequestManager(this).apply {
                     addOnAttachStateChangeListener(this)
                     setTag(R.id.coil_request_manager, this)
                 }
@@ -140,11 +139,14 @@ internal inline val CoroutineContext.job: Job get() = get(Job)!!
 @OptIn(ExperimentalStdlibApi::class)
 internal inline val CoroutineContext.dispatcher: CoroutineDispatcher get() = get(CoroutineDispatcher)!!
 
-internal var Target.result: ImageResult?
-    get() = (this as? ViewTarget<*>)?.view?.requestManager?.result
-    set(value) {
-        (this as? ViewTarget<*>)?.view?.requestManager?.result = value
+@OptIn(ExperimentalCoroutinesApi::class)
+internal fun <T> Deferred<T>.getCompletedOrNull(): T? {
+    return try {
+        getCompleted()
+    } catch (_: Throwable) {
+        null
     }
+}
 
 internal inline operator fun MemoryCache.get(key: MemoryCache.Key?) = key?.let(::get)
 

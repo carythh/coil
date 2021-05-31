@@ -64,14 +64,14 @@ inline fun ImageView.load(
 }
 
 /**
- * Cancel any in progress requests and clear all resources associated with this [ImageView].
+ * Cancel any in progress work associated with this [ImageView].
  */
 inline fun ImageView.clear() {
     CoilUtils.clear(this)
 }
 
 /**
- * Get the metadata of the successful request attached to this view.
+ * Get the [ImageResult] of the latest executed request attached to this view.
  */
 inline val ImageView.result: ImageResult?
     get() = CoilUtils.result(this)

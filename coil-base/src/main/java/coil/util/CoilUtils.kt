@@ -2,6 +2,7 @@ package coil.util
 
 import android.content.Context
 import android.view.View
+import android.widget.ImageView
 import coil.request.Disposable
 import coil.request.ImageResult
 import okhttp3.Cache
@@ -37,14 +38,14 @@ object CoilUtils {
     }
 
     /**
-     * Cancel any in progress requests attached to [view] and clear any associated resources.
+     * Cancel any in progress work associated with this [ImageView].
      *
      * NOTE: Typically you should use [Disposable.dispose] to cancel requests and clear resources,
      * however this method is provided for convenience.
      */
     @JvmStatic
     fun clear(view: View) {
-        view.requestManager.clearCurrentRequest()
+        view.requestManager.dispose()
     }
 
     /**
@@ -52,6 +53,6 @@ object CoilUtils {
      */
     @JvmStatic
     fun result(view: View): ImageResult? {
-        return view.requestManager.result
+        return view.requestManager.getResult()
     }
 }

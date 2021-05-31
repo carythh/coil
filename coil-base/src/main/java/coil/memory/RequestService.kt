@@ -46,12 +46,14 @@ internal class RequestService(
                 delegate = ViewTargetRequestDelegate(imageLoader, request, target, lifecycle, job)
                 lifecycle.addObserver(delegate)
 
+                // Re-add the observer to ensure all its lifecycle callbacks are invoked.
                 if (target is LifecycleObserver) {
                     lifecycle.removeObserver(target)
                     lifecycle.addObserver(target)
                 }
 
-                target.view.requestManager.setCurrentRequest(delegate)
+                // Attach the dispatched request to the view.
+                target.view.requestManager.setRequest(delegate)
 
                 // Call onViewDetachedFromWindow immediately if the view is already detached.
                 if (!target.view.isAttachedToWindow) {

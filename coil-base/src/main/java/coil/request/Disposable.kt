@@ -1,29 +1,31 @@
 package coil.request
 
 import android.view.View
+import androidx.lifecycle.DefaultLifecycleObserver
+import coil.ImageLoader
 import coil.target.ViewTarget
 import coil.util.requestManager
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
-import java.util.UUID
 
 /**
- * Represents the work of an executed [ImageRequest].
+ * Represents the work of an [ImageRequest] that has been executed by an [ImageLoader].
  */
 interface Disposable {
 
     /**
-     * The most recent job for this work.
+     * The most recent image request job.
+     *
+     * NOTE: [ImageRequest]s with a [ViewTarget] can be restarted and have multiple different jobs.
      */
-    val currentJob: Deferred<ImageResult>
+    val job: Deferred<ImageResult>
 
     /**
-     * Returns 'true' if the request is complete or cancelling.
+     * Returns 'true' if this disposable's work is complete or cancelling.
      */
     val isDisposed: Boolean
 
     /**
-     * Cancels any in progress work and frees any resources associated with this request. This method is idempotent.
+     * Cancels this disposable's work and releases any held resources.
      */
     fun dispose()
 }
@@ -32,38 +34,37 @@ interface Disposable {
  * A disposable for one-shot image requests.
  */
 internal class OneShotDisposable(
-    override val currentJob: Deferred<ImageResult>
+    override val job: Deferred<ImageResult>
 ) : Disposable {
 
-    override val isDisposed
-        get() = !currentJob.isActive
+    override val isDisposed: Boolean
+        get() = !job.isActive
 
     override fun dispose() {
         if (isDisposed) return
-        currentJob.cancel()
+        job.cancel()
     }
 }
 
 /**
  * A disposable for requests that are attached to a [View].
  *
- * [ViewTargetDisposable] is not disposed until its request is detached from the view.
- * This is because requests are automatically cancelled in [View.onDetachedFromWindow] and are
+ * [ViewTarget] requests are automatically cancelled in [View.onDetachedFromWindow] and are
  * restarted in [View.onAttachedToWindow].
+ *
+ * [isDisposed] only returns 'true' when this disposable's request is cleared
+ * (due to [DefaultLifecycleObserver.onDestroy]) or replaced by a new request attached to the view.
  */
 internal class ViewTargetDisposable(
-    private val requestId: UUID,
-    private val target: ViewTarget<*>
+    private val view: View,
+    @Volatile override var job: Deferred<ImageResult>
 ) : Disposable {
 
-    override val isDisposed
-        get() = target.view.requestManager.currentRequestId != requestId
-
-    override val currentJob: Deferred<ImageResult>
-        get() = CompletableDeferred()
+    override val isDisposed: Boolean
+        get() = view.requestManager.isDisposed(this)
 
     override fun dispose() {
         if (isDisposed) return
-        target.view.requestManager.clearCurrentRequest()
+        view.requestManager.dispose()
     }
 }

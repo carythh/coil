@@ -5,7 +5,6 @@ import androidx.annotation.MainThread
 import coil.request.ErrorResult
 import coil.request.SuccessResult
 import coil.target.Target
-import coil.util.result
 
 internal sealed class TargetDelegate {
 
@@ -24,19 +23,7 @@ internal sealed class TargetDelegate {
 internal object EmptyTargetDelegate : TargetDelegate()
 
 internal class RealTargetDelegate(override val target: Target) : TargetDelegate() {
-
-    override fun start(placeholder: Drawable?) {
-        target.result = null
-        target.onStart(placeholder)
-    }
-
-    override fun success(result: SuccessResult) {
-        target.result = result
-        target.onSuccess(result.drawable)
-    }
-
-    override fun error(result: ErrorResult) {
-        target.result = result
-        target.onError(result.drawable)
-    }
+    override fun start(placeholder: Drawable?) = target.onStart(placeholder)
+    override fun success(result: SuccessResult) = target.onSuccess(result.drawable)
+    override fun error(result: ErrorResult) = target.onError(result.drawable)
 }

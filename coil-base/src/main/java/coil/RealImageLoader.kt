@@ -31,7 +31,6 @@ import coil.request.NullRequestData
 import coil.request.NullRequestDataException
 import coil.request.OneShotDisposable
 import coil.request.SuccessResult
-import coil.request.ViewTargetDisposable
 import coil.target.Target
 import coil.target.ViewTarget
 import coil.transition.NoneTransition
@@ -109,8 +108,7 @@ internal class RealImageLoader(
 
         // Update the current request attached to the view and return a new disposable.
         return if (request.target is ViewTarget<*>) {
-            val requestId = request.target.view.requestManager.setCurrentRequestJob(deferred)
-            ViewTargetDisposable(requestId, request.target)
+            request.target.view.requestManager.getDisposable(deferred)
         } else {
             OneShotDisposable(deferred)
         }
@@ -126,7 +124,7 @@ internal class RealImageLoader(
 
         // Update the current request attached to the view and await the result.
         if (request.target is ViewTarget<*>) {
-            request.target.view.requestManager.setCurrentRequestJob(deferred)
+            request.target.view.requestManager.getDisposable(deferred)
         }
         return deferred.await()
     }

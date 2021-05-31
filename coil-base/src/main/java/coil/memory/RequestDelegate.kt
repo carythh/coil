@@ -8,6 +8,7 @@ import androidx.lifecycle.LifecycleOwner
 import coil.ImageLoader
 import coil.request.ImageRequest
 import coil.target.ViewTarget
+import coil.util.requestManager
 import kotlinx.coroutines.Job
 
 internal sealed class RequestDelegate : DefaultLifecycleObserver {
@@ -18,11 +19,7 @@ internal sealed class RequestDelegate : DefaultLifecycleObserver {
 
     /** Cancel any in progress work and free all resources. */
     @MainThread
-    open fun dispose() {}
-
-    /** Automatically dispose this delegate when the containing lifecycle is destroyed. */
-    @MainThread
-    override fun onDestroy(owner: LifecycleOwner) = dispose()
+    open fun cancel() {}
 }
 
 /** A request delegate for a one-shot requests with no target or a non-[ViewTarget]. */
@@ -35,9 +32,11 @@ internal class BaseRequestDelegate(
         lifecycle.removeObserver(this)
     }
 
-    override fun dispose() {
+    override fun cancel() {
         job.cancel()
     }
+
+    override fun onDestroy(owner: LifecycleOwner) = cancel()
 }
 
 /** A request delegate for restartable requests with a [ViewTarget]. */
@@ -55,9 +54,13 @@ internal class ViewTargetRequestDelegate(
         imageLoader.enqueue(request)
     }
 
-    override fun dispose() {
+    override fun cancel() {
         job.cancel()
         (target as? LifecycleObserver)?.let(lifecycle::removeObserver)
         lifecycle.removeObserver(this)
+    }
+
+    override fun onDestroy(owner: LifecycleOwner) {
+        target.view.requestManager.dispose()
     }
 }

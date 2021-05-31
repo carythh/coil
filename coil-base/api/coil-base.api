@@ -468,7 +468,7 @@ public final class coil/request/DefinedRequestOptions {
 
 public abstract interface class coil/request/Disposable {
 	public abstract fun dispose ()V
-	public abstract fun getCurrentJob ()Lkotlinx/coroutines/Deferred;
+	public abstract fun getJob ()Lkotlinx/coroutines/Deferred;
 	public abstract fun isDisposed ()Z
 }
 
