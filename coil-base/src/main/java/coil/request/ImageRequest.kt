@@ -164,6 +164,87 @@ class ImageRequest private constructor(
     @JvmOverloads
     fun newBuilder(context: Context = this.context) = Builder(this, context)
 
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        return other is ImageRequest &&
+            context == other.context &&
+            data == other.data &&
+            target == other.target &&
+            listener == other.listener &&
+            memoryCacheKey == other.memoryCacheKey &&
+            placeholderMemoryCacheKey == other.placeholderMemoryCacheKey &&
+            (SDK_INT < 26 || colorSpace == other.colorSpace) &&
+            fetcherFactory == other.fetcherFactory &&
+            decoderFactory == other.decoderFactory &&
+            transformations == other.transformations &&
+            headers == other.headers &&
+            parameters == other.parameters &&
+            lifecycle == other.lifecycle &&
+            sizeResolver == other.sizeResolver &&
+            scale == other.scale &&
+            interceptorDispatcher == other.interceptorDispatcher &&
+            fetcherDispatcher == other.fetcherDispatcher &&
+            decoderDispatcher == other.decoderDispatcher &&
+            transformationDispatcher == other.transformationDispatcher &&
+            transitionFactory == other.transitionFactory &&
+            precision == other.precision &&
+            bitmapConfig == other.bitmapConfig &&
+            allowHardware == other.allowHardware &&
+            allowRgb565 == other.allowRgb565 &&
+            premultipliedAlpha == other.premultipliedAlpha &&
+            memoryCachePolicy == other.memoryCachePolicy &&
+            diskCachePolicy == other.diskCachePolicy &&
+            networkCachePolicy == other.networkCachePolicy &&
+            placeholderResId == other.placeholderResId &&
+            placeholderDrawable == other.placeholderDrawable &&
+            errorResId == other.errorResId &&
+            errorDrawable == other.errorDrawable &&
+            fallbackResId == other.fallbackResId &&
+            fallbackDrawable == other.fallbackDrawable &&
+            defined == other.defined &&
+            defaults == other.defaults
+    }
+
+    override fun hashCode(): Int {
+        var result = context.hashCode()
+        result = 31 * result + data.hashCode()
+        result = 31 * result + (target?.hashCode() ?: 0)
+        result = 31 * result + (listener?.hashCode() ?: 0)
+        result = 31 * result + (memoryCacheKey?.hashCode() ?: 0)
+        result = 31 * result + (placeholderMemoryCacheKey?.hashCode() ?: 0)
+        result = 31 * result + (colorSpace?.hashCode() ?: 0)
+        result = 31 * result + (fetcherFactory?.hashCode() ?: 0)
+        result = 31 * result + (decoderFactory?.hashCode() ?: 0)
+        result = 31 * result + transformations.hashCode()
+        result = 31 * result + headers.hashCode()
+        result = 31 * result + parameters.hashCode()
+        result = 31 * result + lifecycle.hashCode()
+        result = 31 * result + sizeResolver.hashCode()
+        result = 31 * result + scale.hashCode()
+        result = 31 * result + interceptorDispatcher.hashCode()
+        result = 31 * result + fetcherDispatcher.hashCode()
+        result = 31 * result + decoderDispatcher.hashCode()
+        result = 31 * result + transformationDispatcher.hashCode()
+        result = 31 * result + transitionFactory.hashCode()
+        result = 31 * result + precision.hashCode()
+        result = 31 * result + bitmapConfig.hashCode()
+        result = 31 * result + allowHardware.hashCode()
+        result = 31 * result + allowRgb565.hashCode()
+        result = 31 * result + premultipliedAlpha.hashCode()
+        result = 31 * result + memoryCachePolicy.hashCode()
+        result = 31 * result + diskCachePolicy.hashCode()
+        result = 31 * result + networkCachePolicy.hashCode()
+        result = 31 * result + (placeholderResId ?: 0)
+        result = 31 * result + (placeholderDrawable?.hashCode() ?: 0)
+        result = 31 * result + (errorResId ?: 0)
+        result = 31 * result + (errorDrawable?.hashCode() ?: 0)
+        result = 31 * result + (fallbackResId ?: 0)
+        result = 31 * result + (fallbackDrawable?.hashCode() ?: 0)
+        result = 31 * result + defined.hashCode()
+        result = 31 * result + defaults.hashCode()
+        return result
+    }
+
     /**
      * A set of callbacks for an [ImageRequest].
      */

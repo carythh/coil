@@ -489,6 +489,7 @@ public final class coil/request/ErrorResult : coil/request/ImageResult {
 
 public final class coil/request/ImageRequest {
 	public synthetic fun <init> (Landroid/content/Context;Ljava/lang/Object;Lcoil/target/Target;Lcoil/request/ImageRequest$Listener;Lcoil/memory/MemoryCache$Key;Lcoil/memory/MemoryCache$Key;Landroid/graphics/ColorSpace;Lkotlin/Pair;Lcoil/decode/Decoder$Factory;Ljava/util/List;Lokhttp3/Headers;Lcoil/request/Parameters;Landroidx/lifecycle/Lifecycle;Lcoil/size/SizeResolver;Lcoil/size/Scale;Lkotlinx/coroutines/CoroutineDispatcher;Lkotlinx/coroutines/CoroutineDispatcher;Lkotlinx/coroutines/CoroutineDispatcher;Lkotlinx/coroutines/CoroutineDispatcher;Lcoil/transition/Transition$Factory;Lcoil/size/Precision;Landroid/graphics/Bitmap$Config;ZZZLcoil/request/CachePolicy;Lcoil/request/CachePolicy;Lcoil/request/CachePolicy;Ljava/lang/Integer;Landroid/graphics/drawable/Drawable;Ljava/lang/Integer;Landroid/graphics/drawable/Drawable;Ljava/lang/Integer;Landroid/graphics/drawable/Drawable;Lcoil/request/DefinedRequestOptions;Lcoil/request/DefaultRequestOptions;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun equals (Ljava/lang/Object;)Z
 	public final fun getAllowHardware ()Z
 	public final fun getAllowRgb565 ()Z
 	public final fun getBitmapConfig ()Landroid/graphics/Bitmap$Config;
@@ -522,6 +523,7 @@ public final class coil/request/ImageRequest {
 	public final fun getTransformationDispatcher ()Lkotlinx/coroutines/CoroutineDispatcher;
 	public final fun getTransformations ()Ljava/util/List;
 	public final fun getTransitionFactory ()Lcoil/transition/Transition$Factory;
+	public fun hashCode ()I
 	public final fun newBuilder ()Lcoil/request/ImageRequest$Builder;
 	public final fun newBuilder (Landroid/content/Context;)Lcoil/request/ImageRequest$Builder;
 	public static synthetic fun newBuilder$default (Lcoil/request/ImageRequest;Landroid/content/Context;ILjava/lang/Object;)Lcoil/request/ImageRequest$Builder;
