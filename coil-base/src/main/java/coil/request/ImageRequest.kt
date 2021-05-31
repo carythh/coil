@@ -469,6 +469,15 @@ class ImageRequest private constructor(
         }
 
         /**
+         * @see ImageLoader.Builder.dispatcher
+         */
+        fun dispatcher(dispatcher: CoroutineDispatcher) = apply {
+            this.fetcherDispatcher = dispatcher
+            this.decoderDispatcher = dispatcher
+            this.transformationDispatcher = dispatcher
+        }
+
+        /**
          * @see ImageLoader.Builder.interceptorDispatcher
          */
         fun interceptorDispatcher(dispatcher: CoroutineDispatcher) = apply {

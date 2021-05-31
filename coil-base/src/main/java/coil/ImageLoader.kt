@@ -299,6 +299,20 @@ interface ImageLoader {
         }
 
         /**
+         * A convenience function to set [fetcherDispatcher], [decoderDispatcher], and
+         * [transformationDispatcher] in one call.
+         *
+         * Default: [Dispatchers.IO]
+         */
+        fun dispatcher(dispatcher: CoroutineDispatcher) = apply {
+            this.defaults = this.defaults.copy(
+                fetcherDispatcher = dispatcher,
+                decoderDispatcher = dispatcher,
+                transformationDispatcher = dispatcher
+            )
+        }
+
+        /**
          * The [CoroutineDispatcher] that the [Interceptor] chain will be executed on.
          *
          * Default: `Dispatchers.Main.immediate`
@@ -319,7 +333,7 @@ interface ImageLoader {
         /**
          * The [CoroutineDispatcher] that [Decoder.decode] will be executed on.
          *
-         * Default: [Dispatchers.Default]
+         * Default: [Dispatchers.IO]
          */
         fun decoderDispatcher(dispatcher: CoroutineDispatcher) = apply {
             this.defaults = this.defaults.copy(decoderDispatcher = dispatcher)
@@ -328,7 +342,7 @@ interface ImageLoader {
         /**
          * The [CoroutineDispatcher] that [Transformation.transform] will be executed on.
          *
-         * Default: [Dispatchers.Default]
+         * Default: [Dispatchers.IO]
          */
         fun transformationDispatcher(dispatcher: CoroutineDispatcher) = apply {
             this.defaults = this.defaults.copy(transformationDispatcher = dispatcher)
