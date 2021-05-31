@@ -31,11 +31,6 @@ internal class RequestService(
 
     private val hardwareBitmapService = HardwareBitmapService(logger)
 
-    /** Wrap [target] to instrument its callbacks. */
-    fun createTargetDelegate(target: Target?): TargetDelegate {
-        return if (target != null) RealTargetDelegate(target) else EmptyTargetDelegate
-    }
-
     /** Wrap [request] to automatically dispose and/or restart the [ImageRequest] based on its lifecycle. */
     @MainThread
     fun createRequestDelegate(request: ImageRequest, job: Job): RequestDelegate {
