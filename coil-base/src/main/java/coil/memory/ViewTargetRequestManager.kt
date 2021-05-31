@@ -1,7 +1,6 @@
 package coil.memory
 
 import android.view.View
-import androidx.annotation.GuardedBy
 import androidx.annotation.MainThread
 import coil.request.ImageRequest
 import coil.request.ImageResult
@@ -24,10 +23,10 @@ import kotlinx.coroutines.launch
 internal class ViewTargetRequestManager(private val view: View) : View.OnAttachStateChangeListener {
 
     // The disposable for the current request attached to this view.
-    @GuardedBy("this") private var currentDisposable: ViewTargetDisposable? = null
+    private var currentDisposable: ViewTargetDisposable? = null
 
     // A pending operation that is posting to the main thread to clear the current request.
-    @GuardedBy("this") private var pendingClear: Job? = null
+    private var pendingClear: Job? = null
 
     // Only accessed from the main thread.
     private var currentRequest: ViewTargetRequestDelegate? = null
