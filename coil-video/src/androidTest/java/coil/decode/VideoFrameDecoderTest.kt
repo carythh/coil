@@ -1,21 +1,18 @@
-package coil.fetch
+package coil.decode
 
-import android.content.ContentResolver.SCHEME_FILE
 import android.content.Context
 import android.graphics.drawable.BitmapDrawable
 import android.os.Build.VERSION.SDK_INT
-import androidx.core.net.toUri
 import androidx.test.core.app.ApplicationProvider
-import coil.bitmap.BitmapPool
-import coil.fetch.VideoFrameFetcher.Companion.ASSET_FILE_PATH_ROOT
-import coil.fetch.VideoFrameFetcher.Companion.VIDEO_FRAME_MICROS_KEY
+import coil.decode.VideoFrameDecoder.Companion.VIDEO_FRAME_MICROS_KEY
 import coil.request.Options
 import coil.request.Parameters
-import coil.size.OriginalSize
 import coil.size.PixelSize
 import coil.util.decodeBitmapAsset
 import coil.util.isSimilarTo
 import kotlinx.coroutines.runBlocking
+import okio.buffer
+import okio.source
 import org.junit.Assume.assumeTrue
 import org.junit.Before
 import org.junit.Test
@@ -23,29 +20,13 @@ import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
-class VideoFrameFetcherTest {
+class VideoFrameDecoderTest {
 
     private lateinit var context: Context
-    private lateinit var pool: BitmapPool
-    private lateinit var fetcher: VideoFrameUriFetcher
 
     @Before
     fun before() {
         context = ApplicationProvider.getApplicationContext()
-        pool = BitmapPool(0)
-        fetcher = VideoFrameUriFetcher(context)
-    }
-
-    @Test
-    fun uriFetcherHandlesContentScheme() {
-        val uri = "content://test/scheme/BigBuckBunny.mp4".toUri()
-        assertTrue(fetcher.handles(uri))
-    }
-
-    @Test
-    fun uriFetcherDoesNotHandleHttpScheme() {
-        val uri = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4".toUri()
-        assertFalse(fetcher.handles(uri))
     }
 
     @Test
@@ -54,15 +35,15 @@ class VideoFrameFetcherTest {
         assumeTrue(SDK_INT >= 23)
 
         val result = runBlocking {
-            fetcher.fetch(
-                pool = pool,
-                data = "$SCHEME_FILE:///$ASSET_FILE_PATH_ROOT/video.mp4".toUri(),
-                size = OriginalSize,
+            VideoFrameDecoder(
+                source = ImageSource(
+                    source = context.assets.open("video.mp4").source().buffer(),
+                    context = context
+                ),
                 options = Options(context)
-            )
+            ).decode()
         }
 
-        assertTrue(result is DrawableResult)
         val actual = (result.drawable as? BitmapDrawable)?.bitmap
         assertNotNull(actual)
         assertFalse(result.isSampled)
@@ -77,20 +58,20 @@ class VideoFrameFetcherTest {
         assumeTrue(SDK_INT >= 23)
 
         val result = runBlocking {
-            fetcher.fetch(
-                pool = pool,
-                data = "$SCHEME_FILE:///$ASSET_FILE_PATH_ROOT/video.mp4".toUri(),
-                size = OriginalSize,
+            VideoFrameDecoder(
+                source = ImageSource(
+                    source = context.assets.open("video.mp4").source().buffer(),
+                    context = context
+                ),
                 options = Options(
                     context = context,
                     parameters = Parameters.Builder()
                         .set(VIDEO_FRAME_MICROS_KEY, 32600000L)
                         .build()
                 )
-            )
+            ).decode()
         }
 
-        assertTrue(result is DrawableResult)
         val actual = (result.drawable as? BitmapDrawable)?.bitmap
         assertNotNull(actual)
         assertFalse(result.isSampled)
@@ -105,15 +86,15 @@ class VideoFrameFetcherTest {
         assumeTrue(SDK_INT >= 23)
 
         val result = runBlocking {
-            fetcher.fetch(
-                pool = pool,
-                data = "$SCHEME_FILE:///$ASSET_FILE_PATH_ROOT/video_rotated.mp4".toUri(),
-                size = PixelSize(150, 150),
-                options = Options(context)
-            )
+            VideoFrameDecoder(
+                source = ImageSource(
+                    source = context.assets.open("video_rotated.mp4").source().buffer(),
+                    context = context
+                ),
+                options = Options(context, size = PixelSize(150, 150))
+            ).decode()
         }
 
-        assertTrue(result is DrawableResult)
         val actual = (result.drawable as? BitmapDrawable)?.bitmap
         assertNotNull(actual)
         assertTrue(result.isSampled)

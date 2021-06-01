@@ -180,9 +180,7 @@ class BitmapFactoryDecoderTest {
             )
         )
         assertEquals(PixelSize(400, 200), result.size)
-        if (SDK_INT >= 19) {
-            assertTrue(result.isPremultiplied)
-        }
+        assertTrue(result.isPremultiplied)
     }
 
     @Test
@@ -197,9 +195,7 @@ class BitmapFactoryDecoderTest {
             )
         )
         assertEquals(PixelSize(400, 200), result.size)
-        if (SDK_INT >= 19) {
-            assertFalse(result.isPremultiplied)
-        }
+        assertFalse(result.isPremultiplied)
     }
 
     @Test

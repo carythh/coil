@@ -54,10 +54,10 @@ class AnimationCallbacksTest {
         val imageView = activityRule.scenario.activity.imageView
         val isStartCalled = MutableStateFlow(false)
         val isEndCalled = MutableStateFlow(false)
-        val decoder = if (SDK_INT >= 28) {
-            ImageDecoderDecoder(context)
+        val decoderFactory = if (SDK_INT >= 28) {
+            ImageDecoderDecoder.Factory()
         } else {
-            GifDecoder()
+            GifDecoder.Factory()
         }
 
         val imageRequest = ImageRequest.Builder(context)
@@ -69,7 +69,7 @@ class AnimationCallbacksTest {
                 isEndCalled.value = true
             }
             .target(imageView)
-            .decoder(decoder)
+            .decoderFactory(decoderFactory)
             .data("${ContentResolver.SCHEME_FILE}:///android_asset/animated.gif")
             .build()
         imageLoader.enqueue(imageRequest)
