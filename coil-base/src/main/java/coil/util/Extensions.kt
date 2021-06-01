@@ -153,10 +153,10 @@ internal inline operator fun MemoryCache.get(key: MemoryCache.Key?) = key?.let(:
 internal val Context.safeCacheDir: File get() = cacheDir.apply { mkdirs() }
 
 @Suppress("UNCHECKED_CAST")
-internal inline fun ComponentRegistry.Builder.add(
+internal inline fun ComponentRegistry.Builder.addFirst(
     pair: Pair<Fetcher.Factory<*>, Class<*>>?
-) = if (pair == null) this else add(pair.first as Fetcher.Factory<Any>, pair.second as Class<Any>)
+) = if (pair == null) this else addFirst(pair.first as Fetcher.Factory<Any>, pair.second as Class<Any>)
 
-internal inline fun ComponentRegistry.Builder.add(factory: Decoder.Factory?) =
-    if (factory == null) this else add(factory)
+internal inline fun ComponentRegistry.Builder.addFirst(factory: Decoder.Factory?) =
+    if (factory == null) this else addFirst(factory)
 

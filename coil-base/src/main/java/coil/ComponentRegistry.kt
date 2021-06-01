@@ -1,4 +1,4 @@
-@file:Suppress("UNCHECKED_CAST")
+@file:Suppress("UNCHECKED_CAST", "unused")
 
 package coil
 
@@ -116,12 +116,21 @@ class ComponentRegistry private constructor(
             decoderFactories = registry.decoderFactories.toMutableList()
         }
 
-        /** Register an [Interceptor]. */
+        fun addFirst(interceptor: Interceptor) = apply {
+            interceptors.add(0, interceptor)
+        }
+
         fun add(interceptor: Interceptor) = apply {
             interceptors += interceptor
         }
 
-        /** Register a [Mapper]. */
+        inline fun <reified T : Any> addFirst(mapper: Mapper<T, *>) = addFirst(mapper, T::class.java)
+
+        @PublishedApi
+        internal fun <T : Any> addFirst(mapper: Mapper<T, *>, type: Class<T>) = apply {
+            mappers.add(0, mapper to type)
+        }
+
         inline fun <reified T : Any> add(mapper: Mapper<T, *>) = add(mapper, T::class.java)
 
         @PublishedApi
@@ -129,7 +138,13 @@ class ComponentRegistry private constructor(
             mappers += mapper to type
         }
 
-        /** Register a [Keyer]. */
+        inline fun <reified T : Any> addFirst(keyer: Keyer<T>) = addFirst(keyer, T::class.java)
+
+        @PublishedApi
+        internal fun <T : Any> addFirst(keyer: Keyer<T>, type: Class<T>) = apply {
+            keyers.add(0, keyer to type)
+        }
+
         inline fun <reified T : Any> add(keyer: Keyer<T>) = add(keyer, T::class.java)
 
         @PublishedApi
@@ -137,7 +152,13 @@ class ComponentRegistry private constructor(
             keyers += keyer to type
         }
 
-        /** Register a [Fetcher.Factory]. */
+        inline fun <reified T : Any> addFirst(factory: Fetcher.Factory<T>) = addFirst(factory, T::class.java)
+
+        @PublishedApi
+        internal fun <T : Any> addFirst(factory: Fetcher.Factory<T>, type: Class<T>) = apply {
+            fetcherFactories += factory to type
+        }
+
         inline fun <reified T : Any> add(factory: Fetcher.Factory<T>) = add(factory, T::class.java)
 
         @PublishedApi
@@ -145,7 +166,10 @@ class ComponentRegistry private constructor(
             fetcherFactories += factory to type
         }
 
-        /** Register a [Decoder.Factory]. */
+        fun addFirst(factory: Decoder.Factory) = apply {
+            decoderFactories.add(0, factory)
+        }
+
         fun add(factory: Decoder.Factory) = apply {
             decoderFactories += factory
         }

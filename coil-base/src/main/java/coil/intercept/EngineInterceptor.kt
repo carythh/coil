@@ -29,7 +29,7 @@ import coil.size.Size
 import coil.transform.Transformation
 import coil.util.Logger
 import coil.util.Utils
-import coil.util.add
+import coil.util.addFirst
 import coil.util.allowInexactSize
 import coil.util.closeQuietly
 import coil.util.foldIndices
@@ -253,8 +253,8 @@ internal class EngineInterceptor(
             fetchResult = withContext(request.fetcherDispatcher) {
                 if (request.fetcherFactory != null || request.decoderFactory != null) {
                     components = components.newBuilder()
-                        .add(request.fetcherFactory)
-                        .add(request.decoderFactory)
+                        .addFirst(request.fetcherFactory)
+                        .addFirst(request.decoderFactory)
                         .build()
                 }
                 if (!requestService.allowHardwareWorkerThread(options)) {
