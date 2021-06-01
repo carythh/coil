@@ -120,8 +120,13 @@ class EventListenerTest {
             imageLoader.testEnqueue {
                 data("$SCHEME_ANDROID_RESOURCE://${context.packageName}/${R.drawable.normal}")
                 transitionFactory { target, result ->
-                    transitionIsCalled = true
-                    Transition.Factory.NONE.create(target, result)
+                    Transition {
+                        transitionIsCalled = true
+                        when (result) {
+                            is SuccessResult -> target.onSuccess(result.drawable)
+                            is ErrorResult -> target.onError(result.drawable)
+                        }
+                    }
                 }
             }
         }
@@ -168,6 +173,8 @@ class EventListenerTest {
             resolveSizeEnd = MethodChecker(false),
             mapStart = MethodChecker(false),
             mapEnd = MethodChecker(false),
+            keyStart = MethodChecker(false),
+            keyEnd = MethodChecker(false),
             fetchStart = MethodChecker(false),
             fetchEnd = MethodChecker(false),
             decodeStart = MethodChecker(false),
@@ -257,6 +264,8 @@ class EventListenerTest {
         override fun resolveSizeEnd(request: ImageRequest, size: Size) = resolveSizeEnd.call()
         override fun mapStart(request: ImageRequest, input: Any) = mapStart.call()
         override fun mapEnd(request: ImageRequest, output: Any) = mapEnd.call()
+        override fun keyStart(request: ImageRequest, input: Any) = keyStart.call()
+        override fun keyEnd(request: ImageRequest, output: String?) = keyEnd.call()
         override fun fetchStart(request: ImageRequest, fetcher: Fetcher, options: Options) = fetchStart.call()
         override fun fetchEnd(request: ImageRequest, fetcher: Fetcher, options: Options, result: FetchResult?) = fetchEnd.call()
         override fun decodeStart(request: ImageRequest, decoder: Decoder, options: Options) = decodeStart.call()

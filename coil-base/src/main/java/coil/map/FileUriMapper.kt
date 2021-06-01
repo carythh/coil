@@ -15,7 +15,13 @@ internal class FileUriMapper : Mapper<Uri, File> {
     }
 
     private fun isApplicable(data: Uri): Boolean {
-        return (data.scheme == null || data.scheme == ContentResolver.SCHEME_FILE) &&
-            data.firstPathSegment.let { it != null && it != AssetUriFetcher.ASSET_FILE_PATH_ROOT }
+        if (isAssetUri(data)) return false
+        return data.scheme.let { it == null || it == ContentResolver.SCHEME_FILE } &&
+            data.path.orEmpty().startsWith('/') && data.firstPathSegment != null
+    }
+
+    private fun isAssetUri(data: Uri): Boolean {
+        return data.scheme == ContentResolver.SCHEME_FILE &&
+            data.firstPathSegment == AssetUriFetcher.ASSET_FILE_PATH_ROOT
     }
 }

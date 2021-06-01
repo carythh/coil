@@ -40,4 +40,10 @@ class FileUriMapperTest {
         val uri = "$SCHEME_FILE:///$ASSET_FILE_PATH_ROOT/asset.jpg".toUri()
         assertNull(mapper.map(uri, Options(context)))
     }
+
+    @Test
+    fun doesNotHandleGenericString() {
+        val uri = "generic_string".toUri()
+        assertNull(mapper.map(uri, Options(context)))
+    }
 }
