@@ -97,19 +97,6 @@ class RealMemoryCacheTest {
     }
 
     @Test
-    fun `set replaces strong and weak values`() {
-        val key = Key("a")
-        val bitmap = createBitmap()
-
-        strongCache.set(key, createBitmap(), false)
-        weakCache.set(key, createBitmap(), false, 100)
-        cache[key] = Value(bitmap)
-
-        assertEquals(bitmap, strongCache.get(key)?.bitmap)
-        assertNull(weakCache.get(key))
-    }
-
-    @Test
     fun `setting the same bitmap multiple times can only be removed once`() {
         val key = Key("a")
         val bitmap = createBitmap()

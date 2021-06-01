@@ -20,7 +20,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.TestCoroutineDispatcher
 import kotlinx.coroutines.test.resetMain
-import kotlinx.coroutines.withContext
 import okhttp3.Cache
 import okhttp3.Call
 import okhttp3.HttpUrl.Companion.toHttpUrl
@@ -118,12 +117,14 @@ class HttpFetcherTest {
     }
 
     @Test
-    fun `not found response is cached`() = runBlockingTest {
+    fun `not found response is cached`() {
         val uri = createMockWebServer(context).url("/notfound.jpg").toString().toUri()
         val options = Options(context, size = PixelSize(100, 100))
         val fetcher = assertNotNull(HttpUrlFetcher.Factory(callFactory).create(uri, options, ImageLoader(context)))
 
-        assertFailsWith<HttpException> { fetcher.fetch() }
+        runBlocking {
+            assertFailsWith<HttpException> { fetcher.fetch() }
+        }
         assertEquals(uri.toString(), diskCache.urls().next())
     }
 
@@ -138,19 +139,21 @@ class HttpFetcherTest {
     }
 
     @Test
-    fun `request on main thread with network cache policy disabled executes correctly`() = runBlockingTest {
+    fun `request on main thread with network cache policy disabled executes correctly`() {
         val uri = server.url("/normal.jpg").toString().toUri()
         val options = Options(context, size = PixelSize(100, 100))
         val fetcherFactory = HttpUrlFetcher.Factory(callFactory)
 
         // Save the image in the disk cache.
-        var result = assertNotNull(fetcherFactory.create(uri, options, ImageLoader(context))).fetch()
+        var result = runBlocking {
+            assertNotNull(fetcherFactory.create(uri, options, ImageLoader(context))).fetch()
+        }
         (result as SourceResult).source.close()
 
         assertEquals(uri.toString(), diskCache.urls().next())
 
         // Load it from the disk cache on the main thread.
-        result = withContext(Dispatchers.Main.immediate) {
+        result = runBlocking(Dispatchers.Main.immediate) {
             val newOptions = options.copy(networkCachePolicy = CachePolicy.DISABLED)
             assertNotNull(fetcherFactory.create(uri, newOptions, ImageLoader(context))).fetch()
         }

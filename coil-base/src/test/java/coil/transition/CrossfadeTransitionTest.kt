@@ -152,12 +152,8 @@ class CrossfadeTransitionTest {
                 target = createTransitionTarget(
                     onError = { error ->
                         assertFalse(onSuccessCalled)
+                        assertTrue(error !is CrossfadeDrawable)
                         onSuccessCalled = true
-
-                        assertTrue(error is CrossfadeDrawable)
-
-                        // Stop the animation early to simulate the end of the animation.
-                        error.stop()
                     }
                 ),
                 result = ErrorResult(

@@ -513,9 +513,12 @@ class EngineInterceptorTest {
         parameters: Parameters = Parameters.EMPTY
     ): Key {
         val extras = buildMap<String, String> {
-            put(MEMORY_CACHE_KEY_TRANSFORMATIONS, transformations.joinToString {
-                it.cacheKey + TRANSFORMATIONS_DELIMITER
-            })
+            if (transformations.isNotEmpty()) {
+                val transformationString = transformations.joinToString(separator = "") {
+                    it.cacheKey + TRANSFORMATIONS_DELIMITER
+                }
+                put(MEMORY_CACHE_KEY_TRANSFORMATIONS, transformationString)
+            }
             if (size is PixelSize) {
                 put(MEMORY_CACHE_KEY_WIDTH, size.width.toString())
                 put(MEMORY_CACHE_KEY_HEIGHT, size.height.toString())

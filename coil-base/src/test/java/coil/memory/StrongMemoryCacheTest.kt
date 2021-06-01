@@ -43,17 +43,6 @@ class StrongMemoryCacheTest {
     }
 
     @Test
-    fun `maxSize 0 disables memory cache`() {
-        val weakCache = EmptyWeakMemoryCache()
-        val strongCache = RealStrongMemoryCache(0, weakCache)
-
-        val bitmap = createBitmap()
-        strongCache.set(Key("1"), bitmap, false)
-
-        assertNull(strongCache.get(Key("1")))
-    }
-
-    @Test
     fun `value can be removed`() {
         val weakCache = RealWeakMemoryCache()
         val strongCache = RealStrongMemoryCache(2 * DEFAULT_BITMAP_SIZE, weakCache)
