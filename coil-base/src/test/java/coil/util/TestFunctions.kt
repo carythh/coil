@@ -2,7 +2,6 @@ package coil.util
 
 import android.graphics.Bitmap
 import android.os.Build.VERSION.SDK_INT
-import android.os.Looper
 import androidx.core.graphics.createBitmap
 import org.robolectric.Shadows
 
@@ -17,8 +16,4 @@ fun createBitmap(
     val bitmap = createBitmap(width, height, config)
     Shadows.shadowOf(bitmap).setMutable(isMutable)
     return bitmap
-}
-
-fun executeQueuedMainThreadTasks() {
-    Shadows.shadowOf(Looper.getMainLooper()).idle()
 }

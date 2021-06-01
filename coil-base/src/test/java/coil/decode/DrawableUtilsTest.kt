@@ -2,26 +2,17 @@ package coil.decode
 
 import android.graphics.Bitmap
 import android.graphics.drawable.VectorDrawable
-import coil.bitmap.BitmapPool
 import coil.fetch.DrawableUtils
 import coil.size.PixelSize
 import coil.size.Scale
 import coil.util.size
-import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import kotlin.test.assertEquals
 
 @RunWith(RobolectricTestRunner::class)
-class DrawableDecoderServiceTest {
-
-    private lateinit var service: DrawableUtils
-
-    @Before
-    fun before() {
-        service = DrawableUtils(BitmapPool(0))
-    }
+class DrawableUtilsTest {
 
     @Test
     fun `vector with hardware config is converted correctly`() {
@@ -30,7 +21,7 @@ class DrawableDecoderServiceTest {
             override fun getIntrinsicWidth() = 100
             override fun getIntrinsicHeight() = 100
         }
-        val output = service.convertToBitmap(
+        val output = DrawableUtils.convertToBitmap(
             drawable = input,
             config = Bitmap.Config.HARDWARE,
             size = size,
@@ -49,7 +40,7 @@ class DrawableDecoderServiceTest {
             override fun getIntrinsicWidth() = -1
             override fun getIntrinsicHeight() = -1
         }
-        val output = service.convertToBitmap(
+        val output = DrawableUtils.convertToBitmap(
             drawable = input,
             size = size,
             config = Bitmap.Config.HARDWARE,
@@ -67,7 +58,7 @@ class DrawableDecoderServiceTest {
             override fun getIntrinsicWidth() = 125
             override fun getIntrinsicHeight() = 250
         }
-        val output = service.convertToBitmap(
+        val output = DrawableUtils.convertToBitmap(
             drawable = input,
             size = PixelSize(200, 200),
             config = Bitmap.Config.ARGB_8888,

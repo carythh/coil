@@ -31,7 +31,7 @@ internal class DrawableFetcher(
         )
     }
 
-    class Factory: Fetcher.Factory<Drawable> {
+    class Factory : Fetcher.Factory<Drawable> {
 
         override fun create(data: Drawable, options: Options, imageLoader: ImageLoader): Fetcher {
             return DrawableFetcher(data, options)

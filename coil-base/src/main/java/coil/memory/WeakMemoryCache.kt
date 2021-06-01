@@ -53,7 +53,7 @@ internal class EmptyWeakMemoryCache : WeakMemoryCache {
 /** A [WeakMemoryCache] implementation backed by a [HashMap]. */
 internal class RealWeakMemoryCache : WeakMemoryCache {
 
-    private val cache = LinkedHashMap<Key, ArrayList<InternalValue>>()
+    @VisibleForTesting internal val cache = LinkedHashMap<Key, ArrayList<InternalValue>>()
     private var operationsSinceCleanUp = 0
 
     override val keys @Synchronized get() = cache.keys
@@ -150,7 +150,8 @@ internal class RealWeakMemoryCache : WeakMemoryCache {
         }
     }
 
-    private class InternalValue(
+    @VisibleForTesting
+    internal class InternalValue(
         val identityHashCode: Int,
         val bitmap: WeakReference<Bitmap>,
         val isSampled: Boolean,

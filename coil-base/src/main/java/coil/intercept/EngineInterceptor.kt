@@ -34,7 +34,6 @@ import coil.util.allowInexactSize
 import coil.util.closeQuietly
 import coil.util.foldIndices
 import coil.util.forEachIndices
-import coil.util.get
 import coil.util.log
 import coil.util.safeConfig
 import coil.util.toDrawable
@@ -43,6 +42,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
 import java.io.File
+import kotlin.collections.set
 import kotlin.math.abs
 
 /** The last interceptor in the chain which executes the [ImageRequest]. */
@@ -70,8 +70,8 @@ internal class EngineInterceptor(
             eventListener.mapEnd(request, mappedData)
 
             // Check the memory cache.
-            val memoryCacheKey = getMemoryCacheKey(mappedData, options, request, size, eventListener)
-            val memoryCacheValue = getMemoryCacheValue(request, memoryCacheKey)
+            val memoryCacheKey = getMemoryCacheKey(request, mappedData, options, eventListener)
+            val memoryCacheValue = memoryCacheKey?.let { getMemoryCacheValue(request, it) }
 
             // Fast path: return the value from the memory cache.
             if (memoryCacheValue != null && isCachedValueValid(memoryCacheKey, memoryCacheValue, request, size)) {
@@ -117,10 +117,9 @@ internal class EngineInterceptor(
     /** Get the memory cache key for this request. */
     @VisibleForTesting
     internal fun getMemoryCacheKey(
+        request: ImageRequest,
         mappedData: Any,
         options: Options,
-        request: ImageRequest,
-        size: Size,
         eventListener: EventListener
     ): MemoryCache.Key? {
         // Fast path: an explicit memory cache key has been set.
@@ -137,10 +136,11 @@ internal class EngineInterceptor(
         if (request.transformations.isNotEmpty()) {
             val transformations = StringBuilder()
             request.transformations.forEachIndices {
-                transformations.append(it.cacheKey).append('~')
+                transformations.append(it.cacheKey).append(TRANSFORMATIONS_DELIMITER)
             }
             extras[MEMORY_CACHE_KEY_TRANSFORMATIONS] = transformations.toString()
 
+            val size = options.size
             if (size is PixelSize) {
                 extras[MEMORY_CACHE_KEY_WIDTH] = size.width.toString()
                 extras[MEMORY_CACHE_KEY_HEIGHT] = size.height.toString()
@@ -150,14 +150,14 @@ internal class EngineInterceptor(
     }
 
     /** Get the memory cache value for this request. */
-    private fun getMemoryCacheValue(request: ImageRequest, memoryCacheKey: MemoryCache.Key?): MemoryCache.Value? {
+    private fun getMemoryCacheValue(request: ImageRequest, memoryCacheKey: MemoryCache.Key): MemoryCache.Value? {
         return if (request.memoryCachePolicy.readEnabled) imageLoader.memoryCache[memoryCacheKey] else null
     }
 
     /** Return 'true' if [cacheValue] satisfies the [request]. */
     @VisibleForTesting
     internal fun isCachedValueValid(
-        cacheKey: MemoryCache.Key?,
+        cacheKey: MemoryCache.Key,
         cacheValue: MemoryCache.Value,
         request: ImageRequest,
         size: Size
@@ -181,7 +181,7 @@ internal class EngineInterceptor(
 
     /** Return 'true' if [cacheValue]'s size satisfies the [request]. */
     private fun isSizeValid(
-        cacheKey: MemoryCache.Key?,
+        cacheKey: MemoryCache.Key,
         cacheValue: MemoryCache.Value,
         request: ImageRequest,
         size: Size
@@ -196,8 +196,8 @@ internal class EngineInterceptor(
                 }
             }
             is PixelSize -> {
-                var cachedWidth = cacheKey?.extras?.get(MEMORY_CACHE_KEY_WIDTH)?.toInt()
-                var cachedHeight = cacheKey?.extras?.get(MEMORY_CACHE_KEY_HEIGHT)?.toInt()
+                var cachedWidth = cacheKey.extras[MEMORY_CACHE_KEY_WIDTH]?.toInt()
+                var cachedHeight = cacheKey.extras[MEMORY_CACHE_KEY_HEIGHT]?.toInt()
                 if (cachedWidth == null || cachedHeight == null) {
                     val bitmap = cacheValue.bitmap
                     cachedWidth = bitmap.width
@@ -421,8 +421,9 @@ internal class EngineInterceptor(
 
     companion object {
         private const val TAG = "EngineInterceptor"
-        private const val MEMORY_CACHE_KEY_WIDTH = "coil#width"
-        private const val MEMORY_CACHE_KEY_HEIGHT = "coil#height"
-        private const val MEMORY_CACHE_KEY_TRANSFORMATIONS = "coil#transformations"
+        @VisibleForTesting internal const val MEMORY_CACHE_KEY_WIDTH = "coil#width"
+        @VisibleForTesting internal const val MEMORY_CACHE_KEY_HEIGHT = "coil#height"
+        @VisibleForTesting internal const val MEMORY_CACHE_KEY_TRANSFORMATIONS = "coil#transformations"
+        @VisibleForTesting internal const val TRANSFORMATIONS_DELIMITER = '~'
     }
 }

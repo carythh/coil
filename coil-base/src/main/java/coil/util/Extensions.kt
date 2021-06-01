@@ -159,4 +159,3 @@ internal inline fun ComponentRegistry.Builder.addFirst(
 
 internal inline fun ComponentRegistry.Builder.addFirst(factory: Decoder.Factory?) =
     if (factory == null) this else addFirst(factory)
-

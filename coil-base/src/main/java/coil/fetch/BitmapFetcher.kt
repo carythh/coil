@@ -19,7 +19,7 @@ internal class BitmapFetcher(
         )
     }
 
-    class Factory: Fetcher.Factory<Bitmap> {
+    class Factory : Fetcher.Factory<Bitmap> {
 
         override fun create(data: Bitmap, options: Options, imageLoader: ImageLoader): Fetcher {
             return BitmapFetcher(data, options)

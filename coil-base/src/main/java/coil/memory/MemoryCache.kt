@@ -47,14 +47,14 @@ interface MemoryCache {
     /**
      * The cache key for an image in the memory cache.
      *
-     * @param base The base component of the cache key.
+     * @param key The base component of the cache key.
      *  Usually this is the value returned by [Keyer.key].
      * @param extras Any extra values that differentiate the
-     *  associated cached value from other values with the same [base].
+     *  associated cached value from other values with the same [key].
      */
     @Parcelize
     data class Key @JvmOverloads constructor(
-        val base: String,
+        val key: String,
         val extras: Map<String, String> = emptyMap()
     ) : Parcelable
 

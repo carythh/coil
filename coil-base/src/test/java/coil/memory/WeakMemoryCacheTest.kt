@@ -1,13 +1,13 @@
 package coil.memory
 
 import android.content.Context
+import android.graphics.Bitmap
 import androidx.collection.arraySetOf
 import androidx.test.core.app.ApplicationProvider
 import coil.memory.MemoryCache.Key
 import coil.util.allocationByteCountCompat
-import coil.util.clear
-import coil.util.count
 import coil.util.createBitmap
+import coil.util.forEachIndices
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -28,7 +28,7 @@ class WeakMemoryCacheTest {
     @Before
     fun before() {
         context = ApplicationProvider.getApplicationContext()
-        weakMemoryCache = RealWeakMemoryCache(null)
+        weakMemoryCache = RealWeakMemoryCache()
         references = arraySetOf()
     }
 
@@ -70,12 +70,12 @@ class WeakMemoryCacheTest {
     }
 
     @Test
-    fun `invalidate removes from cache`() {
+    fun `empty references are removed from cache`() {
         val key = Key("key")
         val bitmap = reference(createBitmap())
 
         weakMemoryCache.set(key, bitmap, false, 100)
-        weakMemoryCache.remove(bitmap)
+        weakMemoryCache.clear(bitmap)
 
         assertNull(weakMemoryCache.get(key))
     }
@@ -101,28 +101,28 @@ class WeakMemoryCacheTest {
         weakMemoryCache.set(Key("key"), bitmap2, false, 2)
 
         assertEquals(bitmap8, weakMemoryCache.get(Key("key"))?.bitmap)
-        weakMemoryCache.remove(bitmap8)
+        weakMemoryCache.clear(bitmap8)
 
         assertEquals(bitmap7, weakMemoryCache.get(Key("key"))?.bitmap)
-        weakMemoryCache.remove(bitmap7)
+        weakMemoryCache.clear(bitmap7)
 
         assertEquals(bitmap6, weakMemoryCache.get(Key("key"))?.bitmap)
-        weakMemoryCache.remove(bitmap6)
+        weakMemoryCache.clear(bitmap6)
 
         assertEquals(bitmap5, weakMemoryCache.get(Key("key"))?.bitmap)
-        weakMemoryCache.remove(bitmap5)
+        weakMemoryCache.clear(bitmap5)
 
         assertEquals(bitmap4, weakMemoryCache.get(Key("key"))?.bitmap)
-        weakMemoryCache.remove(bitmap4)
+        weakMemoryCache.clear(bitmap4)
 
         assertEquals(bitmap3, weakMemoryCache.get(Key("key"))?.bitmap)
-        weakMemoryCache.remove(bitmap3)
+        weakMemoryCache.clear(bitmap3)
 
         assertEquals(bitmap2, weakMemoryCache.get(Key("key"))?.bitmap)
-        weakMemoryCache.remove(bitmap2)
+        weakMemoryCache.clear(bitmap2)
 
         assertEquals(bitmap1, weakMemoryCache.get(Key("key"))?.bitmap)
-        weakMemoryCache.remove(bitmap1)
+        weakMemoryCache.clear(bitmap1)
 
         // All the values are invalidated.
         assertNull(weakMemoryCache.get(Key("key")))
@@ -145,11 +145,11 @@ class WeakMemoryCacheTest {
         weakMemoryCache.clear(bitmap3)
         assertNull(weakMemoryCache.get(Key("key3")))
 
-        assertEquals(3, weakMemoryCache.count())
+        assertEquals(3, weakMemoryCache.keys.size)
 
         weakMemoryCache.cleanUp()
 
-        assertEquals(1, weakMemoryCache.count())
+        assertEquals(1, weakMemoryCache.keys.size)
 
         assertNull(weakMemoryCache.get(Key("key1")))
         assertEquals(bitmap2, weakMemoryCache.get(Key("key2"))?.bitmap)
@@ -166,9 +166,27 @@ class WeakMemoryCacheTest {
         assertNull(weakMemoryCache.get(key))
     }
 
-    /** Hold a strong reference to the value for the duration of the test to prevent it from being garbage collected. */
+    /**
+     * Clears [bitmap]'s weak reference without removing its entry from
+     * [RealWeakMemoryCache.cache]. This simulates garbage collection.
+     */
+    private fun RealWeakMemoryCache.clear(bitmap: Bitmap) {
+        cache.values.forEach { values ->
+            values.forEachIndices { value ->
+                if (value.bitmap.get() === bitmap) {
+                    value.bitmap.clear()
+                    return
+                }
+            }
+        }
+    }
+
+    /**
+     * Hold a strong reference to the value for the duration of the test
+     * to prevent it from being garbage collected.
+     */
     private fun <T : Any> reference(value: T): T {
-        references.add(value)
+        references += value
         return value
     }
 }

@@ -23,7 +23,7 @@ internal class ByteBufferFetcher(
         )
     }
 
-    class Factory: Fetcher.Factory<ByteBuffer> {
+    class Factory : Fetcher.Factory<ByteBuffer> {
 
         override fun create(data: ByteBuffer, options: Options, imageLoader: ImageLoader): Fetcher {
             return ByteBufferFetcher(data, options)

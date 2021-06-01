@@ -1,6 +1,6 @@
-package coil.callback
+package coil.transform
 
-import android.content.ContentResolver
+import android.content.ContentResolver.SCHEME_FILE
 import android.content.Context
 import android.os.Build.VERSION.SDK_INT
 import androidx.lifecycle.Lifecycle
@@ -70,7 +70,7 @@ class AnimationCallbacksTest {
             }
             .target(imageView)
             .decoderFactory(decoderFactory)
-            .data("${ContentResolver.SCHEME_FILE}:///android_asset/animated.gif")
+            .data("$SCHEME_FILE:///android_asset/animated.gif")
             .build()
         imageLoader.enqueue(imageRequest)
         assertTrue(isStartCalled.first { it })

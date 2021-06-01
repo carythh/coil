@@ -1,12 +1,10 @@
 package coil.memory
 
-import coil.bitmap.BitmapPool
-import coil.bitmap.FakeBitmapPool
-import coil.bitmap.RealBitmapReferenceCounter
+import coil.memory.MemoryCache.Key
+import coil.memory.MemoryCache.Value
 import coil.util.DEFAULT_BITMAP_SIZE
 import coil.util.allocationByteCountCompat
 import coil.util.createBitmap
-import coil.util.isValid
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -19,59 +17,48 @@ import kotlin.test.assertTrue
 @RunWith(RobolectricTestRunner::class)
 class RealMemoryCacheTest {
 
-    private lateinit var bitmapPool: BitmapPool
-    private lateinit var weakCache: WeakMemoryCache
-    private lateinit var counter: RealBitmapReferenceCounter
-    private lateinit var strongCache: StrongMemoryCache
+    private lateinit var weakCache: RealWeakMemoryCache
+    private lateinit var strongCache: RealStrongMemoryCache
     private lateinit var cache: MemoryCache
 
     @Before
     fun before() {
-        bitmapPool = FakeBitmapPool()
-        weakCache = RealWeakMemoryCache(null)
-        counter = RealBitmapReferenceCounter(weakCache, bitmapPool, null)
-        strongCache = StrongMemoryCache(weakCache, counter, Int.MAX_VALUE, null)
-        cache = RealMemoryCache(strongCache, weakCache, counter, bitmapPool)
+        weakCache = RealWeakMemoryCache()
+        strongCache = RealStrongMemoryCache(Int.MAX_VALUE, weakCache)
+        cache = RealMemoryCache(strongCache, weakCache)
     }
 
     @Test
     fun `can retrieve strong cached value`() {
-        val key = MemoryCache.Key("strong")
+        val key = Key("strong")
         val bitmap = createBitmap()
 
         assertNull(cache[key])
 
-        counter.setValid(bitmap, true)
         strongCache.set(key, bitmap, false)
 
-        assertTrue(counter.isValid(bitmap))
-        assertEquals(bitmap, cache[key])
-        assertFalse(counter.isValid(bitmap))
+        assertEquals(bitmap, cache[key]?.bitmap)
     }
 
     @Test
     fun `can retrieve weak cached value`() {
-        val key = MemoryCache.Key("weak")
+        val key = Key("weak")
         val bitmap = createBitmap()
 
         assertNull(cache[key])
 
-        counter.setValid(bitmap, true)
         weakCache.set(key, bitmap, false, bitmap.allocationByteCountCompat)
 
-        assertTrue(counter.isValid(bitmap))
-        assertEquals(bitmap, cache[key])
-        assertFalse(counter.isValid(bitmap))
+        assertEquals(bitmap, cache[key]?.bitmap)
     }
 
     @Test
     fun `remove removes from both caches`() {
-        val key = MemoryCache.Key("key")
+        val key = Key("key")
         val bitmap = createBitmap()
 
         assertNull(cache[key])
 
-        counter.setValid(bitmap, true)
         strongCache.set(key, bitmap, false)
         weakCache.set(key, bitmap, false, bitmap.allocationByteCountCompat)
 
@@ -84,54 +71,53 @@ class RealMemoryCacheTest {
     fun `clear clears all values`() {
         assertEquals(0, cache.size)
 
-        strongCache.set(MemoryCache.Key("a"), createBitmap(), false)
-        strongCache.set(MemoryCache.Key("b"), createBitmap(), false)
-        weakCache.set(MemoryCache.Key("c"), createBitmap(), false, 100)
-        weakCache.set(MemoryCache.Key("d"), createBitmap(), false, 100)
+        strongCache.set(Key("a"), createBitmap(), false)
+        strongCache.set(Key("b"), createBitmap(), false)
+        weakCache.set(Key("c"), createBitmap(), false, 100)
+        weakCache.set(Key("d"), createBitmap(), false, 100)
 
         assertEquals(2 * DEFAULT_BITMAP_SIZE, cache.size)
 
         cache.clear()
 
         assertEquals(0, cache.size)
-        assertNull(cache[MemoryCache.Key("a")])
-        assertNull(cache[MemoryCache.Key("b")])
-        assertNull(cache[MemoryCache.Key("c")])
-        assertNull(cache[MemoryCache.Key("d")])
+        assertNull(cache[Key("a")])
+        assertNull(cache[Key("b")])
+        assertNull(cache[Key("c")])
+        assertNull(cache[Key("d")])
     }
 
     @Test
     fun `set can be retrieved with get`() {
-        val key = MemoryCache.Key("a")
+        val key = Key("a")
         val bitmap = createBitmap()
-        cache[key] = bitmap
+        cache[key] = Value(bitmap)
 
-        assertEquals(bitmap, cache[key])
+        assertEquals(bitmap, cache[key]?.bitmap)
     }
 
     @Test
     fun `set replaces strong and weak values`() {
-        val key = MemoryCache.Key("a")
-        val expected = createBitmap()
+        val key = Key("a")
+        val bitmap = createBitmap()
 
         strongCache.set(key, createBitmap(), false)
         weakCache.set(key, createBitmap(), false, 100)
-        cache[key] = expected
+        cache[key] = Value(bitmap)
 
-        assertFalse(counter.isValid(expected))
-        assertEquals(expected, strongCache.get(key)?.bitmap)
+        assertEquals(bitmap, strongCache.get(key)?.bitmap)
         assertNull(weakCache.get(key))
     }
 
     @Test
     fun `setting the same bitmap multiple times can only be removed once`() {
-        val key = MemoryCache.Key("a")
+        val key = Key("a")
         val bitmap = createBitmap()
 
         weakCache.set(key, bitmap, false, 100)
         weakCache.set(key, bitmap, false, 100)
 
-        assertTrue(weakCache.remove(bitmap))
-        assertFalse(weakCache.remove(bitmap))
+        assertTrue(weakCache.remove(key))
+        assertFalse(weakCache.remove(key))
     }
 }
