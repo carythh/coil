@@ -105,7 +105,7 @@ class ResourceUriFetcherTest {
     @Test
     fun colorAttributeIsApplied() = withTestActivity { activity ->
         val result = runBlocking {
-            val options = Options(context, size = OriginalSize)
+            val options = Options(activity, size = OriginalSize)
             val uri = assertNotNull(ResourceIntMapper().map(R.drawable.ic_tinted_vector, options))
             fetcherFactory.create(uri, options, ImageLoader(context))?.fetch()
         }
