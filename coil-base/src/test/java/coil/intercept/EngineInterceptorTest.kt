@@ -494,7 +494,7 @@ class EngineInterceptorTest {
 
     private fun newInterceptor(key: String? = TEST_KEY): EngineInterceptor {
         val imageLoader = ImageLoader.Builder(context)
-            .componentRegistry {
+            .components {
                 add(Keyer { _: Any, _ -> key })
             }
             .build()

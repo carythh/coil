@@ -177,15 +177,15 @@ interface ImageLoader {
          * Build and set the [ComponentRegistry].
          */
         @JvmSynthetic
-        inline fun componentRegistry(
+        inline fun components(
             builder: ComponentRegistry.Builder.() -> Unit
-        ) = componentRegistry(ComponentRegistry.Builder().apply(builder).build())
+        ) = components(ComponentRegistry.Builder().apply(builder).build())
 
         /**
          * Set the [ComponentRegistry].
          */
-        fun componentRegistry(registry: ComponentRegistry) = apply {
-            this.componentRegistry = registry
+        fun components(components: ComponentRegistry) = apply {
+            this.componentRegistry = components
         }
 
         /**

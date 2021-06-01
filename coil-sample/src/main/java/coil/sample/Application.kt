@@ -29,7 +29,7 @@ class Application : Application(), ImageLoaderFactory {
                     .build()
             )
             .crossfade(true) // Show a short crossfade when loading images from network or disk.
-            .componentRegistry {
+            .components {
                 // GIFs
                 if (SDK_INT >= 28) {
                     add(ImageDecoderDecoder.Factory())

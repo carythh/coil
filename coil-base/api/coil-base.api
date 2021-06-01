@@ -91,8 +91,8 @@ public final class coil/ImageLoader$Builder {
 	public final fun build ()Lcoil/ImageLoader;
 	public final fun callFactory (Lkotlin/jvm/functions/Function0;)Lcoil/ImageLoader$Builder;
 	public final fun callFactory (Lokhttp3/Call$Factory;)Lcoil/ImageLoader$Builder;
-	public final fun componentRegistry (Lcoil/ComponentRegistry;)Lcoil/ImageLoader$Builder;
-	public final synthetic fun componentRegistry (Lkotlin/jvm/functions/Function1;)Lcoil/ImageLoader$Builder;
+	public final fun components (Lcoil/ComponentRegistry;)Lcoil/ImageLoader$Builder;
+	public final synthetic fun components (Lkotlin/jvm/functions/Function1;)Lcoil/ImageLoader$Builder;
 	public final fun crossfade (I)Lcoil/ImageLoader$Builder;
 	public final fun crossfade (Z)Lcoil/ImageLoader$Builder;
 	public final fun decoderDispatcher (Lkotlinx/coroutines/CoroutineDispatcher;)Lcoil/ImageLoader$Builder;
