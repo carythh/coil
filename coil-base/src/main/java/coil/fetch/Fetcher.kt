@@ -1,5 +1,3 @@
-@file:Suppress("UNCHECKED_CAST")
-
 package coil.fetch
 
 import android.graphics.drawable.Drawable
