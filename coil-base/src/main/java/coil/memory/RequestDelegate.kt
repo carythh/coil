@@ -71,7 +71,7 @@ internal class ViewTargetRequestDelegate(
     override fun assertActive() {
         if (!target.view.isAttachedToWindow) {
             target.view.requestManager.setRequest(this)
-            throw CancellationException()
+            throw CancellationException("'ViewTarget.view' must be attached to a window.")
         }
     }
 
