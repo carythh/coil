@@ -3,9 +3,9 @@ package coil.decode
 import android.graphics.Bitmap
 import android.graphics.drawable.VectorDrawable
 import coil.fetch.DrawableUtils
+import coil.size
 import coil.size.PixelSize
 import coil.size.Scale
-import coil.util.size
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner

@@ -22,6 +22,7 @@ import coil.memory.RequestService
 import coil.request.ImageRequest
 import coil.request.Options
 import coil.request.Parameters
+import coil.size
 import coil.size.OriginalSize
 import coil.size.PixelSize
 import coil.size.Precision
@@ -32,7 +33,6 @@ import coil.transform.Transformation
 import coil.util.SystemCallbacks
 import coil.util.createBitmap
 import coil.util.createRequest
-import coil.util.size
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Test

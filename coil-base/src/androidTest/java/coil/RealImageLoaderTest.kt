@@ -33,7 +33,6 @@ import coil.util.createMockWebServer
 import coil.util.decodeBitmapAsset
 import coil.util.getDrawableCompat
 import coil.util.runBlockingTest
-import coil.util.size
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking

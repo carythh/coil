@@ -1,6 +1,4 @@
-@file:JvmName("-coil-base-SharedTestFunctions")
-
-package coil.util
+package coil
 
 import android.graphics.Bitmap
 import coil.size.PixelSize

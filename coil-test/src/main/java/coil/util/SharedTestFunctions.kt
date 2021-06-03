@@ -1,5 +1,3 @@
-@file:JvmName("-coil-test-SharedTestFunctions")
-
 package coil.util
 
 import android.content.Context
