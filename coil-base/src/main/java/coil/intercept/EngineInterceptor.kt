@@ -78,10 +78,10 @@ internal class EngineInterceptor(
                 return SuccessResult(
                     drawable = memoryCacheValue.bitmap.toDrawable(context),
                     request = request,
+                    dataSource = DataSource.MEMORY_CACHE,
                     memoryCacheKey = memoryCacheKey,
                     file = memoryCacheValue.file,
                     isSampled = memoryCacheValue.isSampled,
-                    dataSource = DataSource.MEMORY_CACHE,
                     isPlaceholderMemoryCacheKeyPresent = chain.cached != null
                 )
             }
@@ -98,10 +98,10 @@ internal class EngineInterceptor(
                 SuccessResult(
                     drawable = result.drawable,
                     request = request,
+                    dataSource = result.dataSource,
                     memoryCacheKey = memoryCacheKey.takeIf { isMemoryCached },
                     file = result.file,
                     isSampled = result.isSampled,
-                    dataSource = result.dataSource,
                     isPlaceholderMemoryCacheKeyPresent = chain.cached != null
                 )
             }

@@ -26,7 +26,7 @@ sealed class ImageResult {
  *  It is 'null' if the image was not written to the memory cache.
  * @param file A direct reference to where this image was stored on disk when it was decoded.
  *  It is 'null' if the image is not stored on disk. NOTE: You should always check [File.exists] before using
- *  the file as it may have been deleted since the image was decoded.
+ *  the file as it may have been moved or deleted since the image was decoded.
  * @param isSampled 'true' if the image is sampled (i.e. loaded into memory at less than its original size).
  * @param isPlaceholderMemoryCacheKeyPresent 'true' if the request's [ImageRequest.placeholderMemoryCacheKey]
  *  was present in the memory cache and was set as the placeholder.
