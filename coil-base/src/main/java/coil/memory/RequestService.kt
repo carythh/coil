@@ -3,7 +3,6 @@ package coil.memory
 import android.graphics.Bitmap
 import androidx.annotation.MainThread
 import androidx.annotation.WorkerThread
-import androidx.lifecycle.LifecycleObserver
 import coil.ImageLoader
 import coil.request.CachePolicy
 import coil.request.ErrorResult
@@ -20,6 +19,7 @@ import coil.util.Utils
 import coil.util.allowInexactSize
 import coil.util.isHardware
 import coil.util.requestManager
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 
 /** Handles operations that act on [ImageRequest]s. */
@@ -31,36 +31,23 @@ internal class RequestService(
 
     private val hardwareBitmapService = HardwareBitmapService(logger)
 
-    /** Wrap [request] to automatically dispose and/or restart the [ImageRequest] based on its lifecycle. */
+    /** Wrap [initialRequest] to automatically dispose and/or restart the [ImageRequest] based on its lifecycle. */
     @MainThread
-    fun createRequestDelegate(request: ImageRequest, job: Job): RequestDelegate {
-        val lifecycle = request.lifecycle
-        val delegate: RequestDelegate
-        when (val target = request.target) {
+    fun createRequestDelegate(initialRequest: ImageRequest, job: Job): RequestDelegate {
+        val lifecycle = initialRequest.lifecycle
+        return when (val target = initialRequest.target) {
             is ViewTarget<*> -> {
-                delegate = ViewTargetRequestDelegate(imageLoader, request, target, lifecycle, job)
-                lifecycle.addObserver(delegate)
-
-                // Re-add the observer to ensure all its lifecycle callbacks are invoked.
-                if (target is LifecycleObserver) {
-                    lifecycle.removeObserver(target)
-                    lifecycle.addObserver(target)
+                // Cancel the request before starting if the target's view isn't attached.
+                val delegate = ViewTargetRequestDelegate(imageLoader, initialRequest, target, lifecycle, job)
+                val view = target.view
+                if (!view.isAttachedToWindow) {
+                    view.requestManager.setRequest(delegate)
+                    throw CancellationException()
                 }
-
-                // Attach the dispatched request to the view.
-                target.view.requestManager.setRequest(delegate)
-
-                // Call onViewDetachedFromWindow immediately if the view is already detached.
-                if (!target.view.isAttachedToWindow) {
-                    target.view.requestManager.onViewDetachedFromWindow(target.view)
-                }
+                delegate
             }
-            else -> {
-                delegate = BaseRequestDelegate(lifecycle, job)
-                lifecycle.addObserver(delegate)
-            }
+            else -> BaseRequestDelegate(lifecycle, job)
         }
-        return delegate
     }
 
     fun errorResult(request: ImageRequest, throwable: Throwable): ErrorResult {

@@ -31,7 +31,6 @@ internal class ViewTargetRequestManager(private val view: View) : View.OnAttachS
     // Only accessed from the main thread.
     private var currentRequest: ViewTargetRequestDelegate? = null
     private var isRestart = false
-    private var skipAttach = true
 
     /** Return 'true' if [disposable] is not attached to this view. */
     @Synchronized
@@ -46,12 +45,15 @@ internal class ViewTargetRequestManager(private val view: View) : View.OnAttachS
         val disposable = currentDisposable
         if (disposable != null && isMainThread() && isRestart) {
             isRestart = false
-            return disposable.apply { this.job = job }
+            disposable.job = job
+            return disposable
         }
 
-        // Else, create a new disposable as this is a new request.
+        // Cancel any pending clears since they were for the previous request.
         pendingClear?.cancel()
         pendingClear = null
+
+        // Create a new disposable as this is a new request.
         return ViewTargetDisposable(view, job).also { currentDisposable = it }
     }
 
@@ -73,29 +75,22 @@ internal class ViewTargetRequestManager(private val view: View) : View.OnAttachS
     /** Attach [request] to this view and cancel the old request. */
     @MainThread
     fun setRequest(request: ViewTargetRequestDelegate?) {
-        currentRequest?.cancel()
+        currentRequest?.dispose()
         currentRequest = request
-        skipAttach = true
     }
 
     @MainThread
     override fun onViewAttachedToWindow(v: View) {
-        if (skipAttach) {
-            skipAttach = false
-            return
-        }
+        val request = currentRequest ?: return
 
-        currentRequest?.let { request ->
-            // As this is called from the main thread, isRestart will
-            // be cleared synchronously as part of request.restart().
-            isRestart = true
-            request.restart()
-        }
+        // As this is called from the main thread, isRestart will
+        // be cleared synchronously as part of request.restart().
+        isRestart = true
+        request.restart()
     }
 
     @MainThread
     override fun onViewDetachedFromWindow(v: View) {
-        skipAttach = false
-        currentRequest?.cancel()
+        currentRequest?.dispose()
     }
 }

@@ -13,13 +13,17 @@ import kotlinx.coroutines.Job
 
 internal sealed class RequestDelegate : DefaultLifecycleObserver {
 
+    /** Register all lifecycle observers. */
+    @MainThread
+    open fun start() {}
+
     /** Called when the image request completes for any reason. */
     @MainThread
     open fun complete() {}
 
-    /** Cancel any in progress work and free all resources. */
+    /** Cancel any in progress work and clear all lifecycle observers. */
     @MainThread
-    open fun cancel() {}
+    open fun dispose() {}
 }
 
 /** A request delegate for a one-shot requests with no target or a non-[ViewTarget]. */
@@ -28,21 +32,25 @@ internal class BaseRequestDelegate(
     private val job: Job
 ) : RequestDelegate() {
 
+    override fun start() {
+        lifecycle.addObserver(this)
+    }
+
     override fun complete() {
         lifecycle.removeObserver(this)
     }
 
-    override fun cancel() {
+    override fun dispose() {
         job.cancel()
     }
 
-    override fun onDestroy(owner: LifecycleOwner) = cancel()
+    override fun onDestroy(owner: LifecycleOwner) = dispose()
 }
 
 /** A request delegate for restartable requests with a [ViewTarget]. */
 internal class ViewTargetRequestDelegate(
     private val imageLoader: ImageLoader,
-    private val request: ImageRequest,
+    private val initialRequest: ImageRequest,
     private val target: ViewTarget<*>,
     private val lifecycle: Lifecycle,
     private val job: Job
@@ -51,12 +59,25 @@ internal class ViewTargetRequestDelegate(
     /** Repeat this request with the same [ImageRequest]. */
     @MainThread
     fun restart() {
-        imageLoader.enqueue(request)
+        imageLoader.enqueue(initialRequest)
     }
 
-    override fun cancel() {
+    override fun start() {
+        lifecycle.addObserver(this)
+
+        // Re-add the observer to ensure all its lifecycle callbacks are invoked.
+        if (target is LifecycleObserver) {
+            lifecycle.removeObserver(target)
+            lifecycle.addObserver(target)
+        }
+
+        // Attach the request to the view's request manager.
+        target.view.requestManager.setRequest(this)
+    }
+
+    override fun dispose() {
         job.cancel()
-        (target as? LifecycleObserver)?.let(lifecycle::removeObserver)
+        if (target is LifecycleObserver) lifecycle.removeObserver(target)
         lifecycle.removeObserver(this)
     }
 

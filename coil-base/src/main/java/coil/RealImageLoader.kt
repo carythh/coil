@@ -130,14 +130,17 @@ internal class RealImageLoader(
 
     @MainThread
     private suspend fun executeMain(initialRequest: ImageRequest, type: Int): ImageResult {
+        // Wrap the request to manage its lifecycle.
+        val requestDelegate = requestService.createRequestDelegate(initialRequest, coroutineContext.job)
+
         // Apply this image loader's defaults to this request.
         val request = initialRequest.newBuilder().defaults(defaults).build()
 
         // Create a new event listener.
         val eventListener = eventListenerFactory.create(request)
 
-        // Wrap the request to manage its lifecycle.
-        val requestDelegate = requestService.createRequestDelegate(request, coroutineContext.job)
+        // Set up the request's lifecycle observers.
+        requestDelegate.start()
 
         try {
             // Fail before starting if data is null.

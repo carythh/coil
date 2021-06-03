@@ -54,7 +54,7 @@ class ImageListAdapter(
     }
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val image = itemView as ImageView
+        val image get() = itemView as ImageView
     }
 
     private object Callback : DiffUtil.ItemCallback<Image>() {
