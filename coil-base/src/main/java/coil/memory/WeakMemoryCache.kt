@@ -25,7 +25,7 @@ internal interface WeakMemoryCache {
 
     fun get(key: Key): Value?
 
-    fun set(key: Key, bitmap: Bitmap, isSampled: Boolean, size: Int)
+    fun set(key: Key, bitmap: Bitmap, extras: Map<String, Any>, size: Int)
 
     fun remove(key: Key): Boolean
 
@@ -41,7 +41,7 @@ internal class EmptyWeakMemoryCache : WeakMemoryCache {
 
     override fun get(key: Key): Value? = null
 
-    override fun set(key: Key, bitmap: Bitmap, isSampled: Boolean, size: Int) {}
+    override fun set(key: Key, bitmap: Bitmap, extras: Map<String, Any>, size: Int) {}
 
     override fun remove(key: Key) = false
 
@@ -64,7 +64,7 @@ internal class RealWeakMemoryCache : WeakMemoryCache {
 
         // Find the first bitmap that hasn't been collected.
         val value = values.firstNotNullOfOrNullIndices { value ->
-            value.bitmap.get()?.let { Value(it, value.isSampled) }
+            value.bitmap.get()?.let { Value(it, value.extras) }
         }
 
         cleanUpIfNecessary()
@@ -72,13 +72,13 @@ internal class RealWeakMemoryCache : WeakMemoryCache {
     }
 
     @Synchronized
-    override fun set(key: Key, bitmap: Bitmap, isSampled: Boolean, size: Int) {
+    override fun set(key: Key, bitmap: Bitmap, extras: Map<String, Any>, size: Int) {
         val values = cache.getOrPut(key) { arrayListOf() }
 
         // Insert the value into the list sorted descending by size.
         run {
             val identityHashCode = bitmap.identityHashCode
-            val newValue = InternalValue(identityHashCode, WeakReference(bitmap), isSampled, size)
+            val newValue = InternalValue(identityHashCode, WeakReference(bitmap), extras, size)
             for (index in values.indices) {
                 val value = values[index]
                 if (size >= value.size) {
@@ -154,7 +154,7 @@ internal class RealWeakMemoryCache : WeakMemoryCache {
     internal class InternalValue(
         val identityHashCode: Int,
         val bitmap: WeakReference<Bitmap>,
-        val isSampled: Boolean,
+        val extras: Map<String, Any>,
         val size: Int
     )
 

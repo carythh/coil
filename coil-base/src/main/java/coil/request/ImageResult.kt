@@ -24,8 +24,9 @@ sealed class ImageResult {
  * @param dataSource The data source that the image was loaded from.
  * @param memoryCacheKey The cache key for the image in the memory cache.
  *  It is 'null' if the image was not written to the memory cache.
- * @param diskCacheFile The cache file for the image on disk.
- *  It is 'null' if the image is not stored in the disk cache or if [dataSource] is [DataSource.MEMORY_CACHE].
+ * @param file A direct reference to where this image was stored on disk when it was decoded.
+ *  It is 'null' if the image is not stored on disk. NOTE: You should always check [File.exists] before using
+ *  the file as it may have been deleted since the image was decoded.
  * @param isSampled 'true' if the image is sampled (i.e. loaded into memory at less than its original size).
  * @param isPlaceholderMemoryCacheKeyPresent 'true' if the request's [ImageRequest.placeholderMemoryCacheKey]
  *  was present in the memory cache and was set as the placeholder.
@@ -35,7 +36,7 @@ data class SuccessResult(
     override val request: ImageRequest,
     val dataSource: DataSource,
     val memoryCacheKey: MemoryCache.Key?,
-    val diskCacheFile: File?,
+    val file: File?,
     val isSampled: Boolean,
     val isPlaceholderMemoryCacheKeyPresent: Boolean
 ) : ImageResult()

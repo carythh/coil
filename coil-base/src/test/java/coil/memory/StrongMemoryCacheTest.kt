@@ -19,7 +19,7 @@ class StrongMemoryCacheTest {
         val strongCache = RealStrongMemoryCache(2 * DEFAULT_BITMAP_SIZE, weakCache)
 
         val bitmap = createBitmap()
-        strongCache.set(Key("1"), bitmap, false)
+        strongCache.set(Key("1"), bitmap, emptyMap())
 
         assertEquals(bitmap, strongCache.get(Key("1"))?.bitmap)
     }
@@ -30,13 +30,13 @@ class StrongMemoryCacheTest {
         val strongCache = RealStrongMemoryCache(2 * DEFAULT_BITMAP_SIZE, weakCache)
 
         val first = createBitmap()
-        strongCache.set(Key("1"), first, false)
+        strongCache.set(Key("1"), first, emptyMap())
 
         val second = createBitmap()
-        strongCache.set(Key("2"), second, false)
+        strongCache.set(Key("2"), second, emptyMap())
 
         val third = createBitmap()
-        strongCache.set(Key("3"), third, false)
+        strongCache.set(Key("3"), third, emptyMap())
 
         assertNull(strongCache.get(Key("1")))
         assertNotNull(weakCache.get(Key("1")))
@@ -48,7 +48,7 @@ class StrongMemoryCacheTest {
         val strongCache = RealStrongMemoryCache(2 * DEFAULT_BITMAP_SIZE, weakCache)
 
         val bitmap = createBitmap()
-        strongCache.set(Key("1"), bitmap, false)
+        strongCache.set(Key("1"), bitmap, emptyMap())
         strongCache.remove(Key("1"))
 
         assertNull(strongCache.get(Key("1")))

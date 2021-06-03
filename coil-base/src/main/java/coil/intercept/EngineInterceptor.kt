@@ -79,7 +79,7 @@ internal class EngineInterceptor(
                     drawable = memoryCacheValue.bitmap.toDrawable(context),
                     request = request,
                     memoryCacheKey = memoryCacheKey,
-                    diskCacheFile = null,
+                    file = memoryCacheValue.file,
                     isSampled = memoryCacheValue.isSampled,
                     dataSource = DataSource.MEMORY_CACHE,
                     isPlaceholderMemoryCacheKeyPresent = chain.cached != null
@@ -89,19 +89,19 @@ internal class EngineInterceptor(
             // Slow path: fetch, decode, transform, and cache the image.
             return withContext(Dispatchers.Unconfined) {
                 // Fetch and decode the image.
-                val (drawable, isSampled, dataSource) = execute(request, mappedData, options, eventListener)
+                val result = execute(request, mappedData, options, eventListener)
 
                 // Cache the result in the memory cache.
-                val isMemoryCached = writeToMemoryCache(memoryCacheKey, request, drawable, isSampled)
+                val isMemoryCached = writeToMemoryCache(memoryCacheKey, request, result)
 
                 // Return the result.
                 SuccessResult(
-                    drawable = drawable,
+                    drawable = result.drawable,
                     request = request,
                     memoryCacheKey = memoryCacheKey.takeIf { isMemoryCached },
-                    diskCacheFile = File(""), // TODO
-                    isSampled = isSampled,
-                    dataSource = dataSource,
+                    file = result.file,
+                    isSampled = result.isSampled,
+                    dataSource = result.dataSource,
                     isPlaceholderMemoryCacheKeyPresent = chain.cached != null
                 )
             }
@@ -244,11 +244,11 @@ internal class EngineInterceptor(
         mappedData: Any,
         requestOptions: Options,
         eventListener: EventListener
-    ): DrawableResult {
+    ): ExecuteResult {
         var options = requestOptions
         var components = imageLoader.components
         var fetchResult: FetchResult? = null
-        val drawableResult = try {
+        val executeResult = try {
             // Fetch the data.
             fetchResult = withContext(request.fetcherDispatcher) {
                 if (request.fetcherFactory != null || request.decoderFactory != null) {
@@ -268,7 +268,14 @@ internal class EngineInterceptor(
                 is SourceResult -> withContext(request.decoderDispatcher) {
                     decode(fetchResult, components, request, mappedData, options, eventListener)
                 }
-                is DrawableResult -> fetchResult
+                is DrawableResult -> {
+                    ExecuteResult(
+                        drawable = fetchResult.drawable,
+                        isSampled = fetchResult.isSampled,
+                        dataSource = fetchResult.dataSource,
+                        file = null // This fetch result has no image source.
+                    )
+                }
             }
         } finally {
             // Ensure the fetch result's source is always closed.
@@ -276,7 +283,7 @@ internal class EngineInterceptor(
         }
 
         // Apply any transformations and prepare to draw.
-        val finalResult = applyTransformations(drawableResult, request, options, eventListener)
+        val finalResult = applyTransformations(executeResult, request, options, eventListener)
         (finalResult.drawable as? BitmapDrawable)?.bitmap?.prepareToDraw()
         return finalResult
     }
@@ -321,7 +328,7 @@ internal class EngineInterceptor(
         mappedData: Any,
         options: Options,
         eventListener: EventListener
-    ): DrawableResult {
+    ): ExecuteResult {
         val decodeResult: DecodeResult
         var searchIndex = 0
         while (true) {
@@ -341,21 +348,22 @@ internal class EngineInterceptor(
         }
 
         // Combine the fetch and decode operations' results.
-        return DrawableResult(
+        return ExecuteResult(
             drawable = decodeResult.drawable,
             isSampled = decodeResult.isSampled,
-            dataSource = fetchResult.dataSource
+            dataSource = fetchResult.dataSource,
+            file = fetchResult.source.file
         )
     }
 
     /** Apply any [Transformation]s and return an updated [DrawableResult]. */
     @VisibleForTesting
     internal suspend inline fun applyTransformations(
-        result: DrawableResult,
+        result: ExecuteResult,
         request: ImageRequest,
         options: Options,
         eventListener: EventListener
-    ): DrawableResult {
+    ): ExecuteResult {
         val transformations = request.transformations
         if (transformations.isEmpty()) return result
 
@@ -375,17 +383,19 @@ internal class EngineInterceptor(
     private fun writeToMemoryCache(
         key: MemoryCache.Key?,
         request: ImageRequest,
-        drawable: Drawable,
-        isSampled: Boolean
+        result: ExecuteResult
     ): Boolean {
         if (!request.memoryCachePolicy.writeEnabled) {
             return false
         }
 
         if (key != null) {
-            val bitmap = (drawable as? BitmapDrawable)?.bitmap
+            val bitmap = (result.drawable as? BitmapDrawable)?.bitmap
             if (bitmap != null) {
-                imageLoader.memoryCache[key] = MemoryCache.Value(bitmap, isSampled)
+                val extras = arrayMapOf<String, Any>()
+                extras[EXTRA_IS_SAMPLED] = result.isSampled
+                result.file?.let { extras[EXTRA_FILE_PATH] = it.path }
+                imageLoader.memoryCache[key] = MemoryCache.Value(bitmap, extras)
                 return true
             }
         }
@@ -419,8 +429,24 @@ internal class EngineInterceptor(
             options.scale, options.allowInexactSize)
     }
 
+    private val MemoryCache.Value.isSampled: Boolean
+        get() = (extras[EXTRA_IS_SAMPLED] as? Boolean) ?: false
+
+    private val MemoryCache.Value.file: File?
+        get() = (extras[EXTRA_FILE_PATH] as? String)?.let(::File)
+
+    @VisibleForTesting
+    internal data class ExecuteResult(
+        val drawable: Drawable,
+        val isSampled: Boolean,
+        val dataSource: DataSource,
+        val file: File?
+    )
+
     companion object {
         private const val TAG = "EngineInterceptor"
+        @VisibleForTesting internal const val EXTRA_FILE_PATH = "coil#file_path"
+        @VisibleForTesting internal const val EXTRA_IS_SAMPLED = "coil#is_sampled"
         @VisibleForTesting internal const val MEMORY_CACHE_KEY_WIDTH = "coil#width"
         @VisibleForTesting internal const val MEMORY_CACHE_KEY_HEIGHT = "coil#height"
         @VisibleForTesting internal const val MEMORY_CACHE_KEY_TRANSFORMATIONS = "coil#transformations"

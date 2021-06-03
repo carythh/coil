@@ -65,7 +65,7 @@ class CrossfadeTransitionTest {
                     drawable = drawable,
                     request = createRequest(context),
                     memoryCacheKey = null,
-                    diskCacheFile = null,
+                    file = null,
                     isSampled = false,
                     dataSource = DataSource.MEMORY_CACHE,
                     isPlaceholderMemoryCacheKeyPresent = false
@@ -98,7 +98,7 @@ class CrossfadeTransitionTest {
                     drawable = drawable,
                     request = createRequest(context),
                     memoryCacheKey = null,
-                    diskCacheFile = null,
+                    file = null,
                     isSampled = false,
                     dataSource = DataSource.DISK,
                     isPlaceholderMemoryCacheKeyPresent = false
@@ -132,7 +132,7 @@ class CrossfadeTransitionTest {
                     drawable = drawable,
                     request = createRequest(context),
                     memoryCacheKey = null,
-                    diskCacheFile = null,
+                    file = null,
                     isSampled = false,
                     dataSource = DataSource.NETWORK,
                     isPlaceholderMemoryCacheKeyPresent = false

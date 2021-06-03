@@ -20,7 +20,7 @@ internal interface StrongMemoryCache {
 
     fun get(key: Key): Value?
 
-    fun set(key: Key, bitmap: Bitmap, isSampled: Boolean)
+    fun set(key: Key, bitmap: Bitmap, extras: Map<String, Any>)
 
     fun remove(key: Key): Boolean
 
@@ -42,8 +42,8 @@ internal class EmptyStrongMemoryCache(
 
     override fun get(key: Key): Value? = null
 
-    override fun set(key: Key, bitmap: Bitmap, isSampled: Boolean) {
-        weakMemoryCache.set(key, bitmap, isSampled, bitmap.allocationByteCountCompat)
+    override fun set(key: Key, bitmap: Bitmap, extras: Map<String, Any>) {
+        weakMemoryCache.set(key, bitmap, extras, bitmap.allocationByteCountCompat)
     }
 
     override fun remove(key: Key) = false
@@ -66,7 +66,7 @@ internal class RealStrongMemoryCache(
             oldValue: InternalValue,
             newValue: InternalValue?
         ) {
-            weakMemoryCache.set(key, oldValue.bitmap, oldValue.isSampled, oldValue.size)
+            weakMemoryCache.set(key, oldValue.bitmap, oldValue.extras, oldValue.size)
         }
 
         override fun sizeOf(key: Key, value: InternalValue) = value.size
@@ -79,19 +79,19 @@ internal class RealStrongMemoryCache(
     override val keys get() = cache.snapshot().keys
 
     override fun get(key: Key): Value? {
-        return cache.get(key)?.let { Value(it.bitmap, it.isSampled) }
+        return cache.get(key)?.let { Value(it.bitmap, it.extras) }
     }
 
-    override fun set(key: Key, bitmap: Bitmap, isSampled: Boolean) {
+    override fun set(key: Key, bitmap: Bitmap, extras: Map<String, Any>) {
         val size = bitmap.allocationByteCountCompat
         if (size <= maxSize) {
-            cache.put(key, InternalValue(bitmap, isSampled, size))
+            cache.put(key, InternalValue(bitmap, extras, size))
         } else {
             // If the bitmap is too big for the cache, don't attempt to store it as doing
             // so will cause the cache to be cleared. Instead, evict an existing element
             // with the same key if it exists and add the bitmap to the weak memory cache.
             cache.remove(key)
-            weakMemoryCache.set(key, bitmap, isSampled, size)
+            weakMemoryCache.set(key, bitmap, extras, size)
         }
     }
 
@@ -113,7 +113,7 @@ internal class RealStrongMemoryCache(
 
     private class InternalValue(
         val bitmap: Bitmap,
-        val isSampled: Boolean,
+        val extras: Map<String, Any>,
         val size: Int
     )
 }

@@ -18,7 +18,7 @@ internal class RealMemoryCache(
     }
 
     override fun set(key: Key, value: MemoryCache.Value) {
-        strongMemoryCache.set(key, value.bitmap, value.isSampled)
+        strongMemoryCache.set(key, value.bitmap, value.extras)
         // weakMemoryCache.set() is called by strongMemoryCache when
         // a value is evicted from the strong reference cache.
     }

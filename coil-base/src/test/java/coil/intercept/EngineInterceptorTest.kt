@@ -10,11 +10,12 @@ import coil.EventListener
 import coil.ImageLoader
 import coil.RealImageLoader
 import coil.decode.DataSource
-import coil.fetch.DrawableResult
+import coil.intercept.EngineInterceptor.Companion.EXTRA_IS_SAMPLED
 import coil.intercept.EngineInterceptor.Companion.MEMORY_CACHE_KEY_HEIGHT
 import coil.intercept.EngineInterceptor.Companion.MEMORY_CACHE_KEY_TRANSFORMATIONS
 import coil.intercept.EngineInterceptor.Companion.MEMORY_CACHE_KEY_WIDTH
 import coil.intercept.EngineInterceptor.Companion.TRANSFORMATIONS_DELIMITER
+import coil.intercept.EngineInterceptor.ExecuteResult
 import coil.key.Keyer
 import coil.memory.MemoryCache.Key
 import coil.memory.MemoryCache.Value
@@ -388,7 +389,7 @@ class EngineInterceptorTest {
         )
         val value = Value(
             bitmap = createBitmap(width = 200, height = 200), // The small cached bitmap.
-            isSampled = true
+            extras = mapOf(EXTRA_IS_SAMPLED to true)
         )
         val request = createRequest(context)
 
@@ -426,7 +427,7 @@ class EngineInterceptorTest {
         isSampled: Boolean,
         request: ImageRequest,
         size: Size
-    ) = isCachedValueValid(Key("key"), Value(cached, isSampled), request, size)
+    ) = isCachedValueValid(Key("key"), Value(cached, mapOf(EXTRA_IS_SAMPLED to isSampled)), request, size)
 
     @Test
     fun `applyTransformations - transformations convert drawable to bitmap`() {
@@ -435,10 +436,11 @@ class EngineInterceptorTest {
         val size = PixelSize(100, 100)
         val result = runBlocking {
             interceptor.applyTransformations(
-                result = DrawableResult(
+                result = ExecuteResult(
                     drawable = drawable,
                     isSampled = false,
-                    dataSource = DataSource.MEMORY
+                    dataSource = DataSource.MEMORY,
+                    file = null
                 ),
                 request = createRequest(context) { transformations(CircleCropTransformation()) },
                 options = Options(context, size = size),
@@ -457,10 +459,11 @@ class EngineInterceptorTest {
         val drawable = ColorDrawable(Color.BLACK)
         val result = runBlocking {
             interceptor.applyTransformations(
-                result = DrawableResult(
+                result = ExecuteResult(
                     drawable = drawable,
                     isSampled = false,
-                    dataSource = DataSource.MEMORY
+                    dataSource = DataSource.MEMORY,
+                    file = null
                 ),
                 request = createRequest(context) { transformations(emptyList()) },
                 options = Options(context, size = PixelSize(100, 100)),

@@ -12,7 +12,7 @@ class FakeInterceptor : Interceptor {
             drawable = ColorDrawable(),
             request = chain.request,
             memoryCacheKey = null,
-            diskCacheFile = null,
+            file = null,
             isSampled = false,
             dataSource = DataSource.MEMORY,
             isPlaceholderMemoryCacheKeyPresent = true

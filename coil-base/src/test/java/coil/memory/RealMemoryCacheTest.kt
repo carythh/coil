@@ -35,7 +35,7 @@ class RealMemoryCacheTest {
 
         assertNull(cache[key])
 
-        strongCache.set(key, bitmap, false)
+        strongCache.set(key, bitmap, emptyMap())
 
         assertEquals(bitmap, cache[key]?.bitmap)
     }
@@ -47,7 +47,7 @@ class RealMemoryCacheTest {
 
         assertNull(cache[key])
 
-        weakCache.set(key, bitmap, false, bitmap.allocationByteCountCompat)
+        weakCache.set(key, bitmap, emptyMap(), bitmap.allocationByteCountCompat)
 
         assertEquals(bitmap, cache[key]?.bitmap)
     }
@@ -59,8 +59,8 @@ class RealMemoryCacheTest {
 
         assertNull(cache[key])
 
-        strongCache.set(key, bitmap, false)
-        weakCache.set(key, bitmap, false, bitmap.allocationByteCountCompat)
+        strongCache.set(key, bitmap, emptyMap())
+        weakCache.set(key, bitmap, emptyMap(), bitmap.allocationByteCountCompat)
 
         assertTrue(cache.remove(key))
         assertNull(strongCache.get(key))
@@ -71,10 +71,10 @@ class RealMemoryCacheTest {
     fun `clear clears all values`() {
         assertEquals(0, cache.size)
 
-        strongCache.set(Key("a"), createBitmap(), false)
-        strongCache.set(Key("b"), createBitmap(), false)
-        weakCache.set(Key("c"), createBitmap(), false, 100)
-        weakCache.set(Key("d"), createBitmap(), false, 100)
+        strongCache.set(Key("a"), createBitmap(), emptyMap())
+        strongCache.set(Key("b"), createBitmap(), emptyMap())
+        weakCache.set(Key("c"), createBitmap(), emptyMap(), 100)
+        weakCache.set(Key("d"), createBitmap(), emptyMap(), 100)
 
         assertEquals(2 * DEFAULT_BITMAP_SIZE, cache.size)
 
@@ -101,8 +101,8 @@ class RealMemoryCacheTest {
         val key = Key("a")
         val bitmap = createBitmap()
 
-        weakCache.set(key, bitmap, false, 100)
-        weakCache.set(key, bitmap, false, 100)
+        weakCache.set(key, bitmap, emptyMap(), 100)
+        weakCache.set(key, bitmap, emptyMap(), 100)
 
         assertTrue(weakCache.remove(key))
         assertFalse(weakCache.remove(key))
