@@ -8,6 +8,7 @@ import androidx.lifecycle.LifecycleOwner
 import coil.ImageLoader
 import coil.request.ImageRequest
 import coil.target.ViewTarget
+import coil.util.removeAndAddObserver
 import coil.util.requestManager
 import kotlinx.coroutines.Job
 
@@ -17,11 +18,11 @@ internal sealed class RequestDelegate : DefaultLifecycleObserver {
     @MainThread
     open fun start() {}
 
-    /** Called when the image request completes for any reason. */
+    /** Called when this request's job is cancelled or completes successfully/unsuccessfully. */
     @MainThread
     open fun complete() {}
 
-    /** Cancel any in progress work and clear all lifecycle observers. */
+    /** Cancel this request's job and clear all lifecycle observers. */
     @MainThread
     open fun dispose() {}
 }
@@ -64,14 +65,7 @@ internal class ViewTargetRequestDelegate(
 
     override fun start() {
         lifecycle.addObserver(this)
-
-        // Re-add the observer to ensure all its lifecycle callbacks are invoked.
-        if (target is LifecycleObserver) {
-            lifecycle.removeObserver(target)
-            lifecycle.addObserver(target)
-        }
-
-        // Attach the request to the view's request manager.
+        if (target is LifecycleObserver) lifecycle.removeAndAddObserver(target)
         target.view.requestManager.setRequest(this)
     }
 

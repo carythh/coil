@@ -139,12 +139,12 @@ internal class RealImageLoader(
         // Create a new event listener.
         val eventListener = eventListenerFactory.create(request)
 
-        // Set up the request's lifecycle observers.
-        requestDelegate.start()
-
         try {
             // Fail before starting if data is null.
             if (request.data == NullRequestData) throw NullRequestDataException()
+
+            // Set up the request's lifecycle observers.
+            requestDelegate.start()
 
             // Enqueued requests suspend until the lifecycle is started.
             if (type == REQUEST_TYPE_ENQUEUE) request.lifecycle.awaitStarted()

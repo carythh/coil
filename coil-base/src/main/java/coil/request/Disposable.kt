@@ -15,7 +15,7 @@ interface Disposable {
     /**
      * The most recent image request job.
      *
-     * NOTE: [ImageRequest]s with a [ViewTarget] can be restarted and have multiple different jobs.
+     * NOTE: This field is not immutable and can change for requests that have a [ViewTarget].
      */
     val job: Deferred<ImageResult>
 
