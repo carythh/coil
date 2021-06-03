@@ -115,7 +115,7 @@ private class FileImageSource(
 }
 
 private class SourceImageSource(
-    override val source: BufferedSource,
+    override var source: BufferedSource,
     private val cacheDirectory: File
 ) : ImageSource() {
 
@@ -134,9 +134,13 @@ private class SourceImageSource(
     override fun file(): File {
         assertNotClosed()
         tempFile?.let { return it }
+
+        // Copy the source to a temp file and swap the source.
         val file = File.createTempFile("tmp", null, cacheDirectory)
-        source.peek().use { file.sink().use(it::readAll) }
+        source.use { file.sink().use(it::readAll) }
+        source = file.source().buffer()
         tempFile = file
+
         return file
     }
 
