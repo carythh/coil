@@ -116,62 +116,72 @@ class ComponentRegistry private constructor(
             decoderFactories = registry.decoderFactories.toMutableList()
         }
 
+        /** Prepend an [Interceptor] to the beginning of the list. */
         fun addFirst(interceptor: Interceptor) = apply {
             interceptors.add(0, interceptor)
         }
 
+        /** Append an [Interceptor] to the end of the list. */
         fun add(interceptor: Interceptor) = apply {
             interceptors += interceptor
         }
 
+        /** Prepend a [Mapper] to the beginning of the list. */
         inline fun <reified T : Any> addFirst(mapper: Mapper<T, *>) = addFirst(mapper, T::class.java)
+
+        /** Append a [Mapper] to the end of the list. */
+        inline fun <reified T : Any> add(mapper: Mapper<T, *>) = add(mapper, T::class.java)
+
+        /** Prepend a [Keyer] to the beginning of the list. */
+        inline fun <reified T : Any> addFirst(keyer: Keyer<T>) = addFirst(keyer, T::class.java)
+
+        /** Append a [Keyer] to the end of the list. */
+        inline fun <reified T : Any> add(keyer: Keyer<T>) = add(keyer, T::class.java)
+
+        /** Prepend a [Fetcher.Factory] to the beginning of the list. */
+        inline fun <reified T : Any> addFirst(factory: Fetcher.Factory<T>) = addFirst(factory, T::class.java)
+
+        /** Append a [Fetcher.Factory] to the end of the list. */
+        inline fun <reified T : Any> add(factory: Fetcher.Factory<T>) = add(factory, T::class.java)
+
+        /** Prepend a [Decoder.Factory] to the beginning of the list. */
+        fun addFirst(factory: Decoder.Factory) = apply {
+            decoderFactories.add(0, factory)
+        }
+
+        /** Append a [Decoder.Factory] to the end of the list. */
+        fun add(factory: Decoder.Factory) = apply {
+            decoderFactories += factory
+        }
 
         @PublishedApi
         internal fun <T : Any> addFirst(mapper: Mapper<T, *>, type: Class<T>) = apply {
             mappers.add(0, mapper to type)
         }
 
-        inline fun <reified T : Any> add(mapper: Mapper<T, *>) = add(mapper, T::class.java)
-
         @PublishedApi
         internal fun <T : Any> add(mapper: Mapper<T, *>, type: Class<T>) = apply {
             mappers += mapper to type
         }
-
-        inline fun <reified T : Any> addFirst(keyer: Keyer<T>) = addFirst(keyer, T::class.java)
 
         @PublishedApi
         internal fun <T : Any> addFirst(keyer: Keyer<T>, type: Class<T>) = apply {
             keyers.add(0, keyer to type)
         }
 
-        inline fun <reified T : Any> add(keyer: Keyer<T>) = add(keyer, T::class.java)
-
         @PublishedApi
         internal fun <T : Any> add(keyer: Keyer<T>, type: Class<T>) = apply {
             keyers += keyer to type
         }
-
-        inline fun <reified T : Any> addFirst(factory: Fetcher.Factory<T>) = addFirst(factory, T::class.java)
 
         @PublishedApi
         internal fun <T : Any> addFirst(factory: Fetcher.Factory<T>, type: Class<T>) = apply {
             fetcherFactories += factory to type
         }
 
-        inline fun <reified T : Any> add(factory: Fetcher.Factory<T>) = add(factory, T::class.java)
-
         @PublishedApi
         internal fun <T : Any> add(factory: Fetcher.Factory<T>, type: Class<T>) = apply {
             fetcherFactories += factory to type
-        }
-
-        fun addFirst(factory: Decoder.Factory) = apply {
-            decoderFactories.add(0, factory)
-        }
-
-        fun add(factory: Decoder.Factory) = apply {
-            decoderFactories += factory
         }
 
         fun build(): ComponentRegistry {

@@ -1,5 +1,3 @@
-@file:Suppress("SameParameterValue")
-
 package coil
 
 import android.content.ContentResolver.SCHEME_ANDROID_RESOURCE
@@ -391,6 +389,7 @@ class RealImageLoaderTest {
         return file
     }
 
+    @Suppress("SameParameterValue")
     private fun decodeAssetAndAddToMemoryCache(key: MemoryCache.Key, fileName: String): Bitmap {
         val bitmap = context.decodeBitmapAsset(fileName)
         memoryCache[key] = MemoryCache.Value(bitmap)
