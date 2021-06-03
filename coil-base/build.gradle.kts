@@ -12,7 +12,12 @@ plugins {
     id("com.vanniktech.maven.publish")
 }
 
-setupLibraryModule()
+setupLibraryModule {
+    sourceSets {
+        getByName("test").java.srcDir("src/sharedTest/java")
+        getByName("androidTest").java.srcDir("src/sharedTest/java")
+    }
+}
 
 dependencies {
     api(kotlin("stdlib-jdk8", KotlinCompilerVersion.VERSION))

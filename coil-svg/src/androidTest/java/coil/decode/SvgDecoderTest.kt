@@ -48,16 +48,16 @@ class SvgDecoderTest {
     }
 
     @Test
-    fun doesNotExhaustSource() {
+    fun doesNotHandleGeneralXmlFile() {
         val source = context.assets.open("document.xml").source().buffer()
         val result = source.asSourceResult()
-        assertNotNull(decoderFactory.create(result, Options(context), ImageLoader(context)))
+        assertNull(decoderFactory.create(result, Options(context), ImageLoader(context)))
         assertFalse(source.exhausted())
         assertEquals(8192, source.buffer.size) // should buffer exactly 1 segment
     }
 
     @Test
-    fun handlesSource() {
+    fun handlesSvgSource() {
         val options = Options(context)
         val imageLoader = ImageLoader(context)
         var source = context.assets.open("coil_logo.svg").source().buffer()

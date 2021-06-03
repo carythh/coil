@@ -58,7 +58,6 @@ class CrossfadeTransitionTest {
                     onSuccess = { result ->
                         assertFalse(onSuccessCalled)
                         onSuccessCalled = true
-
                         assertEquals(drawable, result)
                     }
                 ),

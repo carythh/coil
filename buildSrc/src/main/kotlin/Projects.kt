@@ -15,6 +15,11 @@ fun Project.setupLibraryModule(block: LibraryExtension.() -> Unit = {}) {
         libraryVariants.all {
             generateBuildConfigProvider?.configure { enabled = false }
         }
+        packagingOptions {
+            // https://github.com/Kotlin/kotlinx.coroutines/issues/2023
+            resources.pickFirsts += "META-INF/AL2.0"
+            resources.pickFirsts += "META-INF/LGPL2.1"
+        }
         testOptions {
             unitTests.isIncludeAndroidResources = true
         }
