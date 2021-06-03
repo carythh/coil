@@ -10,9 +10,14 @@ import coil.request.ImageRequest
 import coil.target.ViewTarget
 import coil.util.removeAndAddObserver
 import coil.util.requestManager
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 
 internal sealed class RequestDelegate : DefaultLifecycleObserver {
+
+    /** Throw a [CancellationException] if this request should be cancelled before starting. */
+    @MainThread
+    open fun assertActive() {}
 
     /** Register all lifecycle observers. */
     @MainThread
@@ -61,6 +66,13 @@ internal class ViewTargetRequestDelegate(
     @MainThread
     fun restart() {
         imageLoader.enqueue(initialRequest)
+    }
+
+    override fun assertActive() {
+        if (!target.view.isAttachedToWindow) {
+            target.view.requestManager.setRequest(this)
+            throw CancellationException()
+        }
     }
 
     override fun start() {

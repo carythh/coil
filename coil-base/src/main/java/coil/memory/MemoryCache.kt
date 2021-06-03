@@ -62,7 +62,7 @@ interface MemoryCache {
      * The value for an image in the memory cache.
      *
      * @param bitmap The cached [Bitmap].
-     * @param extras A map of metadata for [bitmap].
+     * @param extras Metadata for [bitmap].
      */
     data class Value(
         val bitmap: Bitmap,

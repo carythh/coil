@@ -1,7 +1,6 @@
 package coil.memory
 
 import android.graphics.Bitmap
-import androidx.annotation.MainThread
 import androidx.annotation.WorkerThread
 import coil.ImageLoader
 import coil.request.CachePolicy
@@ -18,8 +17,6 @@ import coil.util.SystemCallbacks
 import coil.util.Utils
 import coil.util.allowInexactSize
 import coil.util.isHardware
-import coil.util.requestManager
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 
 /** Handles operations that act on [ImageRequest]s. */
@@ -32,20 +29,10 @@ internal class RequestService(
     private val hardwareBitmapService = HardwareBitmapService(logger)
 
     /** Wrap [initialRequest] to automatically dispose and/or restart the [ImageRequest] based on its lifecycle. */
-    @MainThread
-    fun createRequestDelegate(initialRequest: ImageRequest, job: Job): RequestDelegate {
+    fun requestDelegate(initialRequest: ImageRequest, job: Job): RequestDelegate {
         val lifecycle = initialRequest.lifecycle
         return when (val target = initialRequest.target) {
-            is ViewTarget<*> -> {
-                // Cancel the request before starting if the target's view isn't attached.
-                val delegate = ViewTargetRequestDelegate(imageLoader, initialRequest, target, lifecycle, job)
-                val view = target.view
-                if (!view.isAttachedToWindow) {
-                    view.requestManager.setRequest(delegate)
-                    throw CancellationException()
-                }
-                delegate
-            }
+            is ViewTarget<*> -> ViewTargetRequestDelegate(imageLoader, initialRequest, target, lifecycle, job)
             else -> BaseRequestDelegate(lifecycle, job)
         }
     }

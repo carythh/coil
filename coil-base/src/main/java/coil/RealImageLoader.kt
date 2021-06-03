@@ -131,7 +131,7 @@ internal class RealImageLoader(
     @MainThread
     private suspend fun executeMain(initialRequest: ImageRequest, type: Int): ImageResult {
         // Wrap the request to manage its lifecycle.
-        val requestDelegate = requestService.createRequestDelegate(initialRequest, coroutineContext.job)
+        val requestDelegate = requestService.requestDelegate(initialRequest, coroutineContext.job).apply { assertActive() }
 
         // Apply this image loader's defaults to this request.
         val request = initialRequest.newBuilder().defaults(defaults).build()
