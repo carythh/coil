@@ -20,6 +20,7 @@ object Coil {
     /**
      * Get the singleton [ImageLoader].
      */
+    @JvmStatic
     fun imageLoader(context: Context) = imageLoader ?: newImageLoader(context)
 
     /**
