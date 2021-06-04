@@ -48,13 +48,14 @@ internal object DrawableUtils {
         }
 
         // Slow path: draw the drawable on a new bitmap.
-        val srcWidth = drawable.width.let { if (it > 0) it else DEFAULT_SIZE }
-        val srcHeight = drawable.height.let { if (it > 0) it else DEFAULT_SIZE }
+        val safeDrawable = drawable.mutate()
+        val srcWidth = safeDrawable.width.let { if (it > 0) it else DEFAULT_SIZE }
+        val srcHeight = safeDrawable.height.let { if (it > 0) it else DEFAULT_SIZE }
         val (width, height) = DecodeUtils.computePixelSize(srcWidth, srcHeight, size, scale)
 
         val bitmap = createBitmap(width, height, config.toSoftware())
-        drawable.apply {
-            val (oldLeft, oldTop, oldRight, oldBottom) = drawable.bounds
+        safeDrawable.apply {
+            val (oldLeft, oldTop, oldRight, oldBottom) = safeDrawable.bounds
             setBounds(0, 0, width, height)
             draw(Canvas(bitmap))
             setBounds(oldLeft, oldTop, oldRight, oldBottom)
