@@ -54,7 +54,7 @@ internal class ResourceUriFetcher(
                     drawable
                 },
                 isSampled = isVector,
-                dataSource = DataSource.MEMORY
+                dataSource = DataSource.DISK
             )
         } else {
             SourceResult(
@@ -63,7 +63,7 @@ internal class ResourceUriFetcher(
                     context = context
                 ),
                 mimeType = mimeType,
-                dataSource = DataSource.MEMORY
+                dataSource = DataSource.DISK
             )
         }
     }
