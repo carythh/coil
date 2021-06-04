@@ -6,7 +6,6 @@ import coil.request.ImageRequest
 import coil.request.ImageResult
 import coil.request.NullRequestData
 import coil.size.Size
-import kotlinx.coroutines.Job
 
 internal class RealInterceptorChain(
     val initialRequest: ImageRequest,
@@ -15,7 +14,6 @@ internal class RealInterceptorChain(
     override val request: ImageRequest,
     override val size: Size,
     val cached: Bitmap?,
-    val placeholderJob: Job?,
     val eventListener: EventListener
 ) : Interceptor.Chain {
 
@@ -52,5 +50,5 @@ internal class RealInterceptorChain(
         index: Int = this.index,
         request: ImageRequest = this.request,
         size: Size = this.size
-    ) = RealInterceptorChain(initialRequest, interceptors, index, request, size, cached, placeholderJob, eventListener)
+    ) = RealInterceptorChain(initialRequest, interceptors, index, request, size, cached, eventListener)
 }

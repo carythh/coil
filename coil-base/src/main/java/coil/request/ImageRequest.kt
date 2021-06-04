@@ -19,7 +19,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import coil.ComponentRegistry
 import coil.ImageLoader
-import coil.annotation.ExperimentalCoilApi
 import coil.decode.Decoder
 import coil.drawable.CrossfadeDrawable
 import coil.fetch.Fetcher
@@ -139,9 +138,6 @@ class ImageRequest private constructor(
     /** @see Builder.placeholderMemoryCacheKey */
     val placeholderMemoryCacheKey: MemoryCache.Key?,
 
-    /** @see Builder.placeholderRequest */
-    val placeholderRequest: ImageRequest?,
-
     private val placeholderResId: Int?,
     private val placeholderDrawable: Drawable?,
     private val errorResId: Int?,
@@ -199,7 +195,6 @@ class ImageRequest private constructor(
             diskCachePolicy == other.diskCachePolicy &&
             networkCachePolicy == other.networkCachePolicy &&
             placeholderMemoryCacheKey == other.placeholderMemoryCacheKey &&
-            placeholderRequest == other.placeholderRequest &&
             placeholderResId == other.placeholderResId &&
             placeholderDrawable == other.placeholderDrawable &&
             errorResId == other.errorResId &&
@@ -239,7 +234,6 @@ class ImageRequest private constructor(
         result = 31 * result + diskCachePolicy.hashCode()
         result = 31 * result + networkCachePolicy.hashCode()
         result = 31 * result + (placeholderMemoryCacheKey?.hashCode() ?: 0)
-        result = 31 * result + (placeholderRequest?.hashCode() ?: 0)
         result = 31 * result + (placeholderResId ?: 0)
         result = 31 * result + (placeholderDrawable?.hashCode() ?: 0)
         result = 31 * result + (errorResId ?: 0)
@@ -318,7 +312,6 @@ class ImageRequest private constructor(
         private var networkCachePolicy: CachePolicy?
 
         private var placeholderMemoryCacheKey: MemoryCache.Key?
-        private var placeholderRequest: ImageRequest?
         @DrawableRes private var placeholderResId: Int?
         private var placeholderDrawable: Drawable?
         @DrawableRes private var errorResId: Int?
@@ -360,7 +353,6 @@ class ImageRequest private constructor(
             diskCachePolicy = null
             networkCachePolicy = null
             placeholderMemoryCacheKey = null
-            placeholderRequest = null
             placeholderResId = null
             placeholderDrawable = null
             errorResId = null
@@ -402,7 +394,6 @@ class ImageRequest private constructor(
             memoryCachePolicy = request.defined.memoryCachePolicy
             diskCachePolicy = request.defined.diskCachePolicy
             networkCachePolicy = request.defined.networkCachePolicy
-            placeholderRequest = request.placeholderRequest
             placeholderMemoryCacheKey = request.placeholderMemoryCacheKey
             placeholderResId = request.placeholderResId
             placeholderDrawable = request.placeholderDrawable
@@ -438,6 +429,13 @@ class ImageRequest private constructor(
         fun data(data: Any?) = apply {
             this.data = data
         }
+
+        /**
+         * Set the memory cache key for this request.
+         *
+         * If this is null or is not set the [ImageLoader] will compute a memory cache key.
+         */
+        fun memoryCacheKey(key: String?) = memoryCacheKey(key?.let { MemoryCache.Key(it) })
 
         /**
          * Set the memory cache key for this request.
@@ -719,18 +717,15 @@ class ImageRequest private constructor(
          *
          * If there is no value in the memory cache for [key], fall back to [placeholder].
          */
-        fun placeholderMemoryCacheKey(key: MemoryCache.Key?) = apply {
-            this.placeholderMemoryCacheKey = key
-        }
+        fun placeholderMemoryCacheKey(key: String?) = placeholderMemoryCacheKey(key?.let { MemoryCache.Key(it) })
 
         /**
-         * Set a [request] that will be executed alongside this request.
+         * Set the memory cache [key] whose value will be used as the placeholder drawable.
          *
-         * [request] will be cancelled if the parent request is cancelled/completes/errors first.
+         * If there is no value in the memory cache for [key], fall back to [placeholder].
          */
-        @ExperimentalCoilApi
-        fun placeholderRequest(request: ImageRequest) = apply {
-            this.placeholderRequest = request
+        fun placeholderMemoryCacheKey(key: MemoryCache.Key?) = apply {
+            this.placeholderMemoryCacheKey = key
         }
 
         /**
@@ -890,7 +885,6 @@ class ImageRequest private constructor(
                 diskCachePolicy = diskCachePolicy ?: defaults.diskCachePolicy,
                 networkCachePolicy = networkCachePolicy ?: defaults.networkCachePolicy,
                 placeholderMemoryCacheKey = placeholderMemoryCacheKey,
-                placeholderRequest = placeholderRequest,
                 placeholderResId = placeholderResId,
                 placeholderDrawable = placeholderDrawable,
                 errorResId = errorResId,

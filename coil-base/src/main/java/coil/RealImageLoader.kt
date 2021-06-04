@@ -1,7 +1,6 @@
 package coil
 
 import android.content.Context
-import android.graphics.Bitmap
 import android.util.Log
 import androidx.annotation.MainThread
 import coil.decode.BitmapFactoryDecoder
@@ -31,7 +30,6 @@ import coil.request.NullRequestData
 import coil.request.NullRequestDataException
 import coil.request.OneShotDisposable
 import coil.request.SuccessResult
-import coil.size.Size
 import coil.target.Target
 import coil.target.ViewTarget
 import coil.transition.NoneTransition
@@ -52,14 +50,10 @@ import coil.util.toDrawable
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
 import okhttp3.Call
 import java.util.concurrent.atomic.AtomicBoolean
@@ -168,11 +162,13 @@ internal class RealImageLoader(
             val size = request.sizeResolver.size()
             eventListener.resolveSizeEnd(request, size)
 
-            // Create the placeholder request.
-            val placeholderJob = newPlaceholderJob(request, eventListener)
+            // Execute the interceptor chain.
+            val result = withContext(request.interceptorDispatcher) {
+                RealInterceptorChain(request, interceptors, 0, request, size, cached, eventListener)
+                    .proceed(request)
+            }
 
-            // Execute the interceptor chain and set the result on the target.
-            val result = execute(request, size, cached, placeholderJob, eventListener)
+            // Set the result on the target.
             when (result) {
                 is SuccessResult -> onSuccess(result, request.target, eventListener)
                 is ErrorResult -> onError(result, request.target, eventListener)
@@ -206,17 +202,6 @@ internal class RealImageLoader(
     }
 
     override fun newBuilder() = ImageLoader.Builder(this)
-
-    private suspend inline fun execute(
-        request: ImageRequest,
-        size: Size,
-        cached: Bitmap?,
-        placeholderJob: Job?,
-        eventListener: EventListener
-    ) = withContext(request.interceptorDispatcher) {
-        RealInterceptorChain(request, interceptors, 0, request, size, cached, placeholderJob, eventListener)
-            .proceed(request)
-    }
 
     private suspend inline fun onSuccess(
         result: SuccessResult,
@@ -269,20 +254,6 @@ internal class RealImageLoader(
         eventListener.transitionStart(result.request, transition)
         transition.transition()
         eventListener.transitionEnd(result.request, transition)
-    }
-
-    /** Set up the [Job] for the placeholder request. It will be started later by [EngineInterceptor]. */
-    private suspend inline fun newPlaceholderJob(request: ImageRequest, eventListener: EventListener): Job? {
-        val placeholderRequest = request.placeholderRequest ?: return null
-        return supervisorScope {
-            launch(context = Dispatchers.Main.immediate, start = CoroutineStart.LAZY) {
-                val size = placeholderRequest.sizeResolver.size()
-                val result = execute(placeholderRequest, size, null, null, EventListener.NONE)
-                request.target?.onStart(result.drawable)
-                eventListener.onStart(request)
-                request.listener?.onStart(request)
-            }
-        }
     }
 
     companion object {

@@ -53,10 +53,10 @@ internal class EngineInterceptor(
 ) : Interceptor {
 
     override suspend fun intercept(chain: Interceptor.Chain): ImageResult {
-        // This interceptor uses some internal APIs.
-        check(chain is RealInterceptorChain)
-
         try {
+            // This interceptor uses some internal APIs.
+            check(chain is RealInterceptorChain)
+
             val request = chain.request
             val context = request.context
             val data = request.data
@@ -86,16 +86,13 @@ internal class EngineInterceptor(
                 )
             }
 
-            // Start the placeholder request.
-            chain.placeholderJob?.start()
-
             // Slow path: fetch, decode, transform, and cache the image.
             return withContext(Dispatchers.Unconfined) {
                 // Fetch and decode the image.
                 val result = execute(request, mappedData, options, eventListener)
 
                 // Cache the result in the memory cache.
-                val isMemoryCached = writeToMemoryCache(memoryCacheKey, request, result)
+                val isMemoryCached = setMemoryCacheValue(memoryCacheKey, request, result)
 
                 // Return the result.
                 SuccessResult(
@@ -114,9 +111,6 @@ internal class EngineInterceptor(
             } else {
                 return requestService.errorResult(chain.request, throwable)
             }
-        } finally {
-            // Cancel the placeholder request before returning to the target.
-            chain.placeholderJob?.cancel()
         }
     }
 
@@ -386,7 +380,7 @@ internal class EngineInterceptor(
     }
 
     /** Write [drawable] to the memory cache. Return 'true' if it was added to the cache. */
-    private fun writeToMemoryCache(
+    private fun setMemoryCacheValue(
         key: MemoryCache.Key?,
         request: ImageRequest,
         result: ExecuteResult
