@@ -19,6 +19,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import coil.ComponentRegistry
 import coil.ImageLoader
+import coil.annotation.ExperimentalCoilApi
 import coil.decode.Decoder
 import coil.drawable.CrossfadeDrawable
 import coil.fetch.Fetcher
@@ -68,9 +69,6 @@ class ImageRequest private constructor(
 
     /** @see Builder.memoryCacheKey */
     val memoryCacheKey: MemoryCache.Key?,
-
-    /** @see Builder.placeholderMemoryCacheKey */
-    val placeholderMemoryCacheKey: MemoryCache.Key?,
 
     /** @see Builder.colorSpace */
     val colorSpace: ColorSpace?,
@@ -138,6 +136,12 @@ class ImageRequest private constructor(
     /** @see Builder.networkCachePolicy */
     val networkCachePolicy: CachePolicy,
 
+    /** @see Builder.placeholderMemoryCacheKey */
+    val placeholderMemoryCacheKey: MemoryCache.Key?,
+
+    /** @see Builder.placeholderRequest */
+    val placeholderRequest: ImageRequest?,
+
     private val placeholderResId: Int?,
     private val placeholderDrawable: Drawable?,
     private val errorResId: Int?,
@@ -172,7 +176,6 @@ class ImageRequest private constructor(
             target == other.target &&
             listener == other.listener &&
             memoryCacheKey == other.memoryCacheKey &&
-            placeholderMemoryCacheKey == other.placeholderMemoryCacheKey &&
             (SDK_INT < 26 || colorSpace == other.colorSpace) &&
             fetcherFactory == other.fetcherFactory &&
             decoderFactory == other.decoderFactory &&
@@ -195,6 +198,8 @@ class ImageRequest private constructor(
             memoryCachePolicy == other.memoryCachePolicy &&
             diskCachePolicy == other.diskCachePolicy &&
             networkCachePolicy == other.networkCachePolicy &&
+            placeholderMemoryCacheKey == other.placeholderMemoryCacheKey &&
+            placeholderRequest == other.placeholderRequest &&
             placeholderResId == other.placeholderResId &&
             placeholderDrawable == other.placeholderDrawable &&
             errorResId == other.errorResId &&
@@ -211,7 +216,6 @@ class ImageRequest private constructor(
         result = 31 * result + (target?.hashCode() ?: 0)
         result = 31 * result + (listener?.hashCode() ?: 0)
         result = 31 * result + (memoryCacheKey?.hashCode() ?: 0)
-        result = 31 * result + (placeholderMemoryCacheKey?.hashCode() ?: 0)
         result = 31 * result + (colorSpace?.hashCode() ?: 0)
         result = 31 * result + (fetcherFactory?.hashCode() ?: 0)
         result = 31 * result + (decoderFactory?.hashCode() ?: 0)
@@ -234,6 +238,8 @@ class ImageRequest private constructor(
         result = 31 * result + memoryCachePolicy.hashCode()
         result = 31 * result + diskCachePolicy.hashCode()
         result = 31 * result + networkCachePolicy.hashCode()
+        result = 31 * result + (placeholderMemoryCacheKey?.hashCode() ?: 0)
+        result = 31 * result + (placeholderRequest?.hashCode() ?: 0)
         result = 31 * result + (placeholderResId ?: 0)
         result = 31 * result + (placeholderDrawable?.hashCode() ?: 0)
         result = 31 * result + (errorResId ?: 0)
@@ -284,7 +290,6 @@ class ImageRequest private constructor(
         private var target: Target?
         private var listener: Listener?
         private var memoryCacheKey: MemoryCache.Key?
-        private var placeholderMemoryCacheKey: MemoryCache.Key?
         private var colorSpace: ColorSpace? = null
         private var fetcherFactory: Pair<Fetcher.Factory<*>, Class<*>>?
         private var decoderFactory: Decoder.Factory?
@@ -312,6 +317,8 @@ class ImageRequest private constructor(
         private var diskCachePolicy: CachePolicy?
         private var networkCachePolicy: CachePolicy?
 
+        private var placeholderMemoryCacheKey: MemoryCache.Key?
+        private var placeholderRequest: ImageRequest?
         @DrawableRes private var placeholderResId: Int?
         private var placeholderDrawable: Drawable?
         @DrawableRes private var errorResId: Int?
@@ -330,7 +337,6 @@ class ImageRequest private constructor(
             target = null
             listener = null
             memoryCacheKey = null
-            placeholderMemoryCacheKey = null
             if (SDK_INT >= 26) colorSpace = null
             fetcherFactory = null
             decoderFactory = null
@@ -353,6 +359,8 @@ class ImageRequest private constructor(
             memoryCachePolicy = null
             diskCachePolicy = null
             networkCachePolicy = null
+            placeholderMemoryCacheKey = null
+            placeholderRequest = null
             placeholderResId = null
             placeholderDrawable = null
             errorResId = null
@@ -372,7 +380,6 @@ class ImageRequest private constructor(
             target = request.target
             listener = request.listener
             memoryCacheKey = request.memoryCacheKey
-            placeholderMemoryCacheKey = request.placeholderMemoryCacheKey
             if (SDK_INT >= 26) colorSpace = request.colorSpace
             fetcherFactory = request.fetcherFactory
             decoderFactory = request.decoderFactory
@@ -395,6 +402,8 @@ class ImageRequest private constructor(
             memoryCachePolicy = request.defined.memoryCachePolicy
             diskCachePolicy = request.defined.diskCachePolicy
             networkCachePolicy = request.defined.networkCachePolicy
+            placeholderRequest = request.placeholderRequest
+            placeholderMemoryCacheKey = request.placeholderMemoryCacheKey
             placeholderResId = request.placeholderResId
             placeholderDrawable = request.placeholderDrawable
             errorResId = request.errorResId
@@ -429,13 +438,6 @@ class ImageRequest private constructor(
         fun data(data: Any?) = apply {
             this.data = data
         }
-
-        /**
-         * Set the memory cache key for this request.
-         *
-         * If this is null or is not set the [ImageLoader] will compute a memory cache key.
-         */
-        fun memoryCacheKey(key: String?) = memoryCacheKey(key?.let { MemoryCache.Key(it) })
 
         /**
          * Set the memory cache key for this request.
@@ -717,15 +719,18 @@ class ImageRequest private constructor(
          *
          * If there is no value in the memory cache for [key], fall back to [placeholder].
          */
-        fun placeholderMemoryCacheKey(key: String?) = placeholderMemoryCacheKey(key?.let { MemoryCache.Key(it) })
-
-        /**
-         * Set the memory cache [key] whose value will be used as the placeholder drawable.
-         *
-         * If there is no value in the memory cache for [key], fall back to [placeholder].
-         */
         fun placeholderMemoryCacheKey(key: MemoryCache.Key?) = apply {
             this.placeholderMemoryCacheKey = key
+        }
+
+        /**
+         * Set a [request] that will be executed alongside this request.
+         *
+         * [request] will be cancelled if the parent request is cancelled/completes/errors first.
+         */
+        @ExperimentalCoilApi
+        fun placeholderRequest(request: ImageRequest) = apply {
+            this.placeholderRequest = request
         }
 
         /**
@@ -862,7 +867,6 @@ class ImageRequest private constructor(
                 target = target,
                 listener = listener,
                 memoryCacheKey = memoryCacheKey,
-                placeholderMemoryCacheKey = placeholderMemoryCacheKey,
                 colorSpace = colorSpace,
                 fetcherFactory = fetcherFactory,
                 decoderFactory = decoderFactory,
@@ -885,16 +889,18 @@ class ImageRequest private constructor(
                 memoryCachePolicy = memoryCachePolicy ?: defaults.memoryCachePolicy,
                 diskCachePolicy = diskCachePolicy ?: defaults.diskCachePolicy,
                 networkCachePolicy = networkCachePolicy ?: defaults.networkCachePolicy,
-                defined = DefinedRequestOptions(lifecycle, sizeResolver, scale, interceptorDispatcher,
-                    fetcherDispatcher, decoderDispatcher, transformationDispatcher, transitionFactory, precision,
-                    bitmapConfig, allowHardware, allowRgb565, memoryCachePolicy, diskCachePolicy, networkCachePolicy),
-                defaults = defaults,
+                placeholderMemoryCacheKey = placeholderMemoryCacheKey,
+                placeholderRequest = placeholderRequest,
                 placeholderResId = placeholderResId,
                 placeholderDrawable = placeholderDrawable,
                 errorResId = errorResId,
                 errorDrawable = errorDrawable,
                 fallbackResId = fallbackResId,
-                fallbackDrawable = fallbackDrawable
+                fallbackDrawable = fallbackDrawable,
+                defined = DefinedRequestOptions(lifecycle, sizeResolver, scale, interceptorDispatcher,
+                    fetcherDispatcher, decoderDispatcher, transformationDispatcher, transitionFactory, precision,
+                    bitmapConfig, allowHardware, allowRgb565, memoryCachePolicy, diskCachePolicy, networkCachePolicy),
+                defaults = defaults,
             )
         }
 

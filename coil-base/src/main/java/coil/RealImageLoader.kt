@@ -1,6 +1,7 @@
 package coil
 
 import android.content.Context
+import android.graphics.Bitmap
 import android.util.Log
 import androidx.annotation.MainThread
 import coil.decode.BitmapFactoryDecoder
@@ -30,6 +31,7 @@ import coil.request.NullRequestData
 import coil.request.NullRequestDataException
 import coil.request.OneShotDisposable
 import coil.request.SuccessResult
+import coil.size.Size
 import coil.target.Target
 import coil.target.ViewTarget
 import coil.transition.NoneTransition
@@ -50,10 +52,14 @@ import coil.util.toDrawable
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
 import okhttp3.Call
 import java.util.concurrent.atomic.AtomicBoolean
@@ -99,7 +105,7 @@ internal class RealImageLoader(
 
     override fun enqueue(request: ImageRequest): Disposable {
         // Start executing the request on the main thread.
-        val deferred = scope.async {
+        val job = scope.async {
             executeMain(request, REQUEST_TYPE_ENQUEUE).also { result ->
                 if (result is ErrorResult) logger?.log(TAG, result.throwable)
             }
@@ -107,15 +113,15 @@ internal class RealImageLoader(
 
         // Update the current request attached to the view and return a new disposable.
         return if (request.target is ViewTarget<*>) {
-            request.target.view.requestManager.getDisposable(deferred)
+            request.target.view.requestManager.getDisposable(job)
         } else {
-            OneShotDisposable(deferred)
+            OneShotDisposable(job)
         }
     }
 
     override suspend fun execute(request: ImageRequest): ImageResult {
         // Start executing the request on the main thread.
-        val deferred = scope.async {
+        val job = scope.async {
             executeMain(request, REQUEST_TYPE_EXECUTE).also { result ->
                 if (result is ErrorResult) throw result.throwable
             }
@@ -123,15 +129,16 @@ internal class RealImageLoader(
 
         // Update the current request attached to the view and await the result.
         if (request.target is ViewTarget<*>) {
-            request.target.view.requestManager.getDisposable(deferred)
+            request.target.view.requestManager.getDisposable(job)
         }
-        return deferred.await()
+        return job.await()
     }
 
     @MainThread
     private suspend fun executeMain(initialRequest: ImageRequest, type: Int): ImageResult {
         // Wrap the request to manage its lifecycle.
-        val requestDelegate = requestService.requestDelegate(initialRequest, coroutineContext.job).apply { assertActive() }
+        val requestDelegate = requestService.requestDelegate(initialRequest, coroutineContext.job)
+            .apply { assertActive() }
 
         // Apply this image loader's defaults to this request.
         val request = initialRequest.newBuilder().defaults(defaults).build()
@@ -151,7 +158,8 @@ internal class RealImageLoader(
 
             // Set the placeholder on the target.
             val cached = memoryCache[request.placeholderMemoryCacheKey]?.bitmap
-            request.target?.onStart(cached?.toDrawable(request.context) ?: request.placeholder)
+            val placeholder = cached?.toDrawable(request.context) ?: request.placeholder
+            request.target?.onStart(placeholder)
             eventListener.onStart(request)
             request.listener?.onStart(request)
 
@@ -160,12 +168,11 @@ internal class RealImageLoader(
             val size = request.sizeResolver.size()
             eventListener.resolveSizeEnd(request, size)
 
-            // Execute the interceptor chain.
-            val result = withContext(request.interceptorDispatcher) {
-                RealInterceptorChain(request, interceptors, 0, request, size, cached, eventListener).proceed(request)
-            }
+            // Create the placeholder request.
+            val placeholderJob = newPlaceholderJob(request, eventListener)
 
-            // Set the result on the target.
+            // Execute the interceptor chain and set the result on the target.
+            val result = execute(request, size, cached, placeholderJob, eventListener)
             when (result) {
                 is SuccessResult -> onSuccess(result, request.target, eventListener)
                 is ErrorResult -> onError(result, request.target, eventListener)
@@ -199,6 +206,17 @@ internal class RealImageLoader(
     }
 
     override fun newBuilder() = ImageLoader.Builder(this)
+
+    private suspend inline fun execute(
+        request: ImageRequest,
+        size: Size,
+        cached: Bitmap?,
+        placeholderJob: Job?,
+        eventListener: EventListener
+    ) = withContext(request.interceptorDispatcher) {
+        RealInterceptorChain(request, interceptors, 0, request, size, cached, placeholderJob, eventListener)
+            .proceed(request)
+    }
 
     private suspend inline fun onSuccess(
         result: SuccessResult,
@@ -251,6 +269,20 @@ internal class RealImageLoader(
         eventListener.transitionStart(result.request, transition)
         transition.transition()
         eventListener.transitionEnd(result.request, transition)
+    }
+
+    /** Set up the [Job] for the placeholder request. It will be started later by [EngineInterceptor]. */
+    private suspend inline fun newPlaceholderJob(request: ImageRequest, eventListener: EventListener): Job? {
+        val placeholderRequest = request.placeholderRequest ?: return null
+        return supervisorScope {
+            launch(context = Dispatchers.Main.immediate, start = CoroutineStart.LAZY) {
+                val size = placeholderRequest.sizeResolver.size()
+                val result = execute(placeholderRequest, size, null, null, EventListener.NONE)
+                request.target?.onStart(result.drawable)
+                eventListener.onStart(request)
+                request.listener?.onStart(request)
+            }
+        }
     }
 
     companion object {

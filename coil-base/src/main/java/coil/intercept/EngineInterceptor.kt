@@ -53,10 +53,10 @@ internal class EngineInterceptor(
 ) : Interceptor {
 
     override suspend fun intercept(chain: Interceptor.Chain): ImageResult {
-        try {
-            // This interceptor uses some internal APIs.
-            check(chain is RealInterceptorChain)
+        // This interceptor uses some internal APIs.
+        check(chain is RealInterceptorChain)
 
+        try {
             val request = chain.request
             val context = request.context
             val data = request.data
@@ -86,6 +86,9 @@ internal class EngineInterceptor(
                 )
             }
 
+            // Start the placeholder request.
+            chain.placeholderJob?.start()
+
             // Slow path: fetch, decode, transform, and cache the image.
             return withContext(Dispatchers.Unconfined) {
                 // Fetch and decode the image.
@@ -111,6 +114,9 @@ internal class EngineInterceptor(
             } else {
                 return requestService.errorResult(chain.request, throwable)
             }
+        } finally {
+            // Cancel the placeholder request before returning to the target.
+            chain.placeholderJob?.cancel()
         }
     }
 
