@@ -118,6 +118,7 @@ class ImageDecoderDecoder(
         )
     }
 
+    @RequiresApi(28)
     class Factory : Decoder.Factory {
 
         override fun create(result: SourceResult, options: Options, imageLoader: ImageLoader): Decoder? {
