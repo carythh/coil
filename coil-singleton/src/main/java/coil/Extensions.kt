@@ -64,14 +64,14 @@ inline fun ImageView.load(
 }
 
 /**
- * Cancel any in progress work associated with this [ImageView].
+ * Dispose the request attached to this view (if there is one).
  */
 inline fun ImageView.dispose() {
     CoilUtils.dispose(this)
 }
 
 /**
- * Get the [ImageResult] of the latest executed request attached to this view.
+ * Get the [ImageResult] of the most recent executed image request attached to this view.
  */
 inline val ImageView.result: ImageResult?
     get() = CoilUtils.result(this)
