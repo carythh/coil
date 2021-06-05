@@ -90,7 +90,7 @@ internal class EngineInterceptor(
                 // Fetch and decode the image.
                 val result = execute(request, mappedData, options, eventListener)
 
-                // Cache the result in the memory cache.
+                // Store the result in the memory cache.
                 val isMemoryCached = setMemoryCacheValue(memoryCacheKey, request, result)
 
                 // Return the result.
@@ -349,7 +349,7 @@ internal class EngineInterceptor(
         )
     }
 
-    /** Apply any [Transformation]s and return an updated [DrawableResult]. */
+    /** Apply any [Transformation]s and return an updated [ExecuteResult]. */
     @VisibleForTesting
     internal suspend inline fun transform(
         result: ExecuteResult,
