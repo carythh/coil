@@ -148,11 +148,6 @@ internal class EngineInterceptor(
         return MemoryCache.Key(base, extras)
     }
 
-    /** Get the memory cache value for this request. */
-    private fun getMemoryCacheValue(request: ImageRequest, memoryCacheKey: MemoryCache.Key): MemoryCache.Value? {
-        return if (request.memoryCachePolicy.readEnabled) imageLoader.memoryCache[memoryCacheKey] else null
-    }
-
     /** Return 'true' if [cacheValue] satisfies the [request]. */
     @VisibleForTesting
     internal fun isCachedValueValid(
@@ -375,6 +370,11 @@ internal class EngineInterceptor(
             eventListener.transformEnd(request, output)
             result.copy(drawable = output.toDrawable(request.context))
         }
+    }
+
+    /** Get the memory cache value for this request. */
+    private fun getMemoryCacheValue(request: ImageRequest, memoryCacheKey: MemoryCache.Key): MemoryCache.Value? {
+        return if (request.memoryCachePolicy.readEnabled) imageLoader.memoryCache[memoryCacheKey] else null
     }
 
     /** Write [drawable] to the memory cache. Return 'true' if it was added to the cache. */
