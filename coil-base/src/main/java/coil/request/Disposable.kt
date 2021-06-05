@@ -49,11 +49,11 @@ internal class OneShotDisposable(
 /**
  * A disposable for requests that are attached to a [View].
  *
- * [ViewTarget] requests are automatically cancelled in [View.onDetachedFromWindow] and are
- * restarted in [View.onAttachedToWindow].
+ * [ViewTarget] requests are automatically cancelled in when the view is detached
+ * and are restarted when the view is attached.
  *
- * [isDisposed] only returns 'true' when this disposable's request is cleared
- * (due to [DefaultLifecycleObserver.onDestroy]) or replaced by a new request attached to the view.
+ * [isDisposed] only returns 'true' when this disposable's request is cleared (due to
+ * [DefaultLifecycleObserver.onDestroy]) or replaced by a new request attached to the view.
  */
 internal class ViewTargetDisposable(
     private val view: View,
