@@ -56,7 +56,7 @@ internal class RealWeakMemoryCache : WeakMemoryCache {
     @VisibleForTesting internal val cache = LinkedHashMap<Key, ArrayList<InternalValue>>()
     private var operationsSinceCleanUp = 0
 
-    override val keys @Synchronized get() = cache.keys
+    override val keys @Synchronized get() = cache.keys.toSet()
 
     @Synchronized
     override fun get(key: Key): Value? {
