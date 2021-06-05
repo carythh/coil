@@ -44,7 +44,7 @@ class ImageDecoderDecoder(
                 val file = source.file
                 val decoderSource = when {
                     file != null -> ImageDecoder.createSource(file)
-                    SDK_INT < 30 -> ImageDecoder.createSource(source.file())
+                    SDK_INT < 30 -> ImageDecoder.createSource(source.file()) // https://issuetracker.google.com/issues/139371066
                     else -> ImageDecoder.createSource(ByteBuffer.wrap(source.source().readByteArray()))
                 }
 
