@@ -47,8 +47,7 @@ interface MemoryCache {
     /**
      * The cache key for an image in the memory cache.
      *
-     * @param key The base component of the cache key.
-     *  Usually this is the value returned by [Keyer.key].
+     * @param key The value returned by [Keyer.key] (or a custom value).
      * @param extras Extra values that differentiate the associated
      *  cached value from other values with the same [key].
      */
