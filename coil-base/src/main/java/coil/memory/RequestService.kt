@@ -39,7 +39,11 @@ internal class RequestService(
 
     fun errorResult(request: ImageRequest, throwable: Throwable): ErrorResult {
         return ErrorResult(
-            drawable = if (throwable is NullRequestDataException) request.fallback else request.error,
+            drawable = if (throwable is NullRequestDataException) {
+                request.fallback ?: request.error
+            } else {
+                request.error
+            },
             request = request,
             throwable = throwable
         )
