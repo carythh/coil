@@ -60,7 +60,7 @@ class Application : Application(), ImageLoaderFactory {
                 OkHttpClient.Builder()
                     .dispatcher(dispatcher)
                     .addNetworkInterceptor(cacheControlInterceptor)
-                    .buildForImageLoader(this, diskCache = diskCache)
+                    .buildForImageLoader(this, diskCache)
             }
             .apply {
                 // Enable logging to the standard Android log if this is a debug build.
