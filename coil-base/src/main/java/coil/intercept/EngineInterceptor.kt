@@ -38,7 +38,6 @@ import coil.util.log
 import coil.util.safeConfig
 import coil.util.toDrawable
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -87,7 +86,7 @@ internal class EngineInterceptor(
             }
 
             // Slow path: fetch, decode, transform, and cache the image.
-            return withContext(Dispatchers.Unconfined) {
+            return withContext(request.fetcherDispatcher) {
                 // Fetch and decode the image.
                 val result = execute(request, mappedData, options, eventListener)
 
@@ -249,19 +248,18 @@ internal class EngineInterceptor(
         var components = imageLoader.components
         var fetchResult: FetchResult? = null
         val executeResult = try {
-            // Fetch the data.
-            fetchResult = withContext(request.fetcherDispatcher) {
-                if (request.fetcherFactory != null || request.decoderFactory != null) {
-                    components = components.newBuilder()
-                        .addFirst(request.fetcherFactory)
-                        .addFirst(request.decoderFactory)
-                        .build()
-                }
-                if (!requestService.allowHardwareWorkerThread(options)) {
-                    options = options.copy(config = Bitmap.Config.ARGB_8888)
-                }
-                fetch(components, request, mappedData, options, eventListener)
+            if (!requestService.allowHardwareWorkerThread(options)) {
+                options = options.copy(config = Bitmap.Config.ARGB_8888)
             }
+            if (request.fetcherFactory != null || request.decoderFactory != null) {
+                components = components.newBuilder()
+                    .addFirst(request.fetcherFactory)
+                    .addFirst(request.decoderFactory)
+                    .build()
+            }
+
+            // Fetch the data.
+            fetchResult = fetch(components, request, mappedData, options, eventListener)
 
             // Decode the data.
             when (fetchResult) {
@@ -283,7 +281,7 @@ internal class EngineInterceptor(
         }
 
         // Apply any transformations and prepare to draw.
-        val finalResult = applyTransformations(executeResult, request, options, eventListener)
+        val finalResult = transform(executeResult, request, options, eventListener)
         (finalResult.drawable as? BitmapDrawable)?.bitmap?.prepareToDraw()
         return finalResult
     }
@@ -358,7 +356,7 @@ internal class EngineInterceptor(
 
     /** Apply any [Transformation]s and return an updated [DrawableResult]. */
     @VisibleForTesting
-    internal suspend inline fun applyTransformations(
+    internal suspend inline fun transform(
         result: ExecuteResult,
         request: ImageRequest,
         options: Options,

@@ -435,7 +435,7 @@ class EngineInterceptorTest {
         val drawable = ColorDrawable(Color.BLACK)
         val size = PixelSize(100, 100)
         val result = runBlocking {
-            interceptor.applyTransformations(
+            interceptor.transform(
                 result = ExecuteResult(
                     drawable = drawable,
                     isSampled = false,
@@ -458,7 +458,7 @@ class EngineInterceptorTest {
         val interceptor = newInterceptor()
         val drawable = ColorDrawable(Color.BLACK)
         val result = runBlocking {
-            interceptor.applyTransformations(
+            interceptor.transform(
                 result = ExecuteResult(
                     drawable = drawable,
                     isSampled = false,
