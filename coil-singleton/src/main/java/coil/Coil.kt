@@ -9,8 +9,8 @@ import coil.Coil.setImageLoader
 /**
  * A class that holds the singleton [ImageLoader] instance.
  *
- * - To get the singleton [ImageLoader] use [imageLoader] or [Context.imageLoader].
- * - To set the singleton [ImageLoader] use [setImageLoader] or see [ImageLoaderFactory].
+ * - To get the singleton [ImageLoader] use [Context.imageLoader] (preferred) or [imageLoader].
+ * - To set the singleton [ImageLoader] use [ImageLoaderFactory] (preferred) or [setImageLoader].
  */
 object Coil {
 
