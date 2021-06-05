@@ -193,7 +193,7 @@ class DisposableTest {
         val disposable = imageLoader.enqueue(request)
 
         assertFalse(disposable.isDisposed)
-        CoilUtils.clear(imageView)
+        CoilUtils.dispose(imageView)
         assertTrue(disposable.isDisposed)
     }
 

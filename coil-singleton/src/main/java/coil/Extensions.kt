@@ -66,8 +66,8 @@ inline fun ImageView.load(
 /**
  * Cancel any in progress work associated with this [ImageView].
  */
-inline fun ImageView.clear() {
-    CoilUtils.clear(this)
+inline fun ImageView.dispose() {
+    CoilUtils.dispose(this)
 }
 
 /**

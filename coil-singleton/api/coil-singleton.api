@@ -1,5 +1,5 @@
 public final class coil/-SingletonExtensions {
-	public static final fun clear (Landroid/widget/ImageView;)V
+	public static final fun dispose (Landroid/widget/ImageView;)V
 	public static final fun getImageLoader (Landroid/content/Context;)Lcoil/ImageLoader;
 	public static final fun getResult (Landroid/widget/ImageView;)Lcoil/request/ImageResult;
 	public static final fun load (Landroid/widget/ImageView;Ljava/lang/Object;Lcoil/ImageLoader;Lkotlin/jvm/functions/Function1;)Lcoil/request/Disposable;

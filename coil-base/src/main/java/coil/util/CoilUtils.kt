@@ -44,7 +44,7 @@ object CoilUtils {
      * however this method is provided for convenience.
      */
     @JvmStatic
-    fun clear(view: View) {
+    fun dispose(view: View) {
         view.requestManager.dispose()
     }
 
