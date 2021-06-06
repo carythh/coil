@@ -5,6 +5,7 @@ package coil.util
 import android.content.Context
 import coil.ImageLoader
 import okhttp3.Cache
+import okhttp3.Call
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.Response
@@ -56,8 +57,9 @@ private class CacheFile(val file: File)
 internal val Response.cacheFile: File?
     get() = request.tag(CacheFile::class.java)?.file
 
-/** Fail loudly if the [OkHttpClient] was not built until [buildForImageLoader]. */
-internal fun OkHttpClient.assertHasDiskCacheInterceptor() {
+/** Fail loudly if can be determined that this is an [OkHttpClient] that was not built using [buildForImageLoader]. */
+internal fun Call.Factory.assertHasDiskCacheInterceptor() {
+    if (this !is OkHttpClient) return
     check(interceptors.lastOrNull() is DiskCacheInterceptor) {
         "OkHttpClients provided to ImageLoaders must be built using `coil.util.buildForImageLoader` " +
             "instead of the standard `build` function."

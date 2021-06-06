@@ -37,7 +37,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import okhttp3.Call
 import okhttp3.Headers
-import okhttp3.OkHttpClient
 import java.io.Closeable
 import java.io.File
 import kotlin.coroutines.CoroutineContext
@@ -97,7 +96,7 @@ internal val ImageView.scale: Scale
  */
 internal fun lazyCallFactory(initializer: () -> Call.Factory): Call.Factory {
     val lazy: Lazy<Call.Factory> = lazy {
-        initializer().apply { if (this is OkHttpClient) assertHasDiskCacheInterceptor() }
+        initializer().apply { assertHasDiskCacheInterceptor() }
     }
     return Call.Factory { lazy.value.newCall(it) } // Intentionally not a method reference.
 }

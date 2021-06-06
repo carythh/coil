@@ -27,6 +27,7 @@ import coil.util.DEFAULT_REQUEST_OPTIONS
 import coil.util.ImageLoaderOptions
 import coil.util.Logger
 import coil.util.Utils
+import coil.util.assertHasDiskCacheInterceptor
 import coil.util.buildForImageLoader
 import coil.util.getDrawableCompat
 import coil.util.lazyCallFactory
@@ -153,7 +154,7 @@ interface ImageLoader {
          * [OkHttpClient.Builder.build] to enable disk caching.
          */
         fun callFactory(callFactory: Call.Factory) = apply {
-            this.callFactory = callFactory
+            this.callFactory = callFactory.apply { assertHasDiskCacheInterceptor() }
         }
 
         /**
