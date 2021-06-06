@@ -23,12 +23,6 @@ class Application : Application(), ImageLoaderFactory {
 
     override fun newImageLoader(): ImageLoader {
         return ImageLoader.Builder(this)
-            .memoryCache(
-                MemoryCache.Builder(this)
-                    .maxSizePercent(0.25) // Use 25% of the application's available memory.
-                    .build()
-            )
-            .crossfade(true) // Show a short crossfade when loading images from network or disk.
             .components {
                 // GIFs
                 if (SDK_INT >= 28) {
@@ -41,6 +35,12 @@ class Application : Application(), ImageLoaderFactory {
                 // Video frames
                 add(VideoFrameDecoder.Factory())
             }
+            .crossfade(true) // Show a short crossfade when loading images from network or disk.
+            .memoryCache(
+                MemoryCache.Builder(this)
+                    .maxSizePercent(0.25) // Use 25% of the application's available memory.
+                    .build()
+            )
             .okHttpClient {
                 // Create a disk cache with "unlimited" size. Don't do this in production.
                 // To create the an optimized Coil disk cache, use CoilUtils.createDiskCache(context).
