@@ -83,19 +83,19 @@ internal class FileImageSource(
 ) : ImageSource() {
 
     private var isClosed = false
-    private var tempSource: BufferedSource? = null
+    private var source: BufferedSource? = null
 
     @Synchronized
     override fun source(): BufferedSource {
         assertNotClosed()
-        tempSource?.let { return it }
-        return file.source().buffer().also { tempSource = it }
+        source?.let { return it }
+        return file.source().buffer().also { source = it }
     }
 
     @Synchronized
     override fun sourceOrNull(): BufferedSource? {
         assertNotClosed()
-        return tempSource
+        return source
     }
 
     @Synchronized
@@ -104,16 +104,12 @@ internal class FileImageSource(
         return file
     }
 
-    @Synchronized
-    override fun fileOrNull(): File {
-        assertNotClosed()
-        return file
-    }
+    override fun fileOrNull() = file()
 
     @Synchronized
     override fun close() {
         isClosed = true
-        tempSource?.closeQuietly()
+        source?.closeQuietly()
         closeable?.closeQuietly()
     }
 
@@ -123,50 +119,46 @@ internal class FileImageSource(
 }
 
 internal class SourceImageSource(
-    private var source: BufferedSource,
+    source: BufferedSource,
     private val cacheDirectory: File
 ) : ImageSource() {
 
     private var isClosed = false
-    private var tempFile: File? = null
+    private var source: BufferedSource? = source
+    private var file: File? = null
 
     @Synchronized
     override fun source(): BufferedSource {
         assertNotClosed()
-        return source
+        source?.let { return it }
+        return file!!.source().buffer().also { source = it }
     }
 
-    @Synchronized
-    override fun sourceOrNull(): BufferedSource {
-        assertNotClosed()
-        return source
-    }
+    override fun sourceOrNull() = source()
 
     @Synchronized
     override fun file(): File {
         assertNotClosed()
-        tempFile?.let { return it }
+        file?.let { return it }
 
         // Copy the source to a temp file and swap the source.
-        val file = File.createTempFile("tmp", null, cacheDirectory)
-        source.use { file.sink().use(it::readAll) }
-        source = file.source().buffer()
-        tempFile = file
-
-        return file
+        val tempFile = File.createTempFile("tmp", null, cacheDirectory)
+        source!!.use { tempFile.sink().use(it::readAll) }
+        source = null
+        return tempFile.also { file = it }
     }
 
     @Synchronized
     override fun fileOrNull(): File? {
         assertNotClosed()
-        return tempFile
+        return file
     }
 
     @Synchronized
     override fun close() {
         isClosed = true
-        tempFile?.delete()
-        source.closeQuietly()
+        source?.closeQuietly()
+        file?.delete()
     }
 
     private fun assertNotClosed() {
