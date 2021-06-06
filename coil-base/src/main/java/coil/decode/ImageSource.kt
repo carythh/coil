@@ -54,40 +54,36 @@ fun ImageSource(
 sealed class ImageSource : Closeable {
 
     /**
-     * Return the underlying [BufferedSource] for this [ImageSource] if it exists.
-     * If this is null, [file] is guaranteed to be not null.
-     */
-    abstract val source: BufferedSource?
-
-    /**
-     * Return the underlying [File] for this [ImageSource] if it exists.
-     * If this is null, [source] is guaranteed to be not null.
-     */
-    abstract val file: File?
-
-    /**
      * Return a [BufferedSource] to read this [ImageSource].
-     * The source returned by this method is reused for subsequent calls.
      */
     abstract fun source(): BufferedSource
 
     /**
+     * Return the [BufferedSource] to read this [ImageSource] if one has already been created.
+     * Else, return 'null'.
+     */
+    abstract fun sourceOrNull(): BufferedSource?
+
+    /**
      * Return a [File] containing this [ImageSource]'s data.
-     * If this image source is backed by a [BufferedSource], a temporary file
-     * on disk will be created.
+     * If this image source is backed by a [BufferedSource], a temporary file will be created on disk.
      */
     abstract fun file(): File
+
+    /**
+     * Return a [File] containing this [ImageSource]'s data if one has already been created.
+     * Else, return 'null'.
+     */
+    abstract fun fileOrNull(): File?
 }
 
-private class FileImageSource(
-    override val file: File,
+internal class FileImageSource(
+    internal val file: File,
     private val closeable: Closeable?
 ) : ImageSource() {
 
     private var isClosed = false
     private var tempSource: BufferedSource? = null
-
-    override val source: BufferedSource? get() = null
 
     @Synchronized
     override fun source(): BufferedSource {
@@ -97,7 +93,19 @@ private class FileImageSource(
     }
 
     @Synchronized
+    override fun sourceOrNull(): BufferedSource? {
+        assertNotClosed()
+        return tempSource
+    }
+
+    @Synchronized
     override fun file(): File {
+        assertNotClosed()
+        return file
+    }
+
+    @Synchronized
+    override fun fileOrNull(): File {
         assertNotClosed()
         return file
     }
@@ -114,18 +122,22 @@ private class FileImageSource(
     }
 }
 
-private class SourceImageSource(
-    override var source: BufferedSource,
+internal class SourceImageSource(
+    private var source: BufferedSource,
     private val cacheDirectory: File
 ) : ImageSource() {
 
     private var isClosed = false
     private var tempFile: File? = null
 
-    override val file: File? get() = null
-
     @Synchronized
     override fun source(): BufferedSource {
+        assertNotClosed()
+        return source
+    }
+
+    @Synchronized
+    override fun sourceOrNull(): BufferedSource {
         assertNotClosed()
         return source
     }
@@ -142,6 +154,12 @@ private class SourceImageSource(
         tempFile = file
 
         return file
+    }
+
+    @Synchronized
+    override fun fileOrNull(): File? {
+        assertNotClosed()
+        return tempFile
     }
 
     @Synchronized

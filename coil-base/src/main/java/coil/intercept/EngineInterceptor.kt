@@ -32,6 +32,7 @@ import coil.util.Utils
 import coil.util.addFirst
 import coil.util.allowInexactSize
 import coil.util.closeQuietly
+import coil.util.file
 import coil.util.foldIndices
 import coil.util.forEachIndices
 import coil.util.log

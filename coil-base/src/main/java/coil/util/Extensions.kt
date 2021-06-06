@@ -23,6 +23,8 @@ import coil.ComponentRegistry
 import coil.base.R
 import coil.decode.DataSource
 import coil.decode.Decoder
+import coil.decode.FileImageSource
+import coil.decode.ImageSource
 import coil.fetch.Fetcher
 import coil.memory.MemoryCache
 import coil.memory.ViewTargetRequestManager
@@ -159,3 +161,6 @@ internal inline fun ComponentRegistry.Builder.addFirst(
 
 internal inline fun ComponentRegistry.Builder.addFirst(factory: Decoder.Factory?) =
     if (factory == null) this else addFirst(factory)
+
+internal val ImageSource.file: File?
+    get() = (this as? FileImageSource)?.file

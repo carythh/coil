@@ -188,9 +188,9 @@ public abstract interface class coil/decode/Decoder$Factory {
 
 public abstract class coil/decode/ImageSource : java/io/Closeable {
 	public abstract fun file ()Ljava/io/File;
-	public abstract fun getFile ()Ljava/io/File;
-	public abstract fun getSource ()Lokio/BufferedSource;
+	public abstract fun fileOrNull ()Ljava/io/File;
 	public abstract fun source ()Lokio/BufferedSource;
+	public abstract fun sourceOrNull ()Lokio/BufferedSource;
 }
 
 public final class coil/decode/ImageSources {

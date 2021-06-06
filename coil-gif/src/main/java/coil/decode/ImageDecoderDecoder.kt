@@ -41,7 +41,7 @@ class ImageDecoderDecoder(
         var isSampled = false
         val baseDrawable = runInterruptible {
             source.use { source ->
-                val file = source.file
+                val file = source.fileOrNull()
                 val decoderSource = when {
                     file != null -> ImageDecoder.createSource(file)
                     SDK_INT < 30 -> ImageDecoder.createSource(source.file()) // https://issuetracker.google.com/issues/139371066
