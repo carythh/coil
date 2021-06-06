@@ -129,7 +129,7 @@ interface ImageLoader {
          *
          * This is a convenience function for calling `callFactory(Call.Factory)`.
          *
-         * NOTE: You must use [OkHttpClient.Builder.buildForImageLoader] instead of
+         * NOTE: You **must use** [OkHttpClient.Builder.buildForImageLoader] instead of
          * [OkHttpClient.Builder.build] to support disk caching.
          */
         fun okHttpClient(okHttpClient: OkHttpClient) = callFactory(okHttpClient)
@@ -139,7 +139,7 @@ interface ImageLoader {
          *
          * This is a convenience function for calling `callFactory(() -> Call.Factory)`.
          *
-         * NOTE: You must use [OkHttpClient.Builder.buildForImageLoader] instead of
+         * NOTE: You **must use** [OkHttpClient.Builder.buildForImageLoader] instead of
          * [OkHttpClient.Builder.build] to support disk caching.
          */
         fun okHttpClient(initializer: () -> OkHttpClient) = callFactory(initializer)
