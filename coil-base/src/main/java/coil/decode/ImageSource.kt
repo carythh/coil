@@ -141,7 +141,7 @@ internal class SourceImageSource(
         assertNotClosed()
         file?.let { return it }
 
-        // Copy the source to a temp file and swap the source.
+        // Copy the source to a temp file.
         val tempFile = File.createTempFile("tmp", null, cacheDirectory)
         source!!.use { tempFile.sink().use(it::readAll) }
         source = null
