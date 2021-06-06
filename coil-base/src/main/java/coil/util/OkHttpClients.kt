@@ -55,3 +55,11 @@ private class CacheFile(val file: File)
 
 internal val Response.cacheFile: File?
     get() = request.tag(CacheFile::class.java)?.file
+
+/** Fail loudly if the [OkHttpClient] was not built until [buildForImageLoader]. */
+internal fun OkHttpClient.assertHasDiskCacheInterceptor() {
+    check(interceptors.lastOrNull() is DiskCacheInterceptor) {
+        "OkHttpClients provided to ImageLoaders must be built using `coil.util.buildForImageLoader` " +
+            "instead of the standard `build` function."
+    }
+}
