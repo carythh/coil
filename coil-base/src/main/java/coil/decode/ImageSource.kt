@@ -66,7 +66,8 @@ sealed class ImageSource : Closeable {
 
     /**
      * Return a [File] containing this [ImageSource]'s data.
-     * If this image source is backed by a [BufferedSource], a temporary file will be created on disk.
+     * If this image source is backed by a [BufferedSource], a temporary file containing this
+     * [ImageSource]'s data will be created.
      */
     abstract fun file(): File
 
