@@ -120,14 +120,16 @@ class BitmapFactoryDecoder(
             BitmapFactory.decodeStream(it.inputStream(), null, this)
         }
         safeSource.exception?.let { throw it }
-
-        // Apply any EXIF transformations.
         checkNotNull(outBitmap) {
             "BitmapFactory returned a null Bitmap. Often this means BitmapFactory could not decode the image data " +
                 "read from the input source (e.g. network or disk) as it's not encoded as a valid image format."
         }
+
+        // Fix the incorrect density created by overloading inDensity/inTargetDensity.
+        outBitmap.density = options.context.resources.displayMetrics.densityDpi
+
+        // Apply any EXIF transformations.
         val bitmap = applyExifTransformations(outBitmap, inPreferredConfig, isFlipped, rotationDegrees)
-        bitmap.density = Bitmap.DENSITY_NONE
 
         return DecodeResult(
             drawable = bitmap.toDrawable(options.context),
