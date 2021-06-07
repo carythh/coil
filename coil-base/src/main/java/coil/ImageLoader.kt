@@ -171,7 +171,7 @@ interface ImageLoader {
          * [OkHttpClient.Builder.build] to enable disk caching.
          */
         fun callFactory(initializer: () -> Call.Factory) = apply {
-            this.callFactory = lazyCallFactory(initializer)
+            this.callFactory = lazyCallFactory { initializer().apply { assertHasDiskCacheInterceptor() } }
         }
 
         /**

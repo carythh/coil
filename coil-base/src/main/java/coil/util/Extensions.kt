@@ -95,9 +95,7 @@ internal val ImageView.scale: Scale
  * [initializer] is called only once the first time [Call.Factory.newCall] is called.
  */
 internal fun lazyCallFactory(initializer: () -> Call.Factory): Call.Factory {
-    val lazy: Lazy<Call.Factory> = lazy {
-        initializer().apply { assertHasDiskCacheInterceptor() }
-    }
+    val lazy: Lazy<Call.Factory> = lazy(initializer)
     return Call.Factory { lazy.value.newCall(it) } // Intentionally not a method reference.
 }
 
