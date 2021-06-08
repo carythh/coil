@@ -4,6 +4,7 @@ package coil
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.drawable.Drawable
 import androidx.annotation.DrawableRes
 import coil.decode.Decoder
@@ -236,6 +237,19 @@ interface ImageLoader {
         }
 
         /**
+         * Sets the maximum number of parallel [BitmapFactory] decode operations at once.
+         *
+         * Increasing this number will allow more parallel [BitmapFactory] decode operations, however
+         * it can result in worse UI performance.
+         *
+         * Default: 4
+         */
+        fun bitmapFactoryMaxParallelism(maxParallelism: Int) = apply {
+            require(maxParallelism > 0) { "maxParallelism must be > 0." }
+            this.options = this.options.copy(bitmapFactoryMaxParallelism = maxParallelism)
+        }
+
+        /**
          * Set a single [EventListener] that will receive all callbacks for requests launched by this image loader.
          *
          * @see eventListenerFactory
@@ -334,7 +348,7 @@ interface ImageLoader {
         /**
          * The [CoroutineDispatcher] that [Decoder.decode] will be executed on.
          *
-         * Default: [Dispatchers.IO]
+         * Default: [Dispatchers.Default]
          */
         fun decoderDispatcher(dispatcher: CoroutineDispatcher) = apply {
             this.defaults = this.defaults.copy(decoderDispatcher = dispatcher)
@@ -343,7 +357,7 @@ interface ImageLoader {
         /**
          * The [CoroutineDispatcher] that [Transformation.transform] will be executed on.
          *
-         * Default: [Dispatchers.IO]
+         * Default: [Dispatchers.Default]
          */
         fun transformationDispatcher(dispatcher: CoroutineDispatcher) = apply {
             this.defaults = this.defaults.copy(transformationDispatcher = dispatcher)

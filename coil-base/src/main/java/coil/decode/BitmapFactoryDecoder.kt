@@ -16,6 +16,8 @@ import coil.size.PixelSize
 import coil.util.toDrawable
 import coil.util.toSoftware
 import kotlinx.coroutines.runInterruptible
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import okio.Buffer
 import okio.ForwardingSource
 import okio.Source
@@ -24,14 +26,17 @@ import java.io.InputStream
 import kotlin.math.roundToInt
 
 /** The base [Decoder] that uses [BitmapFactory] to decode a given [ImageSource]. */
-class BitmapFactoryDecoder(
+internal class BitmapFactoryDecoder(
     private val source: ImageSource,
-    private val options: Options
+    private val options: Options,
+    private val parallelismLock: Semaphore
 ) : Decoder {
 
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
 
-    override suspend fun decode() = runInterruptible { BitmapFactory.Options().decode() }
+    override suspend fun decode() = parallelismLock.withPermit {
+        runInterruptible { BitmapFactory.Options().decode() }
+    }
 
     private fun BitmapFactory.Options.decode(): DecodeResult {
         val safeSource = ExceptionCatchingSource(source.source())
@@ -210,10 +215,12 @@ class BitmapFactoryDecoder(
         return outBitmap
     }
 
-    class Factory : Decoder.Factory {
+    class Factory(maxParallelism: Int) : Decoder.Factory {
+
+        private val parallelismLock = Semaphore(maxParallelism)
 
         override fun create(result: SourceResult, options: Options, imageLoader: ImageLoader): Decoder {
-            return BitmapFactoryDecoder(result.source, options)
+            return BitmapFactoryDecoder(result.source, options, parallelismLock)
         }
 
         override fun equals(other: Any?) = other is Factory
@@ -262,12 +269,13 @@ class BitmapFactoryDecoder(
         }
     }
 
-    private companion object {
+    companion object {
         private const val MIME_TYPE_JPEG = "image/jpeg"
         private const val MIME_TYPE_WEBP = "image/webp"
         private const val MIME_TYPE_HEIC = "image/heic"
         private const val MIME_TYPE_HEIF = "image/heif"
         private const val GIGABYTE_IN_BYTES = 1024 * 1024 * 1024
+        internal const val DEFAULT_MAX_PARALLELISM = 4
 
         // NOTE: We don't support PNG EXIF data as it's very rarely used and requires buffering
         // the entire file into memory. All of the supported formats short circuit when the EXIF

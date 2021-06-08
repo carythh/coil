@@ -88,6 +88,7 @@ public final class coil/ImageLoader$Builder {
 	public final fun allowHardware (Z)Lcoil/ImageLoader$Builder;
 	public final fun allowRgb565 (Z)Lcoil/ImageLoader$Builder;
 	public final fun bitmapConfig (Landroid/graphics/Bitmap$Config;)Lcoil/ImageLoader$Builder;
+	public final fun bitmapFactoryMaxParallelism (I)Lcoil/ImageLoader$Builder;
 	public final fun build ()Lcoil/ImageLoader;
 	public final fun callFactory (Lkotlin/jvm/functions/Function0;)Lcoil/ImageLoader$Builder;
 	public final fun callFactory (Lokhttp3/Call$Factory;)Lcoil/ImageLoader$Builder;
@@ -128,18 +129,6 @@ public final class coil/ImageLoaders {
 }
 
 public abstract interface annotation class coil/annotation/ExperimentalCoilApi : java/lang/annotation/Annotation {
-}
-
-public final class coil/decode/BitmapFactoryDecoder : coil/decode/Decoder {
-	public fun <init> (Lcoil/decode/ImageSource;Lcoil/request/Options;)V
-	public fun decode (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
-public final class coil/decode/BitmapFactoryDecoder$Factory : coil/decode/Decoder$Factory {
-	public fun <init> ()V
-	public fun create (Lcoil/fetch/SourceResult;Lcoil/request/Options;Lcoil/ImageLoader;)Lcoil/decode/Decoder;
-	public fun equals (Ljava/lang/Object;)Z
-	public fun hashCode ()I
 }
 
 public final class coil/decode/DataSource : java/lang/Enum {
