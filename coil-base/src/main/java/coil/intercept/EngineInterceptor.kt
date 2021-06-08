@@ -435,12 +435,19 @@ internal class EngineInterceptor(
         get() = (extras[EXTRA_FILE_PATH] as? String)?.let(::File)
 
     @VisibleForTesting
-    internal data class ExecuteResult(
+    internal class ExecuteResult(
         val drawable: Drawable,
         val isSampled: Boolean,
         val dataSource: DataSource,
         val file: File?
-    )
+    ) {
+        fun copy(
+            drawable: Drawable = this.drawable,
+            isSampled: Boolean = this.isSampled,
+            dataSource: DataSource = this.dataSource,
+            file: File? = this.file
+        ) = ExecuteResult(drawable, isSampled, dataSource, file)
+    }
 
     companion object {
         private const val TAG = "EngineInterceptor"
