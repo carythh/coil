@@ -26,10 +26,10 @@ import java.io.InputStream
 import kotlin.math.roundToInt
 
 /** The base [Decoder] that uses [BitmapFactory] to decode a given [ImageSource]. */
-internal class BitmapFactoryDecoder(
+class BitmapFactoryDecoder @JvmOverloads constructor(
     private val source: ImageSource,
     private val options: Options,
-    private val parallelismLock: Semaphore
+    private val parallelismLock: Semaphore = Semaphore(Int.MAX_VALUE)
 ) : Decoder {
 
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
@@ -215,7 +215,7 @@ internal class BitmapFactoryDecoder(
         return outBitmap
     }
 
-    class Factory(maxParallelism: Int) : Decoder.Factory {
+    class Factory @JvmOverloads constructor(maxParallelism: Int = DEFAULT_MAX_PARALLELISM) : Decoder.Factory {
 
         private val parallelismLock = Semaphore(maxParallelism)
 
@@ -269,7 +269,7 @@ internal class BitmapFactoryDecoder(
         }
     }
 
-    companion object {
+    internal companion object {
         private const val MIME_TYPE_JPEG = "image/jpeg"
         private const val MIME_TYPE_WEBP = "image/webp"
         private const val MIME_TYPE_HEIC = "image/heic"

@@ -131,6 +131,23 @@ public final class coil/ImageLoaders {
 public abstract interface annotation class coil/annotation/ExperimentalCoilApi : java/lang/annotation/Annotation {
 }
 
+public final class coil/decode/BitmapFactoryDecoder : coil/decode/Decoder {
+	public static final field Companion Lcoil/decode/BitmapFactoryDecoder$Companion;
+	public fun <init> (Lcoil/decode/ImageSource;Lcoil/request/Options;)V
+	public fun <init> (Lcoil/decode/ImageSource;Lcoil/request/Options;Lkotlinx/coroutines/sync/Semaphore;)V
+	public synthetic fun <init> (Lcoil/decode/ImageSource;Lcoil/request/Options;Lkotlinx/coroutines/sync/Semaphore;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun decode (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class coil/decode/BitmapFactoryDecoder$Factory : coil/decode/Decoder$Factory {
+	public fun <init> ()V
+	public fun <init> (I)V
+	public synthetic fun <init> (IILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun create (Lcoil/fetch/SourceResult;Lcoil/request/Options;Lcoil/ImageLoader;)Lcoil/decode/Decoder;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+}
+
 public final class coil/decode/DataSource : java/lang/Enum {
 	public static final field DISK Lcoil/decode/DataSource;
 	public static final field MEMORY Lcoil/decode/DataSource;
