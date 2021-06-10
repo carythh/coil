@@ -103,7 +103,7 @@ interface MemoryCache {
         /**
          * Enables/disables weak reference tracking of values added to this memory cache.
          * Weak references do not contribute to the current size of the memory cache.
-         * This ensures that if an image is still in memory it will be returned from the memory cache.
+         * This ensures that if an image hasn't been garbage collected yet it will be returned from the memory cache.
          */
         fun weakReferencesEnabled(enable: Boolean) = apply {
             this.weakReferencesEnabled = enable
