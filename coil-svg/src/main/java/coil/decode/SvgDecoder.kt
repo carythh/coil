@@ -25,7 +25,7 @@ import okio.ByteString.Companion.encodeUtf8
 class SvgDecoder @JvmOverloads constructor(
     private val source: ImageSource,
     private val options: Options,
-    private val useViewBoundsAsIntrinsicSize: Boolean = true
+    val useViewBoundsAsIntrinsicSize: Boolean = true
 ) : Decoder {
 
     override suspend fun decode() = runInterruptible {
@@ -95,7 +95,9 @@ class SvgDecoder @JvmOverloads constructor(
         )
     }
 
-    class Factory(private val useViewBoundsAsIntrinsicSize: Boolean = true) : Decoder.Factory {
+    class Factory @JvmOverloads constructor(
+        val useViewBoundsAsIntrinsicSize: Boolean = true
+    ) : Decoder.Factory {
 
         override fun create(result: SourceResult, options: Options, imageLoader: ImageLoader): Decoder? {
             if (!isApplicable(result)) return null
