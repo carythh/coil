@@ -64,8 +64,8 @@ class CrossfadeTransition @JvmOverloads constructor(
     }
 
     class Factory @JvmOverloads constructor(
-        private val durationMillis: Int = CrossfadeDrawable.DEFAULT_DURATION,
-        private val preferExactIntrinsicSize: Boolean = false
+        val durationMillis: Int = CrossfadeDrawable.DEFAULT_DURATION,
+        val preferExactIntrinsicSize: Boolean = false
     ) : Transition.Factory {
 
         init {

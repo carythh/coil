@@ -880,6 +880,8 @@ public final class coil/transition/CrossfadeTransition$Factory : coil/transition
 	public synthetic fun <init> (IZILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun create (Lcoil/transition/TransitionTarget;Lcoil/request/ImageResult;)Lcoil/transition/Transition;
 	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDurationMillis ()I
+	public final fun getPreferExactIntrinsicSize ()Z
 	public fun hashCode ()I
 }
 
