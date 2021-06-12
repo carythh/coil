@@ -69,6 +69,6 @@ internal fun Call.Factory.assertHasDiskCacheInterceptor() {
     if (this !is OkHttpClient) return
     check(interceptors.lastOrNull() is DiskCacheInterceptor) {
         "The ImageLoader is unable to read the disk cache of the OkHttpClient provided to it." +
-            "Call `OkHttpClient.Builder.imageLoaderDiskCache` after setting any interceptors to fix this."
+            "Set `OkHttpClient.Builder.imageLoaderDiskCache` **after adding any interceptors** to fix this."
     }
 }

@@ -60,7 +60,7 @@ class Application : Application(), ImageLoaderFactory {
                 OkHttpClient.Builder()
                     .dispatcher(dispatcher)
                     .addNetworkInterceptor(cacheControlInterceptor)
-                    .imageLoaderDiskCache(diskCache)
+                    .imageLoaderDiskCache(diskCache) // Must be set after adding interceptors.
                     .build()
             }
             .apply {
