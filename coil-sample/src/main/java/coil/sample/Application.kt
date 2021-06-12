@@ -13,7 +13,7 @@ import coil.decode.SvgDecoder
 import coil.decode.VideoFrameDecoder
 import coil.memory.MemoryCache
 import coil.util.DebugLogger
-import coil.util.buildForImageLoader
+import coil.util.imageLoaderDiskCache
 import okhttp3.Cache
 import okhttp3.Dispatcher
 import okhttp3.OkHttpClient
@@ -60,7 +60,8 @@ class Application : Application(), ImageLoaderFactory {
                 OkHttpClient.Builder()
                     .dispatcher(dispatcher)
                     .addNetworkInterceptor(cacheControlInterceptor)
-                    .buildForImageLoader(this, diskCache)
+                    .imageLoaderDiskCache(diskCache)
+                    .build()
             }
             .apply {
                 // Enable logging to the standard Android log if this is a debug build.

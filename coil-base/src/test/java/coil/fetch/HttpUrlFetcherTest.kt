@@ -11,7 +11,6 @@ import coil.network.HttpException
 import coil.request.CachePolicy
 import coil.request.Options
 import coil.size.PixelSize
-import coil.util.buildForImageLoader
 import coil.util.createMockWebServer
 import coil.util.createTestMainDispatcher
 import coil.util.runBlockingTest
@@ -57,7 +56,7 @@ class HttpUrlFetcherTest {
         mainDispatcher = createTestMainDispatcher()
         server = createMockWebServer(context, "normal.jpg")
         diskCache = Cache(File("build/cache"), Long.MAX_VALUE).apply { evictAll() }
-        callFactory = OkHttpClient().newBuilder().buildForImageLoader(context, diskCache)
+        callFactory = OkHttpClient.Builder().imageLoaderDiskCache(diskCache).build()
     }
 
     @After

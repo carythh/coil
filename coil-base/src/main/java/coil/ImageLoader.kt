@@ -29,8 +29,8 @@ import coil.util.ImageLoaderOptions
 import coil.util.Logger
 import coil.util.Utils
 import coil.util.assertHasDiskCacheInterceptor
-import coil.util.buildForImageLoader
 import coil.util.getDrawableCompat
+import coil.util.imageLoaderDiskCache
 import coil.util.lazyCallFactory
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -131,8 +131,7 @@ interface ImageLoader {
          *
          * This is a convenience function for calling `callFactory(Call.Factory)`.
          *
-         * NOTE: You **must use** [OkHttpClient.Builder.buildForImageLoader] instead of
-         * [OkHttpClient.Builder.build] to support disk caching.
+         * **NOTE: You must set [OkHttpClient.Builder.imageLoaderDiskCache] to enable disk caching.**
          */
         fun okHttpClient(okHttpClient: OkHttpClient) = callFactory(okHttpClient)
 
@@ -141,8 +140,7 @@ interface ImageLoader {
          *
          * This is a convenience function for calling `callFactory(() -> Call.Factory)`.
          *
-         * NOTE: You **must use** [OkHttpClient.Builder.buildForImageLoader] instead of
-         * [OkHttpClient.Builder.build] to support disk caching.
+         * **NOTE: You must set [OkHttpClient.Builder.imageLoaderDiskCache] to enable disk caching.**
          */
         fun okHttpClient(initializer: () -> OkHttpClient) = callFactory(initializer)
 
@@ -151,8 +149,7 @@ interface ImageLoader {
          *
          * Calling [okHttpClient] automatically sets this value.
          *
-         * NOTE: You must use [OkHttpClient.Builder.buildForImageLoader] instead of
-         * [OkHttpClient.Builder.build] to enable disk caching.
+         * **NOTE: You must set [OkHttpClient.Builder.imageLoaderDiskCache] to enable disk caching.**
          */
         fun callFactory(callFactory: Call.Factory) = apply {
             this.callFactory = callFactory.apply { assertHasDiskCacheInterceptor() }
@@ -168,8 +165,7 @@ interface ImageLoader {
          *
          * Calling [okHttpClient] automatically sets this value.
          *
-         * NOTE: You must use [OkHttpClient.Builder.buildForImageLoader] instead of
-         * [OkHttpClient.Builder.build] to enable disk caching.
+         * **NOTE: You must set [OkHttpClient.Builder.imageLoaderDiskCache] to enable disk caching.**
          */
         fun callFactory(initializer: () -> Call.Factory) = apply {
             this.callFactory = lazyCallFactory { initializer().apply { assertHasDiskCacheInterceptor() } }
@@ -451,7 +447,7 @@ interface ImageLoader {
         }
 
         private fun buildDefaultCallFactory() = lazyCallFactory {
-            OkHttpClient.Builder().buildForImageLoader(applicationContext)
+            OkHttpClient.Builder().imageLoaderDiskCache(applicationContext).build()
         }
     }
 

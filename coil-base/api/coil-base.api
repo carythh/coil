@@ -927,8 +927,7 @@ public abstract interface class coil/util/Logger {
 }
 
 public final class coil/util/OkHttpClients {
-	public static final fun buildForImageLoader (Lokhttp3/OkHttpClient$Builder;Landroid/content/Context;)Lokhttp3/OkHttpClient;
-	public static final fun buildForImageLoader (Lokhttp3/OkHttpClient$Builder;Landroid/content/Context;Lokhttp3/Cache;)Lokhttp3/OkHttpClient;
-	public static synthetic fun buildForImageLoader$default (Lokhttp3/OkHttpClient$Builder;Landroid/content/Context;Lokhttp3/Cache;ILjava/lang/Object;)Lokhttp3/OkHttpClient;
+	public static final fun imageLoaderDiskCache (Lokhttp3/OkHttpClient$Builder;Landroid/content/Context;)Lokhttp3/OkHttpClient$Builder;
+	public static final fun imageLoaderDiskCache (Lokhttp3/OkHttpClient$Builder;Lokhttp3/Cache;)Lokhttp3/OkHttpClient$Builder;
 }
 

@@ -1,4 +1,5 @@
 @file:JvmName("OkHttpClients")
+@file:Suppress("unused")
 
 package coil.util
 
@@ -12,26 +13,26 @@ import okhttp3.Response
 import java.io.File
 
 /**
- * Builds an [OkHttpClient] with extensions for use with an [ImageLoader].
+ * A convenience function to set the default image loader disk cache for this [OkHttpClient].
+ */
+fun OkHttpClient.Builder.imageLoaderDiskCache(context: Context) =
+    imageLoaderDiskCache(CoilUtils.createDiskCache(context))
+
+/**
+ * Sets the disk cache for this [OkHttpClient] and adds extensions so an [ImageLoader] can read its disk cache.
  *
- * @param context A context.
  * @param diskCache The disk cache to use with this [OkHttpClient].
  */
-@JvmOverloads
-fun OkHttpClient.Builder.buildForImageLoader(
-    context: Context,
-    diskCache: Cache? = CoilUtils.createDiskCache(context)
-): OkHttpClient {
+fun OkHttpClient.Builder.imageLoaderDiskCache(diskCache: Cache?) = apply {
     cache(diskCache)
     interceptors().removeIfIndices { it is DiskCacheInterceptor }
     if (diskCache != null) interceptors() += DiskCacheInterceptor(diskCache)
-    return build()
 }
 
 /**
  * Tags [Response]s with their associated disk cache file.
- * This relies on implementation details of the [Cache] class to determine the file name.
- * Must be the last non-network interceptor in the chain.
+ * This must be the last non-network interceptor in the chain as it relies on
+ * implementation details of the [Cache] class to determine the file name..
  */
 private class DiskCacheInterceptor(private val diskCache: Cache) : Interceptor {
 
@@ -54,14 +55,18 @@ private class DiskCacheInterceptor(private val diskCache: Cache) : Interceptor {
 /** Use a private class so its tag is guaranteed not to be overwritten. */
 private class CacheFile(val file: File)
 
+/** Get the cache file on disk for this response. */
 internal val Response.cacheFile: File?
     get() = request.tag(CacheFile::class.java)?.file
 
-/** Fail loudly if can be determined that this is an [OkHttpClient] that was not built using [buildForImageLoader]. */
+/**
+ * Fail loudly if it can be determined that this is an [OkHttpClient]
+ * that was built without calling [imageLoaderDiskCache].
+ */
 internal fun Call.Factory.assertHasDiskCacheInterceptor() {
     if (this !is OkHttpClient) return
     check(interceptors.lastOrNull() is DiskCacheInterceptor) {
-        "OkHttpClients provided to ImageLoaders must be built using `coil.util.buildForImageLoader` " +
-            "instead of the standard `build` function."
+        "The ImageLoader is unable to read the disk cache of the OkHttpClient provided to it." +
+            "Call `OkHttpClient.Builder.imageLoaderDiskCache` after setting any interceptors to fix this."
     }
 }
