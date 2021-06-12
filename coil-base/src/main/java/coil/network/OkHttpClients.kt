@@ -1,10 +1,12 @@
 @file:JvmName("OkHttpClients")
 @file:Suppress("unused")
 
-package coil.util
+package coil.network
 
 import android.content.Context
 import coil.ImageLoader
+import coil.util.CoilUtils
+import coil.util.removeIfIndices
 import okhttp3.Cache
 import okhttp3.Call
 import okhttp3.Interceptor

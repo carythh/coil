@@ -12,8 +12,8 @@ import coil.decode.ImageDecoderDecoder
 import coil.decode.SvgDecoder
 import coil.decode.VideoFrameDecoder
 import coil.memory.MemoryCache
+import coil.network.imageLoaderDiskCache
 import coil.util.DebugLogger
-import coil.util.imageLoaderDiskCache
 import okhttp3.Cache
 import okhttp3.Dispatcher
 import okhttp3.OkHttpClient

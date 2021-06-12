@@ -12,6 +12,8 @@ import coil.drawable.CrossfadeDrawable
 import coil.fetch.Fetcher
 import coil.intercept.Interceptor
 import coil.memory.MemoryCache
+import coil.network.assertHasDiskCacheInterceptor
+import coil.network.imageLoaderDiskCache
 import coil.request.CachePolicy
 import coil.request.DefaultRequestOptions
 import coil.request.Disposable
@@ -28,9 +30,7 @@ import coil.util.DEFAULT_REQUEST_OPTIONS
 import coil.util.ImageLoaderOptions
 import coil.util.Logger
 import coil.util.Utils
-import coil.util.assertHasDiskCacheInterceptor
 import coil.util.getDrawableCompat
-import coil.util.imageLoaderDiskCache
 import coil.util.lazyCallFactory
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers

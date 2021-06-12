@@ -8,9 +8,9 @@ import coil.ImageLoader
 import coil.decode.DataSource
 import coil.decode.ImageSource
 import coil.network.HttpException
+import coil.network.cacheFile
 import coil.request.Options
 import coil.util.await
-import coil.util.cacheFile
 import coil.util.closeQuietly
 import coil.util.dispatcher
 import coil.util.getMimeTypeFromUrl
