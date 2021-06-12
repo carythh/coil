@@ -15,9 +15,7 @@ import java.lang.ref.WeakReference
 /**
  * An in-memory cache that holds weak references to [Bitmap]s.
  *
- * This is used as a secondary caching layer for [StrongMemoryCache].
- * [StrongMemoryCache] holds strong references to its bitmaps.
- * Bitmaps are added to this cache when they're removed from [StrongMemoryCache].
+ * Bitmaps are added to [WeakMemoryCache] when they're removed from [StrongMemoryCache].
  */
 internal interface WeakMemoryCache {
 
