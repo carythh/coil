@@ -30,13 +30,13 @@ fun OkHttpClient.Builder.imageLoaderDiskCache(diskCache: Cache?) = apply {
     cache(diskCache)
     val interceptors = interceptors()
     interceptors.removeIfIndices { it is DiskCacheInterceptor }
-    interceptors += if (diskCache != null) DiskCacheInterceptor(diskCache) else EMPTY_DISK_CACHE_INTERCEPTOR
+    if (diskCache != null) interceptors += DiskCacheInterceptor(diskCache)
 }
 
 /**
  * Tags [Response]s with their associated disk cache file.
  * This must be the last non-network interceptor in the chain as it relies on
- * implementation details of the [Cache] class to determine the file name..
+ * implementation details of the [Cache] class to determine the file name.
  */
 private class DiskCacheInterceptor(private val diskCache: Cache) : Interceptor {
 
@@ -53,9 +53,6 @@ private class DiskCacheInterceptor(private val diskCache: Cache) : Interceptor {
     }
 }
 
-/** A dummy interceptor to mark that [imageLoaderDiskCache] was called. */
-private val EMPTY_DISK_CACHE_INTERCEPTOR = Interceptor { it.proceed(it.request()) }
-
 /** Use a private class so its tag is guaranteed not to be overwritten. */
 private class CacheFile(val file: File)
 
@@ -69,13 +66,12 @@ internal val Response.cacheFile: File?
 
 /**
  * Fail loudly if it can be determined that this is an [OkHttpClient]
- * that was built without calling [imageLoaderDiskCache].
+ * with a [Cache] that was built without calling [imageLoaderDiskCache].
  */
 internal fun Call.Factory.assertHasDiskCacheInterceptor() {
-    if (this !is OkHttpClient) return
-    val lastInterceptor = interceptors.lastOrNull()
-    check(lastInterceptor is DiskCacheInterceptor || lastInterceptor === EMPTY_DISK_CACHE_INTERCEPTOR) {
+    if (this !is OkHttpClient || cache == null) return
+    check(interceptors.lastOrNull() is DiskCacheInterceptor) {
         "The ImageLoader is unable to read the disk cache of the OkHttpClient provided to it." +
-            "Set `OkHttpClient.Builder.imageLoaderDiskCache` **after adding any interceptors** to fix this."
+            "Set `OkHttpClient.Builder.imageLoaderDiskCache` after adding any interceptors to fix this."
     }
 }
