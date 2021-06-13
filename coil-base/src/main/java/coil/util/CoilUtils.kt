@@ -2,10 +2,12 @@ package coil.util
 
 import android.content.Context
 import android.view.View
+import coil.network.imageLoaderDiskCache
 import coil.request.Disposable
 import coil.request.ImageResult
 import okhttp3.Cache
 import okhttp3.HttpUrl
+import okhttp3.OkHttpClient
 import java.io.File
 
 /** Public utility methods for Coil. */
@@ -16,6 +18,8 @@ object CoilUtils {
 
     /**
      * Create an OkHttp disk cache with a reasonable default size and location.
+     *
+     * @see OkHttpClient.Builder.imageLoaderDiskCache
      */
     @JvmStatic
     fun createDiskCache(context: Context): Cache {
