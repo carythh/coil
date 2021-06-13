@@ -11,6 +11,7 @@ import okhttp3.Cache
 import okhttp3.Call
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
+import okhttp3.Request
 import okhttp3.Response
 import java.io.File
 
@@ -27,8 +28,9 @@ fun OkHttpClient.Builder.imageLoaderDiskCache(context: Context) =
  */
 fun OkHttpClient.Builder.imageLoaderDiskCache(diskCache: Cache?) = apply {
     cache(diskCache)
-    interceptors().removeIfIndices { it is DiskCacheInterceptor }
-    if (diskCache != null) interceptors() += DiskCacheInterceptor(diskCache)
+    val interceptors = interceptors()
+    interceptors.removeIfIndices { it is DiskCacheInterceptor }
+    interceptors += if (diskCache != null) DiskCacheInterceptor(diskCache) else EMPTY_DISK_CACHE_INTERCEPTOR
 }
 
 /**
@@ -43,19 +45,23 @@ private class DiskCacheInterceptor(private val diskCache: Cache) : Interceptor {
         val request = response.request
         val cacheFile = CoilUtils.getDiskCacheFile(diskCache, request.url)
         if (cacheFile.exists()) {
-            val newRequest = request.newBuilder()
-                .tag(CacheFile::class.java, CacheFile(cacheFile))
-                .build()
             response = response.newBuilder()
-                .request(newRequest)
+                .request(request.newBuilder().cacheFile(cacheFile).build())
                 .build()
         }
         return response
     }
 }
 
+/** A dummy interceptor to mark that [imageLoaderDiskCache] was called. */
+private val EMPTY_DISK_CACHE_INTERCEPTOR = Interceptor { it.proceed(it.request()) }
+
 /** Use a private class so its tag is guaranteed not to be overwritten. */
 private class CacheFile(val file: File)
+
+/** Get the cache file on disk for this request. */
+private fun Request.Builder.cacheFile(file: File) =
+    tag(CacheFile::class.java, CacheFile(file))
 
 /** Get the cache file on disk for this response. */
 internal val Response.cacheFile: File?
@@ -67,7 +73,8 @@ internal val Response.cacheFile: File?
  */
 internal fun Call.Factory.assertHasDiskCacheInterceptor() {
     if (this !is OkHttpClient) return
-    check(interceptors.lastOrNull() is DiskCacheInterceptor) {
+    val lastInterceptor = interceptors.lastOrNull()
+    check(lastInterceptor is DiskCacheInterceptor || lastInterceptor === EMPTY_DISK_CACHE_INTERCEPTOR) {
         "The ImageLoader is unable to read the disk cache of the OkHttpClient provided to it." +
             "Set `OkHttpClient.Builder.imageLoaderDiskCache` **after adding any interceptors** to fix this."
     }
