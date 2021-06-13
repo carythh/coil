@@ -21,7 +21,6 @@ import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.Request
 import okhttp3.ResponseBody
-import okio.Buffer
 import okio.blackholeSink
 import kotlin.coroutines.coroutineContext
 
@@ -89,10 +88,8 @@ internal class HttpUrlFetcher(
                 // deleted while being read and it will be cleaned up at the end of the request.
                 ImageSource(cacheFile, source)
             } else {
-                // Read the file into memory.
-                val buffer = Buffer()
-                source.use { it.readAll(buffer) }
-                ImageSource(buffer, options.context)
+                // Read directly from the response source.
+                ImageSource(source, options.context)
             }
 
             return SourceResult(
