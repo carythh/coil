@@ -51,6 +51,9 @@ fun ImageSource(
     cacheDirectory: File
 ): ImageSource = SourceImageSource(source, cacheDirectory)
 
+/**
+ * Provides access to the image data to be decoded.
+ */
 sealed class ImageSource : Closeable {
 
     /**
